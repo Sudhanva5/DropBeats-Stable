@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import AppKit
 import Network
+import KeyboardShortcuts
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
@@ -19,6 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         setupMenuBar()
         setupPopover()
+        setupKeyboardShortcuts()
         
         // Observe WebSocket connection changes
         NotificationCenter.default.addObserver(
@@ -35,6 +37,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSNotification.Name("TrackChanged"),
             object: nil
         )
+    }
+    
+    private func setupKeyboardShortcuts() {
+        KeyboardShortcuts.onKeyDown(for: .toggleCommandPalette) { [weak self] in
+            Task { @MainActor in
+                await CommandPalette.shared.toggle()
+            }
+        }
     }
     
     private func setupMenuBar() {

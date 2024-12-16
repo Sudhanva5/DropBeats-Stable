@@ -51,15 +51,10 @@ function handleCommand(command, message) {
     // Define multiple selectors for each control, ordered by reliability
     const selectors = {
         playPause: [
-            // By aria-label
             'button[aria-label*="Play"], button[aria-label*="Pause"]',
-            // By class
             '.play-pause-button',
-            // By role and title
             'button[role="button"][title*="Play"], button[role="button"][title*="Pause"]',
-            // By data attribute
             '[data-testid="play-pause-button"]',
-            // Generic player controls
             '.ytmusic-player-bar button[aria-label*="Play"], .ytmusic-player-bar button[aria-label*="Pause"]'
         ],
         next: [
@@ -152,11 +147,160 @@ function handleCommand(command, message) {
     
     try {
         switch (command) {
-            case 'play':
-            case 'pause': {
+            case 'play': {
+                // Check if we have a song ID to play
+                if (message?.data?.id) {
+                    console.log('🎵 [DropBeat] Playing song by ID:', message.data.id);
+                    
+                    // Get current URL and video ID
+                    const currentUrl = new URL(window.location.href);
+                    const currentVideoId = currentUrl.searchParams.get('v');
+                    console.log('🔍 [DropBeat] Current video ID:', currentVideoId);
+                    
+                    // If we're already on the correct video, just ensure it's playing
+                    if (currentVideoId === message.data.id) {
+                        console.log('✅ [DropBeat] Already on correct video, ensuring playback');
+                        const video = document.querySelector('video');
+                        const playButton = findElement(selectors.playPause);
+                        
+                        if (video && video.paused) {
+                            console.log('▶️ [DropBeat] Starting playback of current video');
+                            try {
+                                video.play();
+                            } catch (error) {
+                                console.log('⚠️ [DropBeat] video.play() failed, trying button click');
+                                playButton?.click();
+                            }
+                        }
+                        return;
+                    }
+
+                    // Navigate to the song
+                    const songUrl = `https://music.youtube.com/watch?v=${message.data.id}`;
+                    console.log('🔀 [DropBeat] Navigating to:', songUrl);
+                    
+                    // Get current track signature before navigating
+                    const titleElement = document.querySelector('.ytmusic-player-bar .title.style-scope.ytmusic-player-bar');
+                    const artistElement = document.querySelector('.ytmusic-player-bar .byline.style-scope.ytmusic-player-bar');
+                    const currentSignature = `${titleElement?.textContent?.trim() || ''}-${artistElement?.textContent?.trim() || ''}`;
+                    
+                    // Set up a mutation observer before navigation
+                    const observer = new MutationObserver((mutations, obs) => {
+                        const video = document.querySelector('video');
+                        const playButton = findElement(selectors.playPause);
+                        const newTitleElement = document.querySelector('.ytmusic-player-bar .title.style-scope.ytmusic-player-bar');
+                        const newArtistElement = document.querySelector('.ytmusic-player-bar .byline.style-scope.ytmusic-player-bar');
+                        const newSignature = `${newTitleElement?.textContent?.trim() || ''}-${newArtistElement?.textContent?.trim() || ''}`;
+                        
+                        // Check if we have all elements and the track has changed
+                        if (video && playButton && newSignature !== currentSignature && newTitleElement?.textContent?.trim()) {
+                            console.log('👀 [DropBeat] New track detected after navigation');
+                            
+                            // Wait a bit for everything to load
+                            setTimeout(async () => {
+                                try {
+                                    // Force update track info first
+                                    updateTrackInfo(true);
+                                    
+                                    // Try to start playback
+                                    console.log('▶️ [DropBeat] Starting playback after navigation');
+                                    try {
+                                        await video.play();
+                                        console.log('✅ [DropBeat] Playback started via video.play()');
+                                    } catch (error) {
+                                        console.log('⚠️ [DropBeat] video.play() failed, trying button click');
+                                        playButton.click();
+                                        // Double check if we need to click again
+                                        setTimeout(() => {
+                                            if (video.paused) {
+                                                console.log('⚠️ [DropBeat] Still paused, clicking again');
+                                                playButton.click();
+                                            }
+                                        }, 500);
+                                    }
+                                    
+                                    // Force update track info again after playback starts
+                                    setTimeout(() => {
+                                        updateTrackInfo(true);
+                                    }, 1000);
+                                } catch (error) {
+                                    console.error('❌ [DropBeat] Error starting playback:', error);
+                                }
+                            }, 1000);
+                            
+                            // Disconnect the observer once we've handled the playback
+                            obs.disconnect();
+                        }
+                    });
+                    
+                    // Start observing for changes
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true
+                    });
+                    
+                    // Navigate to the song
+                    window.location.href = songUrl;
+                    
+                    return;
+                }
+                
+                // If no ID, just toggle play/pause
                 const button = findElement(selectors.playPause);
                 if (button) {
                     console.log('▶️ [DropBeat] Found play/pause button, clicking...');
+                    const video = document.querySelector('video');
+                    const wasPlaying = !video?.paused;
+                    
+                    // Get current track signature before clicking
+                    const titleElement = document.querySelector('.ytmusic-player-bar .title.style-scope.ytmusic-player-bar');
+                    const artistElement = document.querySelector('.ytmusic-player-bar .byline.style-scope.ytmusic-player-bar');
+                    const originalSignature = `${titleElement?.textContent?.trim() || ''}-${artistElement?.textContent?.trim() || ''}`;
+                    
+                    // Add a small delay before clicking to let any previous operations complete
+                    setTimeout(() => {
+                        // Click the button
+                        button.click();
+                        
+                        // Wait for the video state to actually change
+                        if (video) {
+                            waitForPlayStateChange(wasPlaying, originalSignature).then(result => {
+                                if (result.changed) {
+                                    // Verify one final time that track hasn't changed
+                                    if (verifyTrackUnchanged(originalSignature)) {
+                                        setTimeout(() => {
+                                            const updatedTrackInfo = {
+                                                ...lastTrackInfo,
+                                                isPlaying: result.isPlaying
+                                            };
+                                            lastTrackInfo = updatedTrackInfo;
+                                            chrome.runtime.sendMessage({
+                                                type: 'TRACK_INFO',
+                                                data: updatedTrackInfo
+                                            });
+                                        }, 100);
+                                    } else {
+                                        console.warn('⚠️ [DropBeat] Track changed during play/pause operation');
+                                        updateTrackInfo(true); // Force update with new track info
+                                    }
+                                } else {
+                                    if (result.reason === 'track_changed') {
+                                        console.warn('⚠️ [DropBeat] Track changed unexpectedly during play/pause');
+                                        updateTrackInfo(true); // Force update with new track info
+                                    } else {
+                                        console.warn('⚠️ [DropBeat] Play state did not change as expected');
+                                    }
+                                }
+                            });
+                        }
+                    }, 100);
+                }
+                break;
+            }
+            case 'pause': {
+                const button = findElement(selectors.playPause);
+                if (button) {
+                    console.log('⏸️ [DropBeat] Found play/pause button, clicking...');
                     const video = document.querySelector('video');
                     const wasPlaying = !video?.paused;
                     
@@ -340,39 +484,47 @@ function getTrackInfo() {
     // More specific selectors for YouTube Music
     const titleElement = document.querySelector('.ytmusic-player-bar .title.style-scope.ytmusic-player-bar');
     const artistElement = document.querySelector('.ytmusic-player-bar .byline.style-scope.ytmusic-player-bar');
-    const albumArtElement = document.querySelector('.ytmusic-player-bar img.image.style-scope.ytmusic-player-bar');
+    const albumArtElement = document.querySelector('img.ytmusic-player-bar');
     const likeButton = document.querySelector('ytmusic-like-button-renderer');
     
-    const title = titleElement?.textContent?.trim() || 'No Track Playing';
-    const artist = artistElement?.textContent?.trim() || 'Unknown Artist';
+    // Only return track info if we have a title and artist
+    const title = titleElement?.textContent?.trim();
+    const artist = artistElement?.textContent?.trim();
+    if (!title || !artist) {
+        console.log('⚠️ [DropBeat] Missing title or artist');
+        return null;
+    }
     
-    // Generate a unique ID based on title and artist if it's a new track
-    const trackSignature = `${title}-${artist}`;
-    if (trackSignature !== lastTrackSignature) {
-        currentTrackId = crypto.randomUUID();
-        lastTrackSignature = trackSignature;
+    // Get the actual video ID from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoId = urlParams.get('v');
+    console.log('🎵 [DropBeat] Current video ID from URL:', videoId);
+
+    // Always use video ID as track ID if available
+    currentTrackId = videoId;
+    lastTrackSignature = `${title}-${artist}`;
+    console.log('🆔 [DropBeat] Track ID:', currentTrackId, 'for track:', title, 'by', artist);
+
+    // Get the album art URL and ensure it's a high-quality version
+    let albumArtUrl = albumArtElement?.src;
+    if (albumArtUrl) {
+        // Replace any existing size parameters with a larger size
+        albumArtUrl = albumArtUrl.replace(/=w\d+-h\d+/, '=w500-h500');
     }
 
-    console.log('🔍 [DropBeat] Found elements:', {
-        title: title,
-        artist: artist,
-        albumArt: albumArtElement?.src,
-        video: video ? 'Yes' : 'No',
-        isPlaying: !video.paused,
-        currentTime: video.currentTime,
-        duration: video.duration
-    });
-
-    return {
+    const trackInfo = {
         id: currentTrackId,
         title: title,
         artist: artist,
-        albumArt: albumArtElement?.src,
+        albumArtUrl: albumArtUrl,
         isPlaying: !video.paused,
         currentTime: video.currentTime,
         duration: video.duration || 0,
         isLiked: likeButton?.getAttribute('like-status') === 'LIKE'
     };
+
+    console.log('🔍 [DropBeat] Track info:', trackInfo);
+    return trackInfo;
 }
 
 function updateTrackInfo(force = false, retryCount = 0) {

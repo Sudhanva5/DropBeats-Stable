@@ -30,15 +30,4 @@ struct SearchResultRow: View {
         .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
         .contentShape(Rectangle())
     }
-}
-
-// MARK: - ResultType Extensions
-extension SearchResult.ResultType {
-    var iconName: String {
-        switch self {
-        case .song: return "music.note"
-        case .album: return "square.stack"
-        case .playlist: return "music.note.list"
-        }
-    }
 } 

@@ -11,20 +11,17 @@ struct CommandPaletteView: View {
     
     @ObservedObject private var wsManager = WebSocketManager.shared
     
-    private var recentSection: SearchSection {
-        SearchSection(
-            id: "recent",
-            title: "Recently Played",
-            results: wsManager.recentTracks.prefix(5).map { track in
-                SearchResult(
-                    id: track.id,
-                    title: track.title,
-                    artist: track.artist,
-                    type: .song,
-                    thumbnailUrl: track.albumArt
-                )
-            }
-        )
+    private var recentlyPlayedSection: SearchSection {
+        let recentResults = wsManager.recentTracks.map { track -> SearchResult in
+            SearchResult(
+                id: track.id,
+                title: track.title,
+                artist: track.artist,
+                type: .song,
+                thumbnailUrl: track.albumArt
+            )
+        }
+        return SearchSection(id: "recent", title: "Recently Played", results: recentResults)
     }
     
     private var searchSections: [SearchSection] {
@@ -42,7 +39,7 @@ struct CommandPaletteView: View {
     }
     
     private var displaySections: [SearchSection] {
-        state.searchText.isEmpty ? [recentSection] : searchSections
+        state.searchText.isEmpty ? [recentlyPlayedSection] : searchSections
     }
     
     var body: some View {
@@ -125,10 +122,36 @@ struct CommandPaletteView: View {
             forName: NSNotification.Name("PlaybackError"),
             object: nil,
             queue: .main
-        ) { notification in
+        ) { [self] notification in
             if let error = notification.userInfo?["error"] as? String,
                let url = notification.userInfo?["url"] as? String {
                 self.playbackError = (error: error, url: url)
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("SearchResults"),
+            object: nil,
+            queue: .main
+        ) { [self] notification in
+            if let results = notification.userInfo?["results"] as? [SearchResult] {
+                self.searchResults = results
+                self.isSearching = false
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("SearchError"),
+            object: nil,
+            queue: .main
+        ) { [self] notification in
+            if let error = notification.userInfo?["error"] as? String,
+               let searchUrl = notification.userInfo?["searchUrl"] as? String {
+                self.searchError = SearchError(
+                    message: error == "NO_RESULTS" ? "No results found" : "Search failed",
+                    searchUrl: searchUrl
+                )
+                self.isSearching = false
             }
         }
     }

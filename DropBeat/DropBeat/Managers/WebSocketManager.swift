@@ -24,6 +24,7 @@ class WebSocketManager: ObservableObject {
     
     @Published var isConnected = false
     @Published var currentTrack: Track?
+    @Published var recentTracks: [Track] = []
     
     private init() {
         print("🎵 [DropBeat] Initializing WebSocket Manager...")
@@ -299,8 +300,19 @@ class WebSocketManager: ObservableObject {
                     if let trackData = json["data"] as? [String: Any],
                        let trackJson = try? JSONSerialization.data(withJSONObject: trackData),
                        let track = try? JSONDecoder().decode(Track.self, from: trackJson) {
+                        print("🎵 [DropBeat] Received track info - ID:", track.id, "Title:", track.title)
                         DispatchQueue.main.async { [weak self] in
                             self?.currentTrack = track
+                            // Add track to recent tracks if it's not already there
+                            if !(self?.recentTracks.contains { $0.id == track.id } ?? false) {
+                                print("📝 [DropBeat] Adding track to recent tracks - ID:", track.id)
+                                self?.recentTracks.insert(track, at: 0)
+                                // Keep only the last 10 tracks
+                                if self?.recentTracks.count ?? 0 > 10 {
+                                    self?.recentTracks.removeLast()
+                                }
+                                print("📋 [DropBeat] Recent tracks updated, count:", self?.recentTracks.count ?? 0)
+                            }
                             NotificationCenter.default.post(
                                 name: NSNotification.Name("TrackChanged"),
                                 object: nil,
@@ -308,6 +320,39 @@ class WebSocketManager: ObservableObject {
                             )
                         }
                     }
+                    
+                case "SEARCH_RESULTS":
+                    if let resultsData = json["data"] as? [[String: Any]] {
+                        let results = resultsData.map { result -> SearchResult in
+                            SearchResult(
+                                id: result["id"] as? String ?? "",
+                                title: result["title"] as? String ?? "",
+                                artist: result["artist"] as? String ?? "",
+                                type: SearchResultType(rawValue: result["type"] as? String ?? "") ?? .song,
+                                thumbnailUrl: result["thumbnailUrl"] as? String
+                            )
+                        }
+                        // Post notification with search results
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("SearchResults"),
+                            object: nil,
+                            userInfo: ["results": results]
+                        )
+                    }
+                    
+                case "SEARCH_ERROR":
+                    if let error = json["error"] as? String,
+                       let searchUrl = json["searchUrl"] as? String {
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("SearchError"),
+                            object: nil,
+                            userInfo: [
+                                "error": error,
+                                "searchUrl": searchUrl
+                            ]
+                        )
+                    }
+                    
                 default:
                     break
                 }
@@ -421,9 +466,24 @@ class WebSocketManager: ObservableObject {
         sendCommand("previous")
     }
     
-    func play() {
-        print("▶️ [DropBeat] Play")
-        sendCommand("play")
+    func play(id: String? = nil, type: SearchResultType = .song) {
+        print("▶️ [DropBeat] Play", id ?? "current track")
+        if let id = id {
+            print("🎯 [DropBeat] Playing specific track with ID:", id)
+            let message: [String: Any] = [
+                "type": "COMMAND",
+                "command": "play",
+                "data": [
+                    "id": id,
+                    "type": type.rawValue
+                ]
+            ]
+            print("📤 [DropBeat] Sending play command with data:", message)
+            sendResponse(message)
+        } else {
+            print("▶️ [DropBeat] Playing/pausing current track")
+            sendCommand("play")
+        }
     }
     
     func pause() {
@@ -457,8 +517,8 @@ class WebSocketManager: ObservableObject {
                 title: track.title,
                 artist: track.artist,
                 albumArt: track.albumArt,
-                isLiked: track.isLiked,
                 duration: track.duration,
+                isLiked: track.isLiked,
                 isPlaying: track.isPlaying,
                 currentTime: roundedPosition
             )
@@ -479,6 +539,93 @@ class WebSocketManager: ObservableObject {
         }
         
         print("📤 [DropBeat] Sending message:", message)
+        sendResponse(message)
+    }
+    
+    // MARK: - Command Palette Methods
+    
+    func search(query: String, onSuccess: @escaping ([SearchResult]) -> Void, onError: @escaping (String, String) -> Void) {
+        guard isConnected else {
+            onError("NOT_CONNECTED", "https://music.youtube.com/search?q=\(query)")
+            return
+        }
+        
+        // Create URL components for the search request
+        var components = URLComponents()
+        components.scheme = "http"
+        components.host = "localhost"
+        components.port = 8000
+        components.path = "/search/\(query)"
+        
+        guard let url = components.url else {
+            onError("INVALID_URL", "https://music.youtube.com/search?q=\(query)")
+            return
+        }
+        
+        // Make the search request to our server
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ [DropBeat] Search error:", error)
+                DispatchQueue.main.async {
+                    onError("NETWORK_ERROR", "https://music.youtube.com/search?q=\(query)")
+                }
+                return
+            }
+            
+            guard let data = data else {
+                print("❌ [DropBeat] No data received")
+                DispatchQueue.main.async {
+                    onError("NO_DATA", "https://music.youtube.com/search?q=\(query)")
+                }
+                return
+            }
+            
+            do {
+                // Parse the nested response structure
+                struct SearchResponse: Codable {
+                    let categories: Categories
+                    
+                    struct Categories: Codable {
+                        let songs: [SearchResult]
+                        
+                        enum CodingKeys: String, CodingKey {
+                            case songs
+                        }
+                        
+                        init(from decoder: Decoder) throws {
+                            let container = try decoder.container(keyedBy: CodingKeys.self)
+                            songs = try container.decode([SearchResult].self, forKey: .songs)
+                        }
+                        
+                        func encode(to encoder: Encoder) throws {
+                            var container = encoder.container(keyedBy: CodingKeys.self)
+                            try container.encode(songs, forKey: .songs)
+                        }
+                    }
+                }
+                
+                let response = try JSONDecoder().decode(SearchResponse.self, from: data)
+                DispatchQueue.main.async {
+                    onSuccess(response.categories.songs)
+                }
+            } catch {
+                print("❌ [DropBeat] JSON decode error:", error)
+                DispatchQueue.main.async {
+                    onError("DECODE_ERROR", "https://music.youtube.com/search?q=\(query)")
+                }
+            }
+        }.resume()
+    }
+    
+    func play(id: String, type: SearchResultType) {
+        let message: [String: Any] = [
+            "type": "COMMAND",
+            "command": "play",
+            "data": [
+                "id": id,
+                "type": type.rawValue
+            ]
+        ]
         sendResponse(message)
     }
 }

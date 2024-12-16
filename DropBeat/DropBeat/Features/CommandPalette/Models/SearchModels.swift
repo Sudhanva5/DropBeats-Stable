@@ -1,16 +1,32 @@
 import Foundation
 
-struct SearchResult: Identifiable {
+enum SearchResultType: String, Codable {
+    case song
+    case album
+    case playlist
+    
+    var iconName: String {
+        switch self {
+        case .song: return "music.note"
+        case .album: return "square.stack"
+        case .playlist: return "music.note.list"
+        }
+    }
+}
+
+struct SearchResult: Identifiable, Hashable, Codable {
     let id: String
     let title: String
     let artist: String
-    let type: ResultType
+    let type: SearchResultType
     let thumbnailUrl: String?
     
-    enum ResultType: String, Codable {
-        case song
-        case album
-        case playlist
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: SearchResult, rhs: SearchResult) -> Bool {
+        lhs.id == rhs.id
     }
 }
 
@@ -20,8 +36,7 @@ struct SearchSection: Identifiable {
     let results: [SearchResult]
 }
 
-struct SearchError: Identifiable {
-    let id = UUID()
+struct SearchError {
     let message: String
     let searchUrl: String
 } 
