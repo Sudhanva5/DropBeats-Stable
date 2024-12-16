@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DropBeat</title>
+    <style>
+        body {
+            width: 300px;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            margin: 0;
+        }
+        
+        h2 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .connected {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+        
+        .disconnected {
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+        }
+        
+        p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .status-indicator::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-indicator.connected::before {
+            background-color: #198754;
+        }
+        
+        .status-indicator.disconnected::before {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h2>DropBeat</h2>
+    
+    <div id="status" class="status">Checking connection...</div>
+    
+    <p>This extension helps DropBeat communicate with YouTube Music.</p>
+    
+    <div id="connection-status-container" class="status-indicator">
+        Status: <span id="connection-status">Checking...</span>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

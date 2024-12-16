@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "DropBeat for YouTube Music",
+    "version": "1.0",
+    "description": "Control YouTube Music from DropBeat macOS app",
+    "permissions": [
+        "tabs",
+        "storage",
+        "nativeMessaging"
+    ],
+    "host_permissions": [
+        "*://*.music.youtube.com/*",
+        "ws://localhost/*",
+        "http://localhost/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://*.music.youtube.com/*"],
+            "js": ["content.js"]
+        }
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    }
+}
