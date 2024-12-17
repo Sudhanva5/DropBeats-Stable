@@ -45,4 +45,21 @@ yarn-error.log*
 # Environment variables
 .env
 .env.local
-.env.*.local 
+.env.*.local
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+project.xcworkspace/
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
