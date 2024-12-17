@@ -12,9 +12,11 @@ struct CommandPaletteView: View {
     @ObservedObject private var wsManager = WebSocketManager.shared
     
     private var recentlyPlayedSection: SearchSection {
-        let recentResults = wsManager.recentTracks.map { track -> SearchResult in
-            SearchResult(
-                id: track.id,
+        let recentResults = wsManager.recentTracks.compactMap { track -> SearchResult? in
+            // Only create search results for tracks with valid IDs
+            guard let id = track.id else { return nil }
+            return SearchResult(
+                id: id,
                 title: track.title,
                 artist: track.artist,
                 type: .song,
@@ -30,11 +32,17 @@ struct CommandPaletteView: View {
         let songs = searchResults.filter { $0.type == .song }
         let albums = searchResults.filter { $0.type == .album }
         let playlists = searchResults.filter { $0.type == .playlist }
+        let podcasts = searchResults.filter { $0.type == .podcast }
+        let videos = searchResults.filter { $0.type == .video }
+        let episodes = searchResults.filter { $0.type == .episode }
         
         return [
             SearchSection(id: "songs", title: "Songs", results: songs.prefix(5).map { $0 }),
-            SearchSection(id: "albums", title: "Albums", results: albums.prefix(3).map { $0 }),
-            SearchSection(id: "playlists", title: "Playlists", results: playlists.prefix(3).map { $0 })
+            SearchSection(id: "albums", title: "Albums", results: albums.prefix(5).map { $0 }),
+            SearchSection(id: "playlists", title: "Playlists", results: playlists.prefix(5).map { $0 }),
+            SearchSection(id: "podcasts", title: "Podcasts", results: podcasts.prefix(5).map { $0 }),
+            SearchSection(id: "videos", title: "Videos", results: videos.prefix(5).map { $0 }),
+            SearchSection(id: "episodes", title: "Episodes", results: episodes.prefix(5).map { $0 })
         ].filter { !$0.results.isEmpty }
     }
     
@@ -177,16 +185,10 @@ struct CommandPaletteView: View {
         searchError = nil
         
         wsManager.search(query: state.searchText) { results in
-            searchResults = results.map { result in
-                SearchResult(
-                    id: result.id,
-                    title: result.title,
-                    artist: result.artist,
-                    type: result.type.rawValue == "playlist" ? .playlist : .song,
-                    thumbnailUrl: result.thumbnailUrl
-                )
-            }
-            isSearching = false
+            print("🔍 [CommandPalette] Received search results:", results.count)
+            self.searchResults = results
+            print("📊 [CommandPalette] Results by type:", Dictionary(grouping: results, by: { $0.type.rawValue }).mapValues { $0.count })
+            self.isSearching = false
         } onError: { error, searchUrl in
             searchError = SearchError(
                 message: error == "NO_RESULTS" ? "No results found" : "Search failed",

@@ -1,7 +1,7 @@
 import Foundation
 
 struct Track: Codable, Identifiable {
-    let id: String
+    let id: String?
     let title: String
     let artist: String
     let albumArt: String?
@@ -31,4 +31,20 @@ struct Track: Codable, Identifiable {
         isPlaying: false,
         currentTime: 0
     )
+}
+
+// Custom Equatable implementation to handle null IDs
+extension Track: Equatable {
+    static func == (lhs: Track, rhs: Track) -> Bool {
+        // If both IDs are present, compare them
+        if let lhsId = lhs.id, let rhsId = rhs.id {
+            return lhsId == rhsId
+        }
+        
+        // If IDs are nil or different, compare other relevant fields
+        return lhs.title == rhs.title &&
+               lhs.artist == rhs.artist &&
+               lhs.isPlaying == rhs.isPlaying &&
+               abs(lhs.currentTime - rhs.currentTime) < 1 // Allow 1 second difference
+    }
 } 

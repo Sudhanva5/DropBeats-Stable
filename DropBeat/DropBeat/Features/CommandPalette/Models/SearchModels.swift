@@ -4,12 +4,18 @@ enum SearchResultType: String, Codable {
     case song
     case album
     case playlist
+    case podcast
+    case video
+    case episode
     
     var iconName: String {
         switch self {
         case .song: return "music.note"
         case .album: return "square.stack"
         case .playlist: return "music.note.list"
+        case .podcast: return "mic"
+        case .video: return "play.tv"
+        case .episode: return "play.circle"
         }
     }
 }

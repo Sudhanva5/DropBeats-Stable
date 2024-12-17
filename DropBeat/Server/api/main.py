@@ -156,17 +156,44 @@ async def search(query: str, limit: Optional[int] = 20):
             "songs": [],
             "playlists": [],
             "albums": [],
-            "videos": []
+            "videos": [],
+            "podcasts": [],
+            "episodes": []
         }
+        
+        # Track seen IDs to avoid duplicates
+        seen_ids = set()
         
         # Search for songs
         logger.info("🎵 Performing YTMusic search...")
-        songs = ytmusic.search(query, filter="songs", limit=limit)
-        logger.info(f"✅ Found {len(songs)} songs")
+        search_results = ytmusic.search(query, limit=limit)
+        logger.info(f"✅ Found {len(search_results)} results")
+        logger.debug(f"Raw search results: {search_results}")
         
-        for item in songs:
+        for item in search_results:
             try:
-                if not item.get("videoId"):
+                # Get and validate ID
+                video_id = item.get("videoId")
+                browse_id = item.get("browseId")
+                
+                # Skip if no valid ID
+                if not video_id and not browse_id:
+                    logger.debug(f"⚠️ Skipping item without valid ID: {item}")
+                    continue
+                
+                # Use appropriate ID
+                item_id = video_id if video_id else browse_id
+                
+                # Skip if we've seen this ID before
+                if item_id in seen_ids:
+                    logger.debug(f"⚠️ Skipping duplicate ID: {item_id}")
+                    continue
+                
+                seen_ids.add(item_id)
+                
+                # Skip channel results (these often have Unknown Title/Artist)
+                if item.get("resultType") == "channel" or (browse_id and browse_id.startswith("UC")):
+                    logger.debug(f"⚠️ Skipping channel result: {item_id}")
                     continue
                     
                 # Get artists
@@ -183,21 +210,59 @@ async def search(query: str, limit: Optional[int] = 20):
                     if thumbnails:
                         thumbnail = thumbnails[-1]["url"]
                 
+                # Determine result type based on YTMusic's category
+                category = item.get("category", "").lower()
+                result_type = "song"  # default type
+                
+                # Debug logging
+                logger.debug(f"Processing item - Category: {category}, Type: {item.get('type', 'unknown')}")
+                
+                # Map YTMusic categories to our types
+                if "song" in category or "song" in str(item.get("type", "")).lower():
+                    result_type = "song"
+                elif "album" in category or "album" in str(item.get("type", "")).lower():
+                    result_type = "album"
+                elif "playlist" in category or "playlist" in str(item.get("type", "")).lower():
+                    result_type = "playlist"
+                elif "podcast" in category or "podcast" in str(item.get("type", "")).lower():
+                    result_type = "podcast"
+                elif "episode" in category or "episode" in str(item.get("type", "")).lower():
+                    result_type = "episode"
+                elif "video" in category or "video" in str(item.get("type", "")).lower():
+                    result_type = "video"
+                
+                logger.debug(f"Mapped type: {result_type}")
+                
+                # Skip if title is missing or empty
+                title = item.get("title", "").strip()
+                if not title:
+                    logger.debug(f"⚠️ Skipping item without title: {item_id}")
+                    continue
+                
+                # Create result object
                 result = {
-                    "id": item["videoId"],
-                    "title": item.get("title", "Unknown Title"),
-                    "artist": " & ".join(artists) if artists else "Unknown Artist",
+                    "id": item_id,
+                    "title": title,
+                    "artist": " & ".join(artists) if artists else item.get("author", "Unknown Artist"),
                     "thumbnailUrl": thumbnail,
-                    "type": "song",
+                    "type": result_type,
                     "duration": item.get("duration", ""),
                     "album": item.get("album", {}).get("name") if item.get("album") else None
                 }
-                categorized_results["songs"].append(result)
-                logger.debug(f"📝 Processed song: {result['title']} by {result['artist']}")
+                
+                # Add to appropriate category
+                category = result_type + "s"  # pluralize for category name
+                if category in categorized_results and len(categorized_results[category]) < 5:
+                    categorized_results[category].append(result)
+                    logger.debug(f"📝 Added to {category}: {result['title']}")
                 
             except Exception as e:
-                logger.error(f"❌ Error formatting song: {str(e)}", exc_info=True)
+                logger.error(f"❌ Error formatting result: {str(e)}", exc_info=True)
                 continue
+
+        # Log category counts for debugging
+        for category, results in categorized_results.items():
+            logger.info(f"Category {category}: {len(results)} results")
 
         # Prepare response
         response = {

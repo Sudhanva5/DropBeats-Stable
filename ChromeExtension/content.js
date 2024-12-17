@@ -148,6 +148,13 @@ function handleCommand(command, message) {
     try {
         switch (command) {
             case 'play': {
+                // Check if we have a URL to navigate to (for collections)
+                if (message?.data?.url) {
+                    console.log('🔀 [DropBeat] Navigating to collection:', message.data.url);
+                    window.location.href = message.data.url;
+                    return;
+                }
+                
                 // Check if we have a song ID to play
                 if (message?.data?.id) {
                     console.log('🎵 [DropBeat] Playing song by ID:', message.data.id);
@@ -548,7 +555,7 @@ function updateTrackInfo(force = false, retryCount = 0) {
             if (response?.sent) {
                 console.log('✅ [DropBeat] Track info sent successfully');
             } else {
-                console.warn('⚠️ [DropBeat] Failed to send track info');
+                console.warn('⚠��� [DropBeat] Failed to send track info');
                 // Retry up to 2 times with increasing delay
                 if (retryCount < 2) {
                     const delay = Math.pow(2, retryCount) * 500; // 500ms, then 1000ms
