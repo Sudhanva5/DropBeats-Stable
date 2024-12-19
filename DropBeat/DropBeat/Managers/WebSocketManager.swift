@@ -579,53 +579,18 @@ class WebSocketManager: ObservableObject {
         let command = "play"
         var data: [String: Any] = ["type": type.rawValue]
         
-        // Extract playlist ID from URL if present
-        func extractPlaylistId(from id: String) -> String {
-            if id.contains("list=") {
-                let components = id.components(separatedBy: "list=")
-                if components.count > 1 {
-                    // Remove any additional parameters after the playlist ID
-                    return components[1].components(separatedBy: "&")[0]
-                }
-            }
-            return id
-        }
-        
-        // Extract video ID from URL if present
-        func extractVideoId(from id: String) -> String {
-            if id.contains("watch?v=") {
-                let components = id.components(separatedBy: "watch?v=")
-                if components.count > 1 {
-                    // Remove any additional parameters
-                    return components[1].components(separatedBy: "&")[0]
-                }
-            }
-            return id
-        }
-        
-        // Get the appropriate ID based on content type
         switch type {
-        case .playlist, .album, .podcast:
-            // For collections, construct a navigation URL
-            let playlistId = extractPlaylistId(from: id)
-            // Remove VL prefix if present (for playlists)
-            let cleanId = playlistId.hasPrefix("VL") ? String(playlistId.dropFirst(2)) : playlistId
-            data["id"] = cleanId
-            data["url"] = "https://music.youtube.com/playlist?list=\(cleanId)"
-            
-        case .video, .episode, .song:
-            // For videos, episodes, and songs, use the video ID
-            let videoId = extractVideoId(from: id)
-            data["id"] = videoId
+        case .playlist:
+            // For playlists, construct the proper YouTube Music playlist URL
+            let playlistUrl = "https://music.youtube.com/playlist?list=\(id)"
+            data["url"] = playlistUrl
+            data["id"] = id
+        default:
+            // For songs and other types, use the ID directly
+            data["id"] = id
         }
         
-        let message: [String: Any] = [
-            "type": "COMMAND",
-            "command": command,
-            "data": data
-        ]
-        print("📤 [DropBeat] Sending play command:", message)
-        sendResponse(message)
+        sendCommand(command, data: data)
     }
     
     func pause() {

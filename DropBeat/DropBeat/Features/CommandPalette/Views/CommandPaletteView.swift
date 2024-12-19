@@ -30,19 +30,11 @@ struct CommandPaletteView: View {
         guard !searchResults.isEmpty else { return [] }
         
         let songs = searchResults.filter { $0.type == .song }
-        let albums = searchResults.filter { $0.type == .album }
         let playlists = searchResults.filter { $0.type == .playlist }
-        let podcasts = searchResults.filter { $0.type == .podcast }
-        let videos = searchResults.filter { $0.type == .video }
-        let episodes = searchResults.filter { $0.type == .episode }
         
         return [
             SearchSection(id: "songs", title: "Songs", results: songs.prefix(5).map { $0 }),
-            SearchSection(id: "albums", title: "Albums", results: albums.prefix(5).map { $0 }),
-            SearchSection(id: "playlists", title: "Playlists", results: playlists.prefix(5).map { $0 }),
-            SearchSection(id: "podcasts", title: "Podcasts", results: podcasts.prefix(5).map { $0 }),
-            SearchSection(id: "videos", title: "Videos", results: videos.prefix(5).map { $0 }),
-            SearchSection(id: "episodes", title: "Episodes", results: episodes.prefix(5).map { $0 })
+            SearchSection(id: "playlists", title: "Playlists", results: playlists.prefix(5).map { $0 })
         ].filter { !$0.results.isEmpty }
     }
     

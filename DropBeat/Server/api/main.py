@@ -24,7 +24,17 @@ app.add_middleware(
 )
 
 # Initialize YTMusic
-ytmusic = YTMusic()
+try:
+    # Try to initialize with OAuth
+    ytmusic = YTMusic('oauth.json')
+except Exception as e:
+    logger.warning(f"OAuth initialization failed: {e}, falling back to browser authentication")
+    try:
+        # Fall back to browser authentication
+        ytmusic = YTMusic('headers_auth.json')
+    except Exception as e:
+        logger.warning(f"Browser authentication failed: {e}, falling back to unauthenticated mode")
+        ytmusic = YTMusic()
 
 # WebSocket connections
 active_connections: Set[WebSocket] = set()
@@ -32,6 +42,10 @@ active_connections: Set[WebSocket] = set()
 # Simple cache
 cache: Dict[str, tuple[List, float]] = {}
 CACHE_DURATION = 3600  # 1 hour
+
+# Cache for playlist details to avoid repeated fetches
+playlist_cache: Dict[str, tuple[dict, float]] = {}
+PLAYLIST_CACHE_DURATION = 300  # 5 minutes
 
 @app.get("/health")
 async def health_check():
@@ -118,7 +132,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 elif data["type"] == "TRACK_INFO":
                     # Forward track info to all other connections (Swift app)
-                    logger.info(f"📤 [{client_id}] Forwarding track info to other connections: {data}")
+                    logger.info(f"��� [{client_id}] Forwarding track info to other connections: {data}")
                     for conn in active_connections:
                         if conn != websocket:
                             await conn.send_text(message)
@@ -175,14 +189,32 @@ async def search(query: str, limit: Optional[int] = 20):
                 # Get and validate ID
                 video_id = item.get("videoId")
                 browse_id = item.get("browseId")
+                playlist_id = item.get("playlistId")
                 
                 # Skip if no valid ID
-                if not video_id and not browse_id:
+                if not video_id and not browse_id and not playlist_id:
                     logger.debug(f"⚠️ Skipping item without valid ID: {item}")
                     continue
                 
-                # Use appropriate ID
-                item_id = video_id if video_id else browse_id
+                # Determine result type based on YTMusic's category
+                category = item.get("category", "").lower()
+                item_type = str(item.get("type", "")).lower()
+                
+                # Use appropriate ID based on type
+                if "playlist" in category or "playlist" in item_type:
+                    # For playlists, prefer playlistId, fallback to browseId
+                    item_id = playlist_id if playlist_id else browse_id
+                    # Remove VL prefix if present (for playlists)
+                    if item_id and item_id.startswith("VL"):
+                        item_id = item_id[2:]
+                else:
+                    # For other types, prefer videoId
+                    item_id = video_id if video_id else browse_id
+                
+                # Skip if still no valid ID
+                if not item_id:
+                    logger.debug(f"⚠️ Skipping item without valid ID after type check: {item}")
+                    continue
                 
                 # Skip if we've seen this ID before
                 if item_id in seen_ids:
@@ -210,25 +242,19 @@ async def search(query: str, limit: Optional[int] = 20):
                     if thumbnails:
                         thumbnail = thumbnails[-1]["url"]
                 
-                # Determine result type based on YTMusic's category
-                category = item.get("category", "").lower()
-                result_type = "song"  # default type
-                
-                # Debug logging
-                logger.debug(f"Processing item - Category: {category}, Type: {item.get('type', 'unknown')}")
-                
                 # Map YTMusic categories to our types
-                if "song" in category or "song" in str(item.get("type", "")).lower():
+                result_type = "song"  # default type
+                if "song" in category or "song" in item_type:
                     result_type = "song"
-                elif "album" in category or "album" in str(item.get("type", "")).lower():
+                elif "album" in category or "album" in item_type:
                     result_type = "album"
-                elif "playlist" in category or "playlist" in str(item.get("type", "")).lower():
+                elif "playlist" in category or "playlist" in item_type:
                     result_type = "playlist"
-                elif "podcast" in category or "podcast" in str(item.get("type", "")).lower():
+                elif "podcast" in category or "podcast" in item_type:
                     result_type = "podcast"
-                elif "episode" in category or "episode" in str(item.get("type", "")).lower():
+                elif "episode" in category or "episode" in item_type:
                     result_type = "episode"
-                elif "video" in category or "video" in str(item.get("type", "")).lower():
+                elif "video" in category or "video" in item_type:
                     result_type = "video"
                 
                 logger.debug(f"Mapped type: {result_type}")
@@ -251,10 +277,10 @@ async def search(query: str, limit: Optional[int] = 20):
                 }
                 
                 # Add to appropriate category
-                category = result_type + "s"  # pluralize for category name
-                if category in categorized_results and len(categorized_results[category]) < 5:
-                    categorized_results[category].append(result)
-                    logger.debug(f"📝 Added to {category}: {result['title']}")
+                result_category = result_type + "s"  # pluralize for category name
+                if result_category in categorized_results and len(categorized_results[result_category]) < 5:
+                    categorized_results[result_category].append(result)
+                    logger.debug(f"📝 Added to {result_category}: {result['title']}")
                 
             except Exception as e:
                 logger.error(f"❌ Error formatting result: {str(e)}", exc_info=True)
@@ -279,6 +305,88 @@ async def search(query: str, limit: Optional[int] = 20):
     except Exception as e:
         logger.error(f"❌ Search error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+
+@app.get("/playlist/{playlist_id}")
+async def get_playlist(playlist_id: str):
+    """Get playlist details and tracks"""
+    try:
+        # Remove VL prefix if present
+        if playlist_id.startswith("VL"):
+            playlist_id = playlist_id[2:]
+        
+        # Check cache
+        if playlist_id in playlist_cache:
+            playlist_data, timestamp = playlist_cache[playlist_id]
+            if time.time() - timestamp < PLAYLIST_CACHE_DURATION:
+                logger.info(f"💾 Cache hit for playlist: {playlist_id}")
+                return playlist_data
+        
+        logger.info(f"🎵 Fetching playlist: {playlist_id}")
+        playlist_data = ytmusic.get_playlist(playlist_id, limit=None)
+        
+        # Cache the result
+        playlist_cache[playlist_id] = (playlist_data, time.time())
+        
+        return playlist_data
+    except Exception as e:
+        logger.error(f"Failed to get playlist {playlist_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/playlist/{playlist_id}/refresh")
+async def refresh_playlist(playlist_id: str):
+    """Force refresh a playlist's cache"""
+    try:
+        # Remove VL prefix if present
+        if playlist_id.startswith("VL"):
+            playlist_id = playlist_id[2:]
+        
+        # Remove from cache to force refresh
+        if playlist_id in playlist_cache:
+            del playlist_cache[playlist_id]
+        
+        # Fetch fresh data
+        playlist_data = ytmusic.get_playlist(playlist_id, limit=None)
+        
+        # Update cache
+        playlist_cache[playlist_id] = (playlist_data, time.time())
+        
+        return {"status": "success", "message": "Playlist refreshed"}
+    except Exception as e:
+        logger.error(f"Failed to refresh playlist {playlist_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/playlist/{playlist_id}/first-song")
+async def get_first_playable_song(playlist_id: str):
+    """Get the first playable song from a playlist"""
+    try:
+        # Remove VL prefix if present
+        if playlist_id.startswith("VL"):
+            playlist_id = playlist_id[2:]
+        
+        logger.info(f"🎵 Getting first playable song for playlist: {playlist_id}")
+        
+        # Get playlist data
+        playlist_data = ytmusic.get_playlist(playlist_id, limit=None)
+        
+        # Find first playable song
+        for track in playlist_data.get('tracks', []):
+            video_id = track.get('videoId')
+            if video_id and not track.get('isAvailable', True):
+                continue
+            
+            if video_id:
+                logger.info(f"✅ Found first playable song: {video_id}")
+                return {
+                    "videoId": video_id,
+                    "title": track.get('title', ''),
+                    "artist": track.get('artists', [{}])[0].get('name', 'Unknown Artist')
+                }
+        
+        raise HTTPException(status_code=404, detail="No playable songs found in playlist")
+        
+    except Exception as e:
+        logger.error(f"Failed to get first playable song from playlist {playlist_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.on_event("startup")
 async def startup_event():
