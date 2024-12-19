@@ -1,3 +1,29 @@
+// Force console display for all log levels
+console.defaultLevel = 'trace';
+
+// Immediate logging with distinctive styling
+console.log('%c[DropBeat] 🚀 CONTENT SCRIPT STARTING', 'background: #ff0000; color: white; font-size: 20px; padding: 10px;');
+console.log('%c[DropBeat] 📍 URL:', 'background: #000; color: #fff; padding: 5px;', window.location.href);
+
+// Add a global error handler to catch any script errors
+window.onerror = function(msg, url, line, col, error) {
+    console.error('%c[DropBeat] ❌ Global Error:', 'background: #ff0000; color: white;', {
+        message: msg,
+        url: url,
+        line: line,
+        col: col,
+        error: error
+    });
+    return false;
+};
+
+// Add unhandled promise rejection handler
+window.onunhandledrejection = function(event) {
+    console.error('%c[DropBeat] ❌ Unhandled Promise Rejection:', 'background: #ff0000; color: white;', {
+        reason: event.reason
+    });
+};
+
 console.log('🎵 [DropBeat] Content script loaded for YouTube Music');
 
 let isConnected = false;
@@ -5,12 +31,115 @@ let lastTrackInfo = null;
 let currentTrackId = null;
 let lastTrackSignature = null;
 
+// Add state tracking
+let youtubeMusiceReady = false;
+let navigationInProgress = false;
+
+// Add at the top after initial declarations
+let lastActivityTime = Date.now();
+let initializeAttempts = 0;
+
+// Add activity tracking
+function updateActivityTimestamp() {
+    lastActivityTime = Date.now();
+    console.log('🕒 [DropBeat] Activity timestamp updated');
+}
+
+// Add activity listeners
+document.addEventListener('mousemove', updateActivityTimestamp);
+document.addEventListener('keydown', updateActivityTimestamp);
+document.addEventListener('click', updateActivityTimestamp);
+
+// Add periodic check for inactivity
+setInterval(() => {
+    const inactiveTime = Date.now() - lastActivityTime;
+    if (inactiveTime > 5 * 60 * 1000) { // 5 minutes
+        console.log('⚠️ [DropBeat] Detected inactivity:', Math.round(inactiveTime/1000), 'seconds');
+        // Force reinitialize
+        initializeAttempts = 0;
+        initialize(true);
+        // Reset activity timer
+        updateActivityTimestamp();
+    }
+}, 30 * 1000); // Check every 30 seconds
+
+// Network request monitoring using XMLHttpRequest
+const originalXHR = window.XMLHttpRequest.prototype.open;
+window.XMLHttpRequest.prototype.open = function(method, url) {
+    console.log('🔄 [DropBeat Debug] XHR intercepted:', url);
+    
+    if (typeof url === 'string') {
+        try {
+            // Track initialization state
+            const urlObj = new URL(url, window.location.origin);
+            const listId = urlObj.searchParams.get('list');
+            
+            // Log all relevant requests for playlist initialization
+            if (url.includes('browse') && listId) {
+                console.log('📋 [DropBeat Debug] Playlist metadata request:', url);
+            }
+            if (url.includes('/next')) {
+                console.log('🎵 [DropBeat Debug] Queue initialization request:', url);
+            }
+            if (url.includes('/player')) {
+                console.log('▶️ [DropBeat Debug] Player initialization request:', url);
+            }
+            
+            // Only proceed with playlist handling after player initialization
+            if (url.includes('/player') && window.location.href.includes('list=')) {
+                this.addEventListener('load', function() {
+                    try {
+                        console.log('✅ [DropBeat Debug] Player initialization complete');
+                        // Wait for a short delay to ensure everything is ready
+                        setTimeout(async () => {
+                            const playButton = findElement(selectors.playlistControls.playButton);
+                            if (playButton) {
+                                console.log('🎯 [DropBeat Debug] Found play button after player init');
+                                playButton.click();
+                            }
+                        }, 1000);
+                    } catch (error) {
+                        console.error('❌ [DropBeat Debug] Error handling player init:', error);
+                    }
+                });
+            }
+        } catch (error) {
+            console.warn('⚠️ [DropBeat Debug] Error in XHR handling:', error);
+        }
+    }
+    
+    return originalXHR.apply(this, arguments);
+};
+
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('📥 [DropBeat] Content received message:', message);
 
     try {
-        if (message.type === 'CONNECTION_STATUS') {
+        if (message.type === 'RECONNECT') {
+            console.log('🔄 [DropBeat] Reconnection request received');
+            // Reset state
+            youtubeMusiceReady = false;
+            navigationInProgress = false;
+            
+            // Re-initialize everything
+            initialize();
+            
+            // If we have a URL, check if it's a playlist
+            if (message.url?.includes('list=')) {
+                console.log('📋 [DropBeat] Playlist URL detected after reconnect');
+                // Wait a bit for everything to stabilize
+                setTimeout(async () => {
+                    const success = await handlePlaylistPlayback();
+                    if (!success) {
+                        console.log('⚠️ [DropBeat] First attempt failed, retrying with delay');
+                        setTimeout(() => handlePlaylistPlayback(), 2000);
+                    }
+                }, 1000);
+            }
+            
+            sendResponse({ success: true });
+        } else if (message.type === 'CONNECTION_STATUS') {
             const oldState = isConnected;
             isConnected = message.status.isConnected;
             console.log('🔌 [DropBeat] Connection status updated:', isConnected);
@@ -37,10 +166,77 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Keep the message channel open for async response
 });
 
-function findElement(selectors) {
-    for (const selector of selectors) {
-        const element = document.querySelector(selector);
-        if (element) return element;
+// Define multiple selectors for each control, ordered by reliability
+const selectors = {
+    playPause: [
+        'button[aria-label*="Play"], button[aria-label*="Pause"]',
+        '.play-pause-button',
+        'button[role="button"][title*="Play"], button[role="button"][title*="Pause"]',
+        '[data-testid="play-pause-button"]',
+        '.ytmusic-player-bar button[aria-label*="Play"], .ytmusic-player-bar button[aria-label*="Pause"]',
+        'tp-yt-paper-icon-button.play-pause-button'
+    ],
+    next: [
+        'button[aria-label*="Next"]',
+        '.next-button',
+        'button[role="button"][title*="Next"]',
+        '[data-testid="next-button"]',
+        '.ytmusic-player-bar button[aria-label*="Next"]',
+        'tp-yt-paper-icon-button.next-button'
+    ],
+    previous: [
+        'button[aria-label*="Previous"]',
+        '.previous-button',
+        'button[role="button"][title*="Previous"]',
+        '[data-testid="previous-button"]',
+        '.ytmusic-player-bar button[aria-label*="Previous"]',
+        'tp-yt-paper-icon-button.previous-button'
+    ],
+    like: [
+        'ytmusic-like-button-renderer',
+        'button[aria-label*="like"]',
+        '[data-testid="like-button-renderer"]'
+    ],
+    // Playlist specific selectors with comprehensive fallbacks
+    playlistControls: {
+        playButton: [
+            'ytmusic-play-button-renderer[play-button-style="PLAY_BUTTON_STYLE_SOLID"] #play-button',
+            'ytmusic-play-button-renderer #play-button',
+            'button[aria-label="Play"]',
+            '.ytmusic-player-bar button[aria-label*="Play"]',
+            'tp-yt-paper-icon-button.play-pause-button'
+        ],
+        shuffleButton: [
+            'ytmusic-shuffle-button-renderer #shuffle-button',
+            'button[aria-label*="shuffle"]',
+            '[data-testid="shuffle-button"]'
+        ],
+        title: [
+            '.title.ytmusic-detail-header-renderer',
+            '.title.ytmusic-player-bar',
+            '[data-testid="title"]'
+        ]
+    }
+};
+
+// Helper function to find elements with multiple selector attempts
+function findElement(selectorList) {
+    if (Array.isArray(selectorList)) {
+        for (const selector of selectorList) {
+            const element = document.querySelector(selector);
+            if (element) {
+                console.log('✅ [DropBeat] Found element with selector:', selector);
+                return element;
+            }
+        }
+        console.warn('⚠️ [DropBeat] No element found for selectors:', selectorList);
+    } else {
+        const element = document.querySelector(selectorList);
+        if (element) {
+            console.log('✅ [DropBeat] Found element with selector:', selectorList);
+            return element;
+        }
+        console.warn('⚠️ [DropBeat] No element found for selector:', selectorList);
     }
     return null;
 }
@@ -48,36 +244,6 @@ function findElement(selectors) {
 function handleCommand(command, message) {
     console.log('🎮 [DropBeat] Handling command:', command, 'with full message:', message);
     
-    // Define multiple selectors for each control, ordered by reliability
-    const selectors = {
-        playPause: [
-            'button[aria-label*="Play"], button[aria-label*="Pause"]',
-            '.play-pause-button',
-            'button[role="button"][title*="Play"], button[role="button"][title*="Pause"]',
-            '[data-testid="play-pause-button"]',
-            '.ytmusic-player-bar button[aria-label*="Play"], .ytmusic-player-bar button[aria-label*="Pause"]'
-        ],
-        next: [
-            'button[aria-label*="Next"]',
-            '.next-button',
-            'button[role="button"][title*="Next"]',
-            '[data-testid="next-button"]',
-            '.ytmusic-player-bar button[aria-label*="Next"]'
-        ],
-        previous: [
-            'button[aria-label*="Previous"]',
-            '.previous-button',
-            'button[role="button"][title*="Previous"]',
-            '[data-testid="previous-button"]',
-            '.ytmusic-player-bar button[aria-label*="Previous"]'
-        ],
-        like: [
-            'ytmusic-like-button-renderer',
-            'button[aria-label*="like"]',
-            '[data-testid="like-button-renderer"]'
-        ]
-    };
-
     // Helper function to wait for track change
     const waitForTrackChange = (currentSignature, timeout = 3000) => {
         return new Promise((resolve) => {
@@ -148,6 +314,30 @@ function handleCommand(command, message) {
     try {
         switch (command) {
             case 'play': {
+                // Check if we have a playlist URL
+                if (message?.data?.type === 'playlist' && message?.data?.url) {
+                    console.log('🎵 [DropBeat] Playing playlist:', message.data.url);
+                    
+                    // Get current URL and playlist ID
+                    const currentUrl = new URL(window.location.href);
+                    const currentPlaylistId = currentUrl.searchParams.get('list');
+                    const targetPlaylistId = message.data.id;
+                    
+                    console.log('🔍 [DropBeat] Current playlist ID:', currentPlaylistId, 'Target playlist ID:', targetPlaylistId);
+                    
+                    // If we're already on the correct playlist, just ensure it's playing
+                    if (currentPlaylistId === targetPlaylistId) {
+                        console.log('✅ [DropBeat] Already on correct playlist, ensuring playback');
+                        handlePlaylistPlayback();
+                        return;
+                    }
+                    
+                    // Navigate to the playlist - playback will be handled by fetch interceptor
+                    console.log('🔀 [DropBeat] Navigating to playlist:', message.data.url);
+                    window.location.href = message.data.url;
+                    return;
+                }
+                
                 // Check if we have a song ID to play
                 if (message?.data?.id) {
                     console.log('🎵 [DropBeat] Playing song by ID:', message.data.id);
@@ -206,7 +396,7 @@ function handleCommand(command, message) {
                                     console.log('▶️ [DropBeat] Starting playback after navigation');
                                     try {
                                         await video.play();
-                                        console.log('✅ [DropBeat] Playback started via video.play()');
+                                        console.log('🎵 [DropBeat] Playback started via video.play()');
                                     } catch (error) {
                                         console.log('⚠️ [DropBeat] video.play() failed, trying button click');
                                         playButton.click();
@@ -461,7 +651,7 @@ function handleCommand(command, message) {
             case 'toggleLike': {
                 const button = findElement(selectors.like);
                 if (button) {
-                    console.log('❤️ [DropBeat] Found like button, clicking...');
+                    console.log('👍 [DropBeat] Found like button, clicking...');
                     button.click();
                 } else {
                     console.warn('️ [DropBeat] Like button not found');
@@ -527,106 +717,189 @@ function getTrackInfo() {
     return trackInfo;
 }
 
-function updateTrackInfo(force = false, retryCount = 0) {
-    if (!isConnected) {
-        console.log('⏳ [DropBeat] Not connected, skipping track update');
-        return;
-    }
+// Add state preservation
+window._dropbeatState = window._dropbeatState || {
+    lastTrackInfo: null,
+    isConnected: false,
+    observers: {},
+    initialized: false
+};
 
-    const trackInfo = getTrackInfo();
-    if (!trackInfo) return;
-
-    // Send if forced or if info has changed
-    if (force || JSON.stringify(trackInfo) !== JSON.stringify(lastTrackInfo)) {
-        console.log('🎵 [DropBeat] Sending track info:', trackInfo);
-        lastTrackInfo = trackInfo;
-
-        chrome.runtime.sendMessage({
-            type: 'TRACK_INFO',
-            data: trackInfo
-        }, response => {
-            if (response?.sent) {
-                console.log('✅ [DropBeat] Track info sent successfully');
-            } else {
-                console.warn('⚠️ [DropBeat] Failed to send track info');
-                // Retry up to 2 times with increasing delay
-                if (retryCount < 2) {
-                    const delay = Math.pow(2, retryCount) * 500; // 500ms, then 1000ms
-                    console.log(`🔄 [DropBeat] Retrying in ${delay}ms (attempt ${retryCount + 1}/2)`);
-                    setTimeout(() => {
-                        updateTrackInfo(force, retryCount + 1);
-                    }, delay);
-                }
-            }
-        });
-    }
-}
-
+// Update timeupdate handling in observePlayer
 function observePlayer() {
     console.log('👀 [DropBeat] Setting up player observers');
+
+    // Preserve previous state if it exists
+    if (window._dropbeatState.observers.player) {
+        console.log('♻️ [DropBeat] Reusing existing player observer');
+        return;
+    }
 
     // Watch for player bar changes
     const playerBar = document.querySelector('ytmusic-player-bar');
     if (playerBar) {
         const observer = new MutationObserver((mutations) => {
-            console.log('👁️ [DropBeat] Player changes detected');
-            updateTrackInfo();
+            const hasRelevantChanges = mutations.some(mutation => {
+                if (mutation.target.classList.contains('title') || 
+                    mutation.target.classList.contains('byline') ||
+                    mutation.target.classList.contains('ytmusic-player-bar')) {
+                    return true;
+                }
+                return Array.from(mutation.addedNodes).some(node => 
+                    node.classList?.contains('title') || 
+                    node.classList?.contains('byline')
+                );
+            });
+
+            if (hasRelevantChanges) {
+                console.log('👁️ [DropBeat] Track info changes detected');
+                updateTrackInfo(true);
+            }
         });
 
         observer.observe(playerBar, {
             subtree: true,
             childList: true,
-            attributes: true
+            attributes: true,
+            characterData: true
         });
+        
+        window._dropbeatState.observers.player = observer;
         console.log('✅ [DropBeat] Player bar observer set up');
     }
 
-    // Watch video element
+    // Watch video element with enhanced monitoring
     const video = document.querySelector('video');
     if (video) {
-        video.addEventListener('play', () => {
-            console.log('▶️ [DropBeat] Video play event');
-            updateTrackInfo(true);
-        });
+        // Set up video event listeners
+        const videoEvents = {
+            play: () => {
+                console.log('▶️ [DropBeat] Video play event');
+                updateTrackInfo(true);
+            },
+            pause: () => {
+                console.log('⏸️ [DropBeat] Video pause event');
+                updateTrackInfo(true);
+            },
+            seeked: () => {
+                console.log('⏩ [DropBeat] Video seek event');
+                updateTrackInfo(true);
+            },
+            timeupdate: () => {
+                // More frequent updates for better seek tracking
+                if (!window._lastTimeUpdate || Date.now() - window._lastTimeUpdate > 250) {
+                    window._lastTimeUpdate = Date.now();
+                    updateTrackInfo();
+                }
+            },
+            loadedmetadata: () => {
+                console.log('📥 [DropBeat] Video metadata loaded');
+                updateTrackInfo(true);
+            },
+            ended: () => {
+                console.log('🔚 [DropBeat] Video ended');
+                updateTrackInfo(true);
+            }
+        };
 
-        video.addEventListener('pause', () => {
-            console.log('⏸️ [DropBeat] Video pause event');
-            updateTrackInfo(true);
-        });
+        // Store event listeners for preservation
+        window._dropbeatState.videoEvents = videoEvents;
 
-        video.addEventListener('seeked', () => {
-            console.log('⏩ [DropBeat] Video seek event');
-            updateTrackInfo(true);
+        // Add all event listeners
+        Object.entries(videoEvents).forEach(([event, handler]) => {
+            video.addEventListener(event, handler);
         });
 
         console.log('✅ [DropBeat] Video element listeners set up');
     }
 }
 
-// Start observing when page is ready
-function initialize() {
-    console.log('🚀 [DropBeat] Initializing content script');
-    
-    // Check if we're already on YouTube Music
-    if (document.querySelector('ytmusic-player-bar')) {
-        observePlayer();
-        updateTrackInfo(true);
-    } else {
-        // Wait for player to be ready
-        const observer = new MutationObserver((mutations, obs) => {
-            if (document.querySelector('ytmusic-player-bar')) {
-                console.log('✅ [DropBeat] Player detected, starting observation');
-                obs.disconnect();
-                observePlayer();
-                updateTrackInfo(true);
-            }
-        });
+// Update initialize function to handle state preservation
+function initialize(forceReinit = false) {
+    console.log('%c[DropBeat] 🎯 INITIALIZE CALLED', 'background: #00ff00; color: black; font-size: 15px; padding: 5px;', {
+        forceReinit,
+        hasExistingState: window._dropbeatState.initialized
+    });
 
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
+    // If we already have a working state and it's not a forced reinit, skip
+    if (window._dropbeatState.initialized && !forceReinit) {
+        console.log('♻️ [DropBeat] Using existing state');
+        return;
     }
+
+    // Verify script injection and window access
+    try {
+        if (!window.location.href.includes('music.youtube.com')) {
+            console.warn('⚠️ [DropBeat] Not on YouTube Music:', window.location.href);
+            return;
+        }
+
+        // Check critical elements
+        const criticalElements = {
+            content: !!document.querySelector('#content'),
+            playerBar: !!document.querySelector('ytmusic-player-bar'),
+            video: !!document.querySelector('video')
+        };
+
+        if (!criticalElements.content || !criticalElements.playerBar) {
+            console.warn('⚠️ [DropBeat] Critical elements missing, retrying...');
+            setTimeout(() => initialize(true), 1000);
+            return;
+        }
+
+        // Set up observers and listeners
+        observePlayer();
+        
+        // Mark as initialized
+        window._dropbeatState.initialized = true;
+        
+        // Initial track info update
+        updateTrackInfo(true);
+        
+        console.log('✅ [DropBeat] Initialization complete');
+    } catch (error) {
+        console.error('❌ [DropBeat] Error during initialization:', error);
+    }
+}
+
+// Update track info handling
+function updateTrackInfo(force = false) {
+    const trackInfo = getTrackInfo();
+    if (!trackInfo) return;
+
+    // Check against last state
+    const lastInfo = window._dropbeatState.lastTrackInfo;
+    const hasChanged = !lastInfo || 
+        trackInfo.id !== lastInfo.id ||
+        trackInfo.title !== lastInfo.title ||
+        trackInfo.artist !== lastInfo.artist ||
+        trackInfo.isPlaying !== lastInfo.isPlaying ||
+        Math.abs(trackInfo.currentTime - (lastInfo.currentTime || 0)) > 0.25 || // More sensitive time tracking
+        trackInfo.isLiked !== lastInfo.isLiked;
+
+    if (force || hasChanged) {
+        window._dropbeatState.lastTrackInfo = trackInfo;
+        sendTrackInfo(trackInfo);
+    }
+}
+
+function sendTrackInfo(trackInfo) {
+    console.log('📤 [DropBeat] Sending track info:', trackInfo);
+
+    chrome.runtime.sendMessage({
+        type: 'TRACK_INFO',
+        data: trackInfo
+    }, response => {
+        if (chrome.runtime.lastError) {
+            console.warn('⚠️ [DropBeat] Error sending track info:', chrome.runtime.lastError);
+        } else {
+            if (response?.sent) {
+                console.log('✅ [DropBeat] Track info sent successfully');
+            } else {
+                console.warn('⚠️ [DropBeat] Failed to send track info');
+            }
+        }
+    });
 }
 
 // Get initial connection status
@@ -642,4 +915,112 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initialize);
 } else {
     initialize();
+}
+
+// Add this new function
+function showPlaylistNotification() {
+    // Create notification element if it doesn't exist
+    let notification = document.getElementById('dropbeat-notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'dropbeat-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: 'YouTube Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    notification.innerHTML = '🎵 Click the play button to start the playlist';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        if (notification && notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+
+// Update handlePlaylistPlayback function
+async function handlePlaylistPlayback(timeout = 8000) {
+    console.log('🎵 [DropBeat Debug] Starting handlePlaylistPlayback');
+    
+    try {
+        // First, check if we're already playing
+        const video = document.querySelector('video');
+        if (video && !video.paused) {
+            console.log('✅ [DropBeat Debug] Playlist already playing');
+            return true;
+        }
+
+        // Show notification to guide user
+        showPlaylistNotification();
+        
+        // Try automatic play but don't retry multiple times
+        const playButton = findElement(selectors.playlistControls.playButton);
+        if (playButton) {
+            console.log('🎯 [DropBeat Debug] Found play button, attempting one click');
+            playButton.click();
+            
+            // Wait a moment to see if playback starts
+            await new Promise(r => setTimeout(r, 2000));
+            
+            // Check if playback started
+            const videoAfterClick = document.querySelector('video');
+            if (videoAfterClick && !videoAfterClick.paused) {
+                console.log('✅ [DropBeat Debug] Playlist playback started successfully');
+                return true;
+            }
+        }
+
+        // If we reach here, automatic play wasn't successful
+        console.log('ℹ️ [DropBeat Debug] Waiting for manual user interaction');
+        return false;
+    } catch (error) {
+        console.error('❌ [DropBeat Debug] Error in handlePlaylistPlayback:', error);
+        return false;
+    }
+}
+
+// Helper function to ensure YouTube Music is ready
+function ensureYouTubeMusicReady(timeout = 10000) {
+    return new Promise((resolve) => {
+        if (youtubeMusiceReady) {
+            resolve(true);
+            return;
+        }
+
+        const startTime = Date.now();
+        const checkInterval = setInterval(() => {
+            // Check for critical YouTube Music elements
+            const playerBar = document.querySelector('ytmusic-player-bar');
+            const player = document.querySelector('#movie_player');
+            const content = document.querySelector('#content');
+
+            if (playerBar && player && content) {
+                clearInterval(checkInterval);
+                youtubeMusiceReady = true;
+                resolve(true);
+                return;
+            }
+
+            if (Date.now() - startTime > timeout) {
+                clearInterval(checkInterval);
+                console.warn('⚠️ [DropBeat] Timeout waiting for YouTube Music');
+                resolve(false);
+            }
+        }, 100);
+    });
 }

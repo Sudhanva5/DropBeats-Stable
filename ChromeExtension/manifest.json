@@ -6,7 +6,9 @@
     "permissions": [
         "tabs",
         "storage",
-        "nativeMessaging"
+        "nativeMessaging",
+        "webNavigation",
+        "scripting"
     ],
     "host_permissions": [
         "*://*.music.youtube.com/*",

@@ -315,3 +315,27 @@ console.log('🚀 [DropBeat] Starting WebSocket Manager');
 wsManager.connect().catch(error => {
     console.error('❌ [DropBeat] Initial connection failed:', error);
 });
+
+// Add navigation handling
+chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+    if (details.url.includes('music.youtube.com')) {
+        console.log('🔄 [DropBeat] YouTube Music navigation detected:', details.url);
+        
+        // Try to reconnect to content script
+        chrome.tabs.sendMessage(details.tabId, { 
+            type: 'RECONNECT',
+            url: details.url
+        }).catch(() => {
+            console.log('📥 [DropBeat] Content script needs reload, handling silently');
+            // If content script is unreachable, reload it silently
+            chrome.scripting.executeScript({
+                target: { tabId: details.tabId },
+                files: ['content.js']
+            }).then(() => {
+                console.log('✅ [DropBeat] Content script reloaded successfully');
+            }).catch(err => {
+                console.error('❌ [DropBeat] Error reloading content script:', err);
+            });
+        });
+    }
+});
