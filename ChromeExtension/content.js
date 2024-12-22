@@ -26,7 +26,6 @@ window.onunhandledrejection = function(event) {
 
 console.log('🎵 [DropBeat] Content script loaded for YouTube Music');
 
-let isConnected = false;
 let lastTrackInfo = null;
 let currentTrackId = null;
 let lastTrackSignature = null;
@@ -34,6 +33,15 @@ let lastTrackSignature = null;
 // Add state tracking
 let youtubeMusiceReady = false;
 let navigationInProgress = false;
+
+// State management object
+window._dropbeatState = window._dropbeatState || {
+    lastTrackInfo: null,
+    isConnected: false,
+    observers: {},
+    initialized: false,
+    videoEvents: null
+};
 
 // Add at the top after initial declarations
 let lastActivityTime = Date.now();
@@ -85,17 +93,17 @@ window.XMLHttpRequest.prototype.open = function(method, url) {
                 console.log('▶️ [DropBeat Debug] Player initialization request:', url);
             }
             
-            // Only proceed with playlist handling after player initialization
+            // Enhanced playlist handling after player initialization
             if (url.includes('/player') && window.location.href.includes('list=')) {
                 this.addEventListener('load', function() {
                     try {
                         console.log('✅ [DropBeat Debug] Player initialization complete');
-                        // Wait for a short delay to ensure everything is ready
+                        // Wait for everything to be ready
                         setTimeout(async () => {
-                            const playButton = findElement(selectors.playlistControls.playButton);
-                            if (playButton) {
-                                console.log('🎯 [DropBeat Debug] Found play button after player init');
-                                playButton.click();
+                            const success = await handlePlaylistPlayback();
+                            if (!success) {
+                                console.log('⚠️ [DropBeat Debug] First attempt failed, retrying with delay');
+                                setTimeout(() => handlePlaylistPlayback(), 2000);
                             }
                         }, 1000);
                     } catch (error) {
@@ -128,7 +136,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // If we have a URL, check if it's a playlist
             if (message.url?.includes('list=')) {
                 console.log('📋 [DropBeat] Playlist URL detected after reconnect');
-                // Wait a bit for everything to stabilize
                 setTimeout(async () => {
                     const success = await handlePlaylistPlayback();
                     if (!success) {
@@ -140,12 +147,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             
             sendResponse({ success: true });
         } else if (message.type === 'CONNECTION_STATUS') {
-            const oldState = isConnected;
-            isConnected = message.status.isConnected;
-            console.log('🔌 [DropBeat] Connection status updated:', isConnected);
+            const oldState = window._dropbeatState.isConnected;
+            window._dropbeatState.isConnected = message.status.isConnected;
+            console.log('🔌 [DropBeat] Connection status updated:', window._dropbeatState.isConnected);
             
             // If we just got connected, send initial track info
-            if (!oldState && isConnected) {
+            if (!oldState && window._dropbeatState.isConnected) {
                 console.log('🎵 [DropBeat] Initially connected, sending track info');
                 updateTrackInfo(true); // force update
             }
@@ -722,7 +729,8 @@ window._dropbeatState = window._dropbeatState || {
     lastTrackInfo: null,
     isConnected: false,
     observers: {},
-    initialized: false
+    initialized: false,
+    videoEvents: null
 };
 
 // Update timeupdate handling in observePlayer
@@ -814,8 +822,30 @@ function observePlayer() {
     }
 }
 
-// Update initialize function to handle state preservation
-function initialize(forceReinit = false) {
+// Add this new function to check if YouTube Music is fully ready
+async function waitForYTMusic(maxAttempts = 10) {
+    console.log('🔄 [DropBeat Debug] Waiting for YouTube Music to be ready');
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const player = getYTMusicPlayer();
+        const video = document.querySelector('video');
+        const playerBar = document.querySelector('ytmusic-player-bar');
+        
+        if (player && video && playerBar) {
+            console.log('✅ [DropBeat Debug] YouTube Music is ready');
+            return true;
+        }
+        
+        console.log(`⏳ [DropBeat Debug] Waiting for elements (attempt ${attempt + 1}/${maxAttempts})`);
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    
+    console.log('❌ [DropBeat Debug] Timeout waiting for YouTube Music');
+    return false;
+}
+
+// Update initialize function
+async function initialize(forceReinit = false) {
     console.log('%c[DropBeat] 🎯 INITIALIZE CALLED', 'background: #00ff00; color: black; font-size: 15px; padding: 5px;', {
         forceReinit,
         hasExistingState: window._dropbeatState.initialized
@@ -827,23 +857,12 @@ function initialize(forceReinit = false) {
         return;
     }
 
-    // Verify script injection and window access
     try {
-        if (!window.location.href.includes('music.youtube.com')) {
-            console.warn('⚠️ [DropBeat] Not on YouTube Music:', window.location.href);
-            return;
-        }
-
-        // Check critical elements
-        const criticalElements = {
-            content: !!document.querySelector('#content'),
-            playerBar: !!document.querySelector('ytmusic-player-bar'),
-            video: !!document.querySelector('video')
-        };
-
-        if (!criticalElements.content || !criticalElements.playerBar) {
-            console.warn('⚠️ [DropBeat] Critical elements missing, retrying...');
-            setTimeout(() => initialize(true), 1000);
+        // Wait for YouTube Music to be ready
+        const isReady = await waitForYTMusic();
+        if (!isReady) {
+            console.warn('⚠️ [DropBeat] YouTube Music not ready, retrying in 2s');
+            setTimeout(() => initialize(true), 2000);
             return;
         }
 
@@ -852,14 +871,35 @@ function initialize(forceReinit = false) {
         
         // Mark as initialized
         window._dropbeatState.initialized = true;
+        youtubeMusiceReady = true;
         
         // Initial track info update
         updateTrackInfo(true);
         
         console.log('✅ [DropBeat] Initialization complete');
+
+        // If we're on a playlist page, try to start playback
+        if (window.location.href.includes('list=')) {
+            setTimeout(async () => {
+                const success = await handlePlaylistPlayback();
+                if (!success) {
+                    console.log('⚠️ [DropBeat] First playback attempt failed, retrying');
+                    setTimeout(() => handlePlaylistPlayback(), 2000);
+                }
+            }, 1000);
+        }
     } catch (error) {
         console.error('❌ [DropBeat] Error during initialization:', error);
+        // Retry initialization
+        setTimeout(() => initialize(true), 2000);
     }
+}
+
+// Update the start logic to handle async initialize
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initialize());
+} else {
+    initialize();
 }
 
 // Update track info handling
@@ -905,8 +945,8 @@ function sendTrackInfo(trackInfo) {
 // Get initial connection status
 chrome.runtime.sendMessage({ type: 'GET_CONNECTION_STATUS' }, (response) => {
     if (response) {
-        isConnected = response.isConnected;
-        console.log('🔌 [DropBeat] Initial connection status:', isConnected);
+        window._dropbeatState.isConnected = response.isConnected;
+        console.log('🔌 [DropBeat] Initial connection status:', window._dropbeatState.isConnected);
     }
 });
 
@@ -953,7 +993,14 @@ function showPlaylistNotification() {
     }, 5000);
 }
 
-// Update handlePlaylistPlayback function
+// Add these helper functions after your existing selectors
+function getYTMusicPlayer() {
+    return window.ytmusic?.player_ || 
+           document.querySelector('ytmusic-player')?.player_ ||
+           document.querySelector('#movie_player');
+}
+
+// Enhanced playlist handling
 async function handlePlaylistPlayback(timeout = 8000) {
     console.log('🎵 [DropBeat Debug] Starting handlePlaylistPlayback');
     
@@ -965,28 +1012,48 @@ async function handlePlaylistPlayback(timeout = 8000) {
             return true;
         }
 
-        // Show notification to guide user
-        showPlaylistNotification();
-        
-        // Try automatic play but don't retry multiple times
+        // Try using YouTube Music's internal player first
+        const player = getYTMusicPlayer();
+        if (player) {
+            console.log('🎯 [DropBeat Debug] Found YouTube Music player, attempting playback');
+            try {
+                // Try different methods to start playback
+                if (typeof player.playVideo === 'function') {
+                    await player.playVideo();
+                } else if (typeof player.play === 'function') {
+                    await player.play();
+                }
+                
+                // Wait to verify playback started
+                await new Promise(r => setTimeout(r, 1000));
+                const videoAfterPlay = document.querySelector('video');
+                if (videoAfterPlay && !videoAfterPlay.paused) {
+                    console.log('✅ [DropBeat Debug] Playlist playback started via player API');
+                    return true;
+                }
+            } catch (error) {
+                console.log('⚠️ [DropBeat Debug] Player API attempt failed:', error);
+            }
+        }
+
+        // Fallback to DOM method if player API fails
+        console.log('↩️ [DropBeat Debug] Falling back to DOM method');
         const playButton = findElement(selectors.playlistControls.playButton);
         if (playButton) {
-            console.log('🎯 [DropBeat Debug] Found play button, attempting one click');
+            console.log('🎯 [DropBeat Debug] Found play button, attempting click');
             playButton.click();
             
-            // Wait a moment to see if playback starts
+            // Wait to verify playback started
             await new Promise(r => setTimeout(r, 2000));
-            
-            // Check if playback started
             const videoAfterClick = document.querySelector('video');
             if (videoAfterClick && !videoAfterClick.paused) {
-                console.log('✅ [DropBeat Debug] Playlist playback started successfully');
+                console.log('✅ [DropBeat Debug] Playlist playback started via button click');
                 return true;
             }
         }
 
-        // If we reach here, automatic play wasn't successful
-        console.log('ℹ️ [DropBeat Debug] Waiting for manual user interaction');
+        // If we reach here, both methods failed
+        console.log('❌ [DropBeat Debug] All playback attempts failed');
         return false;
     } catch (error) {
         console.error('❌ [DropBeat Debug] Error in handlePlaylistPlayback:', error);
