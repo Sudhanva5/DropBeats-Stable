@@ -29,7 +29,7 @@ struct MenuBarView: View {
         }
         
         // Store the work item and schedule it
-        seekDebounceWorkItem = workItemshape 
+        seekDebounceWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
     }
 }

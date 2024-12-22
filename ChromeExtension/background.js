@@ -193,24 +193,11 @@ class WebSocketManager {
             // Try to find an active YouTube Music tab first
             let targetTab = tabs.find(tab => tab.active) || tabs[0];
             
-            // If it's an openYouTubeMusic command, just focus the tab
-            if (message.command === 'openYouTubeMusic') {
-                await chrome.tabs.update(targetTab.id, { active: true });
-                await chrome.windows.update(targetTab.windowId, { focused: true });
+            // Ensure content script is healthy
+            const isScriptReady = await ensureContentScript(targetTab.id);
+            if (!isScriptReady) {
+                console.log('⚠️ [DropBeat] Content script not ready after injection attempts');
                 return;
-            }
-            
-            // Ensure the tab is ready
-            try {
-                // Try to ping the content script
-                await chrome.tabs.sendMessage(targetTab.id, { type: 'PING' });
-                console.log('✅ [DropBeat] Content script is ready');
-            } catch (error) {
-                console.log('⚠️ [DropBeat] Content script not ready, reinjecting...');
-                // If the content script isn't ready, reload the tab
-                await chrome.tabs.reload(targetTab.id);
-                // Wait for the tab to complete loading
-                await new Promise(resolve => setTimeout(resolve, 2000));
             }
 
             // Forward the command
@@ -316,26 +303,174 @@ wsManager.connect().catch(error => {
     console.error('❌ [DropBeat] Initial connection failed:', error);
 });
 
-// Add navigation handling
-chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+// Add navigation state tracking
+let navigationState = {
+    lastNavigationTime: 0,
+    pendingNavigations: new Set(),
+    debounceTimeout: null
+};
+
+// Update navigation handling with debouncing
+chrome.webNavigation.onHistoryStateUpdated.addListener(async (details) => {
     if (details.url.includes('music.youtube.com')) {
         console.log('🔄 [DropBeat] YouTube Music navigation detected:', details.url);
         
-        // Try to reconnect to content script
-        chrome.tabs.sendMessage(details.tabId, { 
-            type: 'RECONNECT',
-            url: details.url
-        }).catch(() => {
-            console.log('📥 [DropBeat] Content script needs reload, handling silently');
-            // If content script is unreachable, reload it silently
-            chrome.scripting.executeScript({
-                target: { tabId: details.tabId },
-                files: ['content.js']
-            }).then(() => {
-                console.log('✅ [DropBeat] Content script reloaded successfully');
-            }).catch(err => {
-                console.error('❌ [DropBeat] Error reloading content script:', err);
-            });
-        });
+        // Clear any pending debounce timeout
+        if (navigationState.debounceTimeout) {
+            clearTimeout(navigationState.debounceTimeout);
+        }
+        
+        // Add this navigation to pending set
+        navigationState.pendingNavigations.add(details.tabId);
+        
+        // Debounce the navigation handling
+        navigationState.debounceTimeout = setTimeout(async () => {
+            try {
+                // Process all pending navigations
+                for (const tabId of navigationState.pendingNavigations) {
+                    // Wait for the page to settle
+                    await new Promise(r => setTimeout(r, 1000));
+                    
+                    // Check tab still exists
+                    try {
+                        const tab = await chrome.tabs.get(tabId);
+                        if (!tab?.url?.includes('music.youtube.com')) {
+                            continue;
+                        }
+                    } catch (error) {
+                        console.log('⚠️ [DropBeat] Tab no longer exists:', tabId);
+                        continue;
+                    }
+                    
+                    // Ensure content script is healthy
+                    const isHealthy = await ensureContentScript(tabId);
+                    
+                    if (isHealthy) {
+                        // Try to notify content script, but don't wait for response
+                        chrome.tabs.sendMessage(tabId, {
+                            type: 'NAVIGATION_UPDATE',
+                            url: details.url
+                        }).catch(() => {
+                            // Ignore errors from message sending
+                            console.log('ℹ️ [DropBeat] Navigation update notification skipped');
+                        });
+                    }
+                }
+            } finally {
+                // Clear pending navigations
+                navigationState.pendingNavigations.clear();
+            }
+        }, 500); // Debounce for 500ms
+        
+        navigationState.lastNavigationTime = Date.now();
     }
 });
+
+// Add tab update handling
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if (tab.url?.includes('music.youtube.com') && changeInfo.status === 'complete') {
+        console.log('🔄 [DropBeat] YouTube Music tab updated:', tab.url);
+        await ensureContentScript(tabId);
+    }
+});
+
+// Add these new functions for enhanced script management
+async function checkContentScriptHealth(tabId) {
+    try {
+        const response = await chrome.tabs.sendMessage(tabId, { 
+            type: 'HEALTH_CHECK',
+            timestamp: Date.now()
+        });
+        
+        // Check if we got a valid response
+        if (!response) {
+            console.log('⚠️ [DropBeat] No health check response');
+            return false;
+        }
+        
+        // Check if the response is recent enough
+        const responseTime = Date.now() - response.timestamp;
+        if (responseTime > 5000) { // 5 seconds threshold
+            console.log('⚠️ [DropBeat] Health check response too old:', responseTime, 'ms');
+            return false;
+        }
+        
+        // Check if all required elements are present
+        const hasAllElements = response.elements?.hasVideo && 
+                             response.elements?.hasPlayerBar && 
+                             response.elements?.hasPlayer;
+                             
+        if (!hasAllElements) {
+            console.log('⚠️ [DropBeat] Missing required elements:', response.elements);
+            return false;
+        }
+        
+        return response.healthy === true;
+    } catch (error) {
+        console.log('❌ [DropBeat] Health check failed:', error);
+        return false;
+    }
+}
+
+async function ensureContentScript(tabId) {
+    console.log('🔄 [DropBeat] Ensuring content script for tab:', tabId);
+    
+    // Track injection attempts
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+        try {
+            // Check if tab still exists
+            try {
+                const tab = await chrome.tabs.get(tabId);
+                if (!tab?.url?.includes('music.youtube.com')) {
+                    console.log('⚠️ [DropBeat] Tab no longer valid:', tabId);
+                    return false;
+                }
+            } catch (error) {
+                console.log('⚠️ [DropBeat] Tab no longer exists:', tabId);
+                return false;
+            }
+            
+            // First check health
+            const isHealthy = await checkContentScriptHealth(tabId);
+            if (isHealthy) {
+                console.log('✅ [DropBeat] Content script healthy');
+                return true;
+            }
+
+            // If not healthy and this isn't our first attempt, wait longer
+            if (attempts > 0) {
+                await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempts)));
+            }
+
+            // If not healthy, try to reinject
+            console.log(`🔄 [DropBeat] Reinjecting content script (attempt ${attempts + 1}/${maxAttempts})`);
+            await chrome.scripting.executeScript({
+                target: { tabId },
+                files: ['content.js']
+            });
+            
+            // Wait for script to initialize with increasing delays
+            await new Promise(r => setTimeout(r, 1000 + (attempts * 500)));
+            
+            // Verify health after injection
+            const healthAfterInjection = await checkContentScriptHealth(tabId);
+            if (healthAfterInjection) {
+                console.log('✅ [DropBeat] Script reinjection successful');
+                return true;
+            }
+            
+            attempts++;
+        } catch (error) {
+            console.error('❌ [DropBeat] Error in ensureContentScript:', error);
+            attempts++;
+            // Wait before retrying
+            await new Promise(r => setTimeout(r, 1000));
+        }
+    }
+    
+    console.log('❌ [DropBeat] Failed to ensure content script after', maxAttempts, 'attempts');
+    return false;
+}

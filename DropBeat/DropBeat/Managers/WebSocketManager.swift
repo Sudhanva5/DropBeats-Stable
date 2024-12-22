@@ -359,79 +359,54 @@ class WebSocketManager: ObservableObject {
                     
                 case "SEARCH_RESULTS":
                     if let data = json["data"] as? [String: Any],
-                       let categories = data["categories"] as? [String: [[String: Any]]] {
-                        print("🔍 [DropBeat] Received categories:", categories.keys)
+                       let categories = data["categories"] as? [String: [[String: Any]]],
+                       let songs = categories["songs"] as? [[String: Any]] {
+                        print("🔍 [DropBeat] Received songs:", songs.count)
                         var allResults: [SearchResult] = []
                         var seenIds = Set<String>() // Track seen IDs to avoid duplicates
                         
-                        // Process each category
-                        for (category, items) in categories {
-                            print("📦 [DropBeat] Processing category:", category, "with", items.count, "items")
-                            let categoryResults = items.compactMap { result -> SearchResult? in
-                                // Get ID and validate
-                                guard let id = result["id"] as? String,
-                                      !id.isEmpty else {
-                                    print("⚠️ [DropBeat] Skipping result: Missing or empty ID")
-                                    return nil
-                                }
-                                
-                                // Skip if we've seen this ID before
-                                guard !seenIds.contains(id) else {
-                                    print("⚠️ [DropBeat] Skipping duplicate result with ID:", id)
-                                    return nil
-                                }
-                                
-                                // Get title and validate
-                                guard let title = result["title"] as? String,
-                                      !title.isEmpty,
-                                      title != "Unknown Title" else {
-                                    print("⚠️ [DropBeat] Skipping result: Invalid title for ID:", id)
-                                    return nil
-                                }
-                                
-                                // Get artist information
-                                var artist = "Unknown Artist"
-                                if let artistStr = result["artist"] as? String,
-                                   !artistStr.isEmpty,
-                                   artistStr != "Unknown Artist" {
-                                    artist = artistStr
-                                } else if let author = result["author"] as? String,
-                                          !author.isEmpty {
-                                    artist = author
-                                }
-                                
-                                // Map the category to the appropriate type
-                                let resultType: SearchResultType
-                                switch category {
-                                case "songs": resultType = .song
-                                case "albums": resultType = .album
-                                case "playlists": resultType = .playlist
-                                case "videos": resultType = .video
-                                case "podcasts": resultType = .podcast
-                                case "episodes": resultType = .episode
-                                default: resultType = .song
-                                }
-                                
-                                // Add ID to seen set
-                                seenIds.insert(id)
-                                
-                                print("🏷️ [DropBeat] Valid result - Category:", category, "Type:", resultType.rawValue)
-                                print("📝 [DropBeat] Item details - ID:", id, "Title:", title, "Artist:", artist)
-                                
-                                return SearchResult(
-                                    id: id,
-                                    title: title,
-                                    artist: artist,
-                                    type: resultType,
-                                    thumbnailUrl: result["thumbnailUrl"] as? String
-                                )
+                        // Process songs
+                        let songResults = songs.compactMap { result -> SearchResult? in
+                            // Get ID and validate
+                            guard let id = result["id"] as? String,
+                                  !id.isEmpty else {
+                                print("⚠️ [DropBeat] Skipping result: Missing or empty ID")
+                                return nil
                             }
-                            allResults.append(contentsOf: categoryResults)
-                            print("✅ [DropBeat] Added", categoryResults.count, "valid results from category:", category)
+                            
+                            // Skip if we've seen this ID before
+                            guard !seenIds.contains(id) else {
+                                print("⚠️ [DropBeat] Skipping duplicate result with ID:", id)
+                                return nil
+                            }
+                            
+                            // Get title and validate
+                            guard let title = result["title"] as? String,
+                                  !title.isEmpty,
+                                  title != "Unknown Title" else {
+                                print("⚠️ [DropBeat] Skipping result: Invalid title for ID:", id)
+                                return nil
+                            }
+                            
+                            // Get artist information
+                            let artist = result["artist"] as? String ?? "Unknown Artist"
+                            
+                            // Add ID to seen set
+                            seenIds.insert(id)
+                            
+                            print("🏷️ [DropBeat] Valid result - ID:", id, "Title:", title, "Artist:", artist)
+                            
+                            return SearchResult(
+                                id: id,
+                                title: title,
+                                artist: artist,
+                                type: .song,
+                                thumbnailUrl: result["thumbnailUrl"] as? String
+                            )
                         }
                         
-                        print("📊 [DropBeat] Total results:", allResults.count)
-                        print("📊 [DropBeat] Results by type:", Dictionary(grouping: allResults, by: { $0.type.rawValue }).mapValues { $0.count })
+                        allResults.append(contentsOf: songResults)
+                        print("✅ [DropBeat] Total valid songs:", allResults.count)
                         
                         // Post notification with search results
                         NotificationCenter.default.post(
@@ -579,16 +554,8 @@ class WebSocketManager: ObservableObject {
         let command = "play"
         var data: [String: Any] = ["type": type.rawValue]
         
-        switch type {
-        case .playlist:
-            // For playlists, construct the proper YouTube Music playlist URL
-            let playlistUrl = "https://music.youtube.com/playlist?list=\(id)"
-            data["url"] = playlistUrl
-            data["id"] = id
-        default:
-            // For songs and other types, use the ID directly
-            data["id"] = id
-        }
+        // For songs and other types, use the ID directly
+        data["id"] = id
         
         sendCommand(command, data: data)
     }

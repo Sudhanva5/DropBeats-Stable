@@ -30,12 +30,10 @@ struct CommandPaletteView: View {
         guard !searchResults.isEmpty else { return [] }
         
         let songs = searchResults.filter { $0.type == .song }
-        let playlists = searchResults.filter { $0.type == .playlist }
         
         return [
-            SearchSection(id: "songs", title: "Songs", results: songs.prefix(5).map { $0 }),
-            SearchSection(id: "playlists", title: "Playlists", results: playlists.prefix(5).map { $0 })
-        ].filter { !$0.results.isEmpty }
+            SearchSection(id: "songs", title: "Songs", results: songs.prefix(10).map { $0 })
+        ]
     }
     
     private var displaySections: [SearchSection] {

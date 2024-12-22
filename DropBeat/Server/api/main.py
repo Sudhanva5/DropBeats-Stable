@@ -107,10 +107,10 @@ async def websocket_endpoint(websocket: WebSocket):
                         logger.info(f"✅ [{client_id}] Search completed, found {results['total']} results")
                         logger.debug(f"📦 [{client_id}] Raw search results: {results}")
                         
-                        # Send back the entire results object
+                        # Send back all songs
                         response = {
                             "type": "SEARCH_RESULTS",
-                            "results": results["categories"]["songs"]  # Only sending songs for now
+                            "data": results  # Send the complete results object
                         }
                         logger.info(f"📤 [{client_id}] Sending search results back: {response}")
                         await websocket.send_json(response)
@@ -132,7 +132,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 elif data["type"] == "TRACK_INFO":
                     # Forward track info to all other connections (Swift app)
-                    logger.info(f"��� [{client_id}] Forwarding track info to other connections: {data}")
+                    logger.info(f"📤 [{client_id}] Forwarding track info to other connections: {data}")
                     for conn in active_connections:
                         if conn != websocket:
                             await conn.send_text(message)
@@ -165,22 +165,13 @@ async def search(query: str, limit: Optional[int] = 20):
                 logger.info(f"💾 Cache hit for query: {query}")
                 return results
 
-        # Initialize categories
-        categorized_results = {
-            "songs": [],
-            "playlists": [],
-            "albums": [],
-            "videos": [],
-            "podcasts": [],
-            "episodes": []
-        }
-        
         # Track seen IDs to avoid duplicates
         seen_ids = set()
+        song_results = []
         
         # Search for songs
         logger.info("🎵 Performing YTMusic search...")
-        search_results = ytmusic.search(query, limit=limit)
+        search_results = ytmusic.search(query, limit=50)  # Increased limit to get more results
         logger.info(f"✅ Found {len(search_results)} results")
         logger.debug(f"Raw search results: {search_results}")
         
@@ -188,44 +179,22 @@ async def search(query: str, limit: Optional[int] = 20):
             try:
                 # Get and validate ID
                 video_id = item.get("videoId")
-                browse_id = item.get("browseId")
-                playlist_id = item.get("playlistId")
                 
-                # Skip if no valid ID
-                if not video_id and not browse_id and not playlist_id:
-                    logger.debug(f"⚠️ Skipping item without valid ID: {item}")
-                    continue
-                
-                # Determine result type based on YTMusic's category
-                category = item.get("category", "").lower()
-                item_type = str(item.get("type", "")).lower()
-                
-                # Use appropriate ID based on type
-                if "playlist" in category or "playlist" in item_type:
-                    # For playlists, prefer playlistId, fallback to browseId
-                    item_id = playlist_id if playlist_id else browse_id
-                    # Remove VL prefix if present (for playlists)
-                    if item_id and item_id.startswith("VL"):
-                        item_id = item_id[2:]
-                else:
-                    # For other types, prefer videoId
-                    item_id = video_id if video_id else browse_id
-                
-                # Skip if still no valid ID
-                if not item_id:
-                    logger.debug(f"⚠️ Skipping item without valid ID after type check: {item}")
+                # Skip if no video ID (we only want songs)
+                if not video_id:
+                    logger.debug(f"⚠️ Skipping item without video ID: {item}")
                     continue
                 
                 # Skip if we've seen this ID before
-                if item_id in seen_ids:
-                    logger.debug(f"⚠️ Skipping duplicate ID: {item_id}")
+                if video_id in seen_ids:
+                    logger.debug(f"⚠️ Skipping duplicate ID: {video_id}")
                     continue
                 
-                seen_ids.add(item_id)
+                seen_ids.add(video_id)
                 
-                # Skip channel results (these often have Unknown Title/Artist)
-                if item.get("resultType") == "channel" or (browse_id and browse_id.startswith("UC")):
-                    logger.debug(f"⚠️ Skipping channel result: {item_id}")
+                # Skip channel results
+                if item.get("resultType") == "channel":
+                    logger.debug(f"⚠️ Skipping channel result: {video_id}")
                     continue
                     
                 # Get artists
@@ -242,64 +211,56 @@ async def search(query: str, limit: Optional[int] = 20):
                     if thumbnails:
                         thumbnail = thumbnails[-1]["url"]
                 
-                # Map YTMusic categories to our types
-                result_type = "song"  # default type
-                if "song" in category or "song" in item_type:
-                    result_type = "song"
-                elif "album" in category or "album" in item_type:
-                    result_type = "album"
-                elif "playlist" in category or "playlist" in item_type:
-                    result_type = "playlist"
-                elif "podcast" in category or "podcast" in item_type:
-                    result_type = "podcast"
-                elif "episode" in category or "episode" in item_type:
-                    result_type = "episode"
-                elif "video" in category or "video" in item_type:
-                    result_type = "video"
-                
-                logger.debug(f"Mapped type: {result_type}")
-                
                 # Skip if title is missing or empty
                 title = item.get("title", "").strip()
                 if not title:
-                    logger.debug(f"⚠️ Skipping item without title: {item_id}")
+                    logger.debug(f"⚠️ Skipping item without title: {video_id}")
                     continue
                 
                 # Create result object
                 result = {
-                    "id": item_id,
+                    "id": video_id,
                     "title": title,
                     "artist": " & ".join(artists) if artists else item.get("author", "Unknown Artist"),
                     "thumbnailUrl": thumbnail,
-                    "type": result_type,
-                    "duration": item.get("duration", ""),
-                    "album": item.get("album", {}).get("name") if item.get("album") else None
+                    "type": "song",
+                    "duration": item.get("duration", "")
                 }
                 
-                # Add to appropriate category
-                result_category = result_type + "s"  # pluralize for category name
-                if result_category in categorized_results and len(categorized_results[result_category]) < 5:
-                    categorized_results[result_category].append(result)
-                    logger.debug(f"📝 Added to {result_category}: {result['title']}")
+                # Add to results if it's a song (based on category or type)
+                category = item.get("category", "").lower()
+                item_type = str(item.get("type", "")).lower()
+                
+                # Debug log to see what we're getting
+                logger.debug(f"Item category: {category}, type: {item_type}, title: {title}")
+                
+                # More inclusive filtering - if it has a video ID, it's likely playable
+                if video_id:  # If it has a video ID, we can play it
+                    song_results.append(result)
+                    logger.debug(f"📝 Added song: {result['title']} (category: {category}, type: {item_type})")
+                else:
+                    logger.debug(f"⚠️ Skipping: {title} - no video ID (category: {category}, type: {item_type})")
+                
+                # Limit to top 20 songs
+                if len(song_results) >= 20:
+                    break
                 
             except Exception as e:
                 logger.error(f"❌ Error formatting result: {str(e)}", exc_info=True)
                 continue
 
-        # Log category counts for debugging
-        for category, results in categorized_results.items():
-            logger.info(f"Category {category}: {len(results)} results")
+        logger.info(f"Found {len(song_results)} songs")
 
         # Prepare response
         response = {
-            "categories": categorized_results,
+            "categories": {"songs": song_results},  # Keep structure for backward compatibility
             "cached": False,
-            "total": sum(len(results) for results in categorized_results.values())
+            "total": len(song_results)
         }
 
         # Cache results
         cache[cache_key] = (response, time.time())
-        logger.info(f"✅ Search completed successfully with {response['total']} total results")
+        logger.info(f"✅ Search completed successfully with {response['total']} songs")
         return response
     
     except Exception as e:
