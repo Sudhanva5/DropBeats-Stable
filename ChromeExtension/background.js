@@ -185,6 +185,8 @@ class WebSocketManager {
                     const newTab = await chrome.tabs.create({ url: 'https://music.youtube.com', active: true });
                     // Wait for the tab to load and content script to be ready
                     await new Promise(resolve => setTimeout(resolve, 3000));
+                    // Ensure content script is loaded in new tab
+                    await ensureContentScript(newTab.id);
                     return;
                 }
                 return;
@@ -193,19 +195,30 @@ class WebSocketManager {
             // Try to find an active YouTube Music tab first
             let targetTab = tabs.find(tab => tab.active) || tabs[0];
             
-            // Ensure content script is healthy
+            // Use the global ensureContentScript function
             const isScriptReady = await ensureContentScript(targetTab.id);
             if (!isScriptReady) {
                 console.log('⚠️ [DropBeat] Content script not ready after injection attempts');
                 return;
             }
 
-            // Forward the command
+            // Forward the command with enhanced error handling
             console.log('📤 [DropBeat] Forwarding command to tab:', targetTab.id);
-            await chrome.tabs.sendMessage(targetTab.id, message);
-            console.log('✅ [DropBeat] Command forwarded successfully');
+            try {
+                const response = await chrome.tabs.sendMessage(targetTab.id, message);
+                if (response?.error) {
+                    throw new Error(response.error);
+                }
+                console.log('✅ [DropBeat] Command forwarded successfully');
+            } catch (error) {
+                console.error('❌ [DropBeat] Error forwarding command:', error);
+                // If it's a connection error, try to recover
+                if (error.message.includes('Could not establish connection')) {
+                    await ensureContentScript(targetTab.id);
+                }
+            }
         } catch (error) {
-            console.error('❌ [DropBeat] Error forwarding command:', error);
+            console.error('❌ [DropBeat] Error in command forwarding:', error);
         }
     }
 
@@ -266,32 +279,46 @@ class WebSocketManager {
 // Create instance
 const wsManager = new WebSocketManager();
 
-// Handle messages
+// Enhanced message handling
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('📥 [DropBeat] Chrome message received:', message);
+    console.log('📥 [DropBeat] Chrome message received:', message, 'from:', sender?.tab?.id);
     
-    switch (message.type) {
-        case 'GET_CONNECTION_STATUS':
-            sendResponse(wsManager.getState());
-            break;
-        case 'TRACK_INFO':
-            if (wsManager.ws?.readyState === WebSocket.OPEN) {
-                try {
-                    wsManager.ws.send(JSON.stringify(message));
-                    console.log('✅ [DropBeat] Track info forwarded to WebSocket');
-                    sendResponse({ sent: true });
-                } catch (error) {
-                    console.error('❌ [DropBeat] Error sending track info:', error);
-                    sendResponse({ sent: false, error: error.message });
+    try {
+        switch (message.type) {
+            case 'GET_CONNECTION_STATUS':
+                sendResponse(wsManager.getState());
+                break;
+            case 'TRACK_INFO':
+                if (wsManager.ws?.readyState === WebSocket.OPEN) {
+                    try {
+                        wsManager.ws.send(JSON.stringify(message));
+                        console.log('✅ [DropBeat] Track info forwarded to WebSocket');
+                        sendResponse({ sent: true });
+                    } catch (error) {
+                        console.error('❌ [DropBeat] Error sending track info:', error);
+                        sendResponse({ sent: false, error: error.message });
+                        // Try to recover WebSocket if needed
+                        if (error.message.includes('WebSocket is not open')) {
+                            wsManager.handleDisconnection('WebSocket send failed');
+                        }
+                    }
+                } else {
+                    console.log('⚠️ [DropBeat] WebSocket not connected, track info not sent');
+                    sendResponse({ sent: false, error: 'Not connected' });
+                    // Try to reconnect WebSocket
+                    wsManager.connect().catch(console.error);
                 }
-            } else {
-                console.log('⚠️ [DropBeat] WebSocket not connected, track info not sent');
-                sendResponse({ sent: false, error: 'Not connected' });
-            }
-            break;
-        default:
-            console.log('⚠️ [DropBeat] Unknown message type:', message.type);
-            sendResponse({ error: 'Unknown message type' });
+                break;
+            case 'PING':
+                sendResponse({ pong: true, timestamp: Date.now() });
+                break;
+            default:
+                console.log('⚠️ [DropBeat] Unknown message type:', message.type);
+                sendResponse({ error: 'Unknown message type' });
+        }
+    } catch (error) {
+        console.error('❌ [DropBeat] Error handling message:', error);
+        sendResponse({ error: error.message });
     }
     
     return true; // Keep the message channel open for async response

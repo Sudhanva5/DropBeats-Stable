@@ -6,6 +6,7 @@ final class CommandPalette: NSObject {
     static let shared = CommandPalette()
     private var window: NSPanel?
     private let state = CommandPaletteState.shared
+    private let wsManager = WebSocketManager.shared
     
     private override init() {
         super.init()
@@ -75,6 +76,16 @@ final class CommandPalette: NSObject {
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
         state.isVisible = true
+        
+        // Send refresh command to content script
+        Task {
+            do {
+                try await wsManager.send(command: "COMMAND_PALETTE_OPENED")
+                print("✅ [DropBeat] Sent command palette refresh command")
+            } catch {
+                print("❌ [DropBeat] Failed to send command palette refresh command:", error)
+            }
+        }
     }
     
     private func hide() {

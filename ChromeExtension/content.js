@@ -45,18 +45,140 @@ window._dropbeatState = window._dropbeatState || {
 
 // Add at the top after initial declarations
 let lastActivityTime = Date.now();
+let lastHealthCheckTime = Date.now();
 let initializeAttempts = 0;
+let healthCheckInterval;
 
-// Add activity tracking
-function updateActivityTimestamp() {
+// Enhanced activity tracking
+function updateActivityTimestamp(type = 'user') {
     lastActivityTime = Date.now();
-    console.log('🕒 [DropBeat] Activity timestamp updated');
+    lastHealthCheckTime = Date.now(); // Reset health check timer on activity
+    console.log('🕒 [DropBeat] Activity timestamp updated:', type);
 }
 
-// Add activity listeners
-document.addEventListener('mousemove', updateActivityTimestamp);
-document.addEventListener('keydown', updateActivityTimestamp);
-document.addEventListener('click', updateActivityTimestamp);
+// Enhanced health check system
+async function performHealthCheck(force = false) {
+    const now = Date.now();
+    const timeSinceLastCheck = now - lastHealthCheckTime;
+    
+    // Skip if we checked recently (within 30 seconds) unless forced
+    if (!force && timeSinceLastCheck < 30000) {
+        return true;
+    }
+    
+    try {
+        // Basic element checks
+        const video = document.querySelector('video');
+        const playerBar = document.querySelector('ytmusic-player-bar');
+        const player = getYTMusicPlayer();
+        
+        // Check if player is responsive
+        const isPlayerResponsive = player && typeof player.getPlayerState === 'function';
+        
+        // Check if we can get current track info
+        const trackInfo = getTrackInfo();
+        const hasTrackInfo = !!trackInfo;
+        
+        // Check WebSocket connection
+        let isWebSocketHealthy = false;
+        try {
+            const response = await chrome.runtime.sendMessage({ type: 'GET_CONNECTION_STATUS' });
+            isWebSocketHealthy = response?.isConnected === true;
+        } catch (error) {
+            console.log('⚠️ [DropBeat] WebSocket health check failed:', error);
+        }
+        
+        const isHealthy = !!(
+            video && 
+            playerBar && 
+            isPlayerResponsive && 
+            hasTrackInfo && 
+            isWebSocketHealthy
+        );
+        
+        console.log('🏥 [DropBeat] Health check:', {
+            source: force ? 'forced' : 'automatic',
+            hasVideo: !!video,
+            hasPlayerBar: !!playerBar,
+            isPlayerResponsive,
+            hasTrackInfo,
+            isWebSocketHealthy,
+            overall: isHealthy,
+            timeSinceLastCheck: Math.round(timeSinceLastCheck / 1000) + 's'
+        });
+        
+        lastHealthCheckTime = now;
+        
+        if (!isHealthy) {
+            console.log('⚠️ [DropBeat] Health check failed, reinitializing...');
+            await initialize(true);
+            return false;
+        }
+        
+        // Update activity timestamp on successful health check
+        updateActivityTimestamp('health_check');
+        return isHealthy;
+    } catch (error) {
+        console.error('❌ [DropBeat] Health check error:', error);
+        return false;
+    }
+}
+
+// Setup periodic health checks with progressive intervals
+function setupHealthChecks() {
+    if (healthCheckInterval) {
+        clearInterval(healthCheckInterval);
+    }
+    
+    healthCheckInterval = setInterval(async () => {
+        const inactiveTime = Date.now() - lastActivityTime;
+        
+        // Progressive check frequency based on inactivity duration
+        if (inactiveTime > 5 * 60 * 1000) { // After 5 minutes
+            console.log('⚠️ [DropBeat] Long inactivity detected, performing thorough check');
+            await performHealthCheck(true);
+        } else if (inactiveTime > 2 * 60 * 1000) { // After 2 minutes
+            console.log('⚠️ [DropBeat] Medium inactivity detected, performing health check');
+            await performHealthCheck(false);
+        }
+    }, 30 * 1000); // Check every 30 seconds
+}
+
+// Enhanced initialize function
+async function initialize(forceReinit = false) {
+    console.log('%c[DropBeat] 🎯 INITIALIZE CALLED', 'background: #00ff00; color: black; font-size: 15px; padding: 5px;', {
+        forceReinit,
+        hasExistingState: window._dropbeatState.initialized,
+        navigationCount: navigationState.navigationCount
+    });
+    
+    setupHealthChecks();  // Setup health checks on initialization
+    
+    // Rest of the existing initialize function...
+    // ... existing code ...
+}
+
+// Track more types of activity
+document.addEventListener('mousemove', () => updateActivityTimestamp('mouse'));
+document.addEventListener('keydown', () => updateActivityTimestamp('keyboard'));
+document.addEventListener('click', () => updateActivityTimestamp('click'));
+
+// Track player activity
+function setupPlayerActivityTracking() {
+    const video = document.querySelector('video');
+    if (video) {
+        ['play', 'pause', 'timeupdate', 'seeking', 'seeked'].forEach(event => {
+            video.addEventListener(event, () => updateActivityTimestamp('player'));
+        });
+    }
+}
+
+// Track network activity
+const originalFetch = window.fetch;
+window.fetch = function(...args) {
+    updateActivityTimestamp('network');
+    return originalFetch.apply(this, args);
+};
 
 // Add periodic check for inactivity
 setInterval(() => {
@@ -121,10 +243,54 @@ window.XMLHttpRequest.prototype.open = function(method, url) {
 
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('📥 [DropBeat] Content received message:', message);
+    console.log('📥 [DropBeat] Content received message:', message, 'from sender:', sender);
 
     try {
-        if (message.type === 'HEALTH_CHECK') {
+        if (message.type === 'COMMAND_PALETTE_OPENED') {
+            console.log('🎯 [DropBeat] Command palette opened, starting progressive health check');
+            
+            // Initial immediate check
+            performHealthCheck(true).then(async isHealthy => {
+                if (isHealthy) {
+                    console.log('✅ [DropBeat] Initial health check passed');
+                    updateActivityTimestamp('command_palette');
+                    
+                    // One verification check after a delay
+                    setTimeout(async () => {
+                        const verificationHealth = await performHealthCheck(true);
+                        if (!verificationHealth) {
+                            console.log('⚠️ [DropBeat] Verification check failed, reinitializing...');
+                            await initialize(true);
+                        } else {
+                            console.log('✅ [DropBeat] Verification check passed');
+                            updateTrackInfo(true);
+                        }
+                    }, 400);
+                } else {
+                    console.log('⚠️ [DropBeat] Initial health check failed, starting progressive checks');
+                    
+                    // Progressive checks if unhealthy
+                    let success = false;
+                    for (let i = 0; i < 2 && !success; i++) {
+                        await new Promise(resolve => setTimeout(resolve, 300 * (i + 1)));
+                        success = await performHealthCheck(true);
+                        if (success) {
+                            console.log('✅ [DropBeat] Progressive check passed on attempt', i + 1);
+                            await initialize(true);
+                            updateTrackInfo(true);
+                            break;
+                        }
+                    }
+                    
+                    if (!success) {
+                        console.log('❌ [DropBeat] All health checks failed, forcing reinitialization');
+                        await initialize(true);
+                    }
+                }
+                sendResponse({ success: true });
+            });
+            return true; // Keep the message channel open for async response
+        } else if (message.type === 'HEALTH_CHECK') {
             // Return health status based on critical elements
             const video = document.querySelector('video');
             const playerBar = document.querySelector('ytmusic-player-bar');
@@ -285,31 +451,37 @@ function handleCommand(command, message) {
         return new Promise((resolve) => {
             const startTime = Date.now();
             let stabilityCounter = 0;
+            let lastPlayState = null;
             const checkInterval = setInterval(() => {
                 const video = document.querySelector('video');
                 const isNowPlaying = !video?.paused;
                 
-                if (!verifyTrackUnchanged(originalSignature)) {
-                    clearInterval(checkInterval);
-                    resolve({ changed: false, reason: 'track_changed' });
-                    return;
+                // Check if play state has changed from last check
+                if (lastPlayState !== isNowPlaying) {
+                    stabilityCounter = 0;
+                    lastPlayState = isNowPlaying;
+                } else {
+                    stabilityCounter++;
                 }
                 
-                if (isNowPlaying !== wasPlaying) {
-                    stabilityCounter++;
-                    if (stabilityCounter >= 2) {
-                        clearInterval(checkInterval);
-                        setTimeout(() => resolve({ changed: true, isPlaying: isNowPlaying }), 100);
+                // If we have a stable state for 3 consecutive checks
+                if (stabilityCounter >= 3) {
+                    clearInterval(checkInterval);
+                    
+                    // Verify track state one final time
+                    if (!verifyTrackUnchanged(originalSignature)) {
+                        resolve({ changed: false, reason: 'track_changed' });
+                    } else {
+                        resolve({ changed: true, isPlaying: isNowPlaying });
                     }
-                } else {
-                    stabilityCounter = 0;
+                    return;
                 }
 
                 if (Date.now() - startTime > timeout) {
                     clearInterval(checkInterval);
                     resolve({ changed: false, reason: 'timeout' });
                 }
-            }, 100);
+            }, 50); // Check more frequently
         });
     };
     
@@ -381,7 +553,7 @@ function handleCommand(command, message) {
                                         // Double check if we need to click again
                                         setTimeout(() => {
                                             if (video.paused) {
-                                                console.log('⚠️ [DropBeat] Still paused, clicking again');
+                                                console.log('⚠��� [DropBeat] Still paused, clicking again');
                                                 playButton.click();
                                             }
                                         }, 500);
@@ -425,37 +597,62 @@ function handleCommand(command, message) {
                     const originalSignature = `${titleElement?.textContent?.trim() || ''}-${artistElement?.textContent?.trim() || ''}`;
                     
                     // Add a small delay before clicking to let any previous operations complete
-                    setTimeout(() => {
-                        button.click();
-                        
-                        if (video) {
-                            waitForPlayStateChange(wasPlaying, originalSignature).then(result => {
-                                if (result.changed) {
-                                    if (verifyTrackUnchanged(originalSignature)) {
-                                        setTimeout(() => {
-                                            const updatedTrackInfo = {
-                                                ...lastTrackInfo,
-                                                isPlaying: result.isPlaying
-                                            };
-                                            lastTrackInfo = updatedTrackInfo;
-                                            chrome.runtime.sendMessage({
-                                                type: 'TRACK_INFO',
-                                                data: updatedTrackInfo
-                                            });
-                                        }, 100);
-                                    } else {
-                                        console.warn('⚠️ [DropBeat] Track changed during play/pause operation');
-                                        updateTrackInfo(true);
-                                    }
-                                } else {
-                                    if (result.reason === 'track_changed') {
-                                        console.warn('⚠️ [DropBeat] Track changed unexpectedly during play/pause');
-                                        updateTrackInfo(true);
-                                    } else {
-                                        console.warn('⚠️ [DropBeat] Play state did not change as expected');
-                                    }
+                    setTimeout(async () => {
+                        try {
+                            // Try using video API first
+                            if (video && wasPlaying) {
+                                try {
+                                    await video.pause();
+                                    console.log('⏸️ [DropBeat] Paused via video API');
+                                } catch (error) {
+                                    console.log('⚠️ [DropBeat] Video API pause failed, using button');
+                                    button.click();
                                 }
-                            });
+                            } else if (video && !wasPlaying) {
+                                try {
+                                    await video.play();
+                                    console.log('▶️ [DropBeat] Played via video API');
+                                } catch (error) {
+                                    console.log('⚠️ [DropBeat] Video API play failed, using button');
+                                    button.click();
+                                }
+                            } else {
+                                button.click();
+                            }
+                            
+                            // Wait for state to stabilize
+                            const result = await waitForPlayStateChange(wasPlaying, originalSignature, 3000);
+                            if (result.changed) {
+                                if (verifyTrackUnchanged(originalSignature)) {
+                                    setTimeout(() => {
+                                        const updatedTrackInfo = {
+                                            ...lastTrackInfo,
+                                            isPlaying: result.isPlaying
+                                        };
+                                        lastTrackInfo = updatedTrackInfo;
+                                        chrome.runtime.sendMessage({
+                                            type: 'TRACK_INFO',
+                                            data: updatedTrackInfo
+                                        });
+                                    }, 100);
+                                } else {
+                                    console.warn('⚠️ [DropBeat] Track changed during play/pause operation');
+                                    updateTrackInfo(true);
+                                }
+                            } else {
+                                if (result.reason === 'track_changed') {
+                                    console.warn('⚠️ [DropBeat] Track changed unexpectedly during play/pause');
+                                    updateTrackInfo(true);
+                                } else {
+                                    console.warn('⚠️ [DropBeat] Play state did not change as expected');
+                                    // Force an update to ensure we're in sync
+                                    updateTrackInfo(true);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('❌ [DropBeat] Error during play/pause:', error);
+                            // Force an update to ensure we're in sync
+                            updateTrackInfo(true);
                         }
                     }, 100);
                 }
@@ -664,11 +861,13 @@ function getTrackInfo() {
     const videoId = urlParams.get('v');
     console.log('🎵 [DropBeat] Current video ID from URL:', videoId);
 
-    // Always use video ID as track ID if available
-    currentTrackId = videoId;
+    // Track change detection
     const newTrackSignature = `${title}-${artist}`;
     const trackChanged = newTrackSignature !== lastTrackSignature;
     lastTrackSignature = newTrackSignature;
+    
+    // Always use video ID as track ID if available
+    currentTrackId = videoId;
     console.log('🆔 [DropBeat] Track ID:', currentTrackId, 'for track:', title, 'by', artist);
 
     // Get the album art URL and ensure it's a high-quality version
@@ -678,23 +877,41 @@ function getTrackInfo() {
         albumArtUrl = albumArtUrl.replace(/=w\d+-h\d+/, '=w500-h500');
     }
 
-    // Wait for duration to be available if track changed
+    // Enhanced duration and time handling
+    let duration = video.duration;
+    let currentTime = video.currentTime;
+    
+    // Handle track transitions
     if (trackChanged) {
-        console.log('🔄 [DropBeat] Track changed, waiting for duration...');
-        // Try up to 5 times with increasing delays
-        for (let i = 0; i < 5; i++) {
-            if (video.duration && video.duration !== Infinity) {
-                break;
+        console.log('🔄 [DropBeat] Track changed, handling transition...');
+        
+        // Reset times if we're in a transition state
+        if (currentTime >= duration || !duration || duration === Infinity) {
+            console.log('⏱️ [DropBeat] Resetting times during transition');
+            currentTime = 0;
+            duration = 0;
+        }
+        
+        // Wait for valid duration
+        if (duration === 0 || duration === Infinity) {
+            console.log('⏳ [DropBeat] Waiting for valid duration...');
+            // Try up to 5 times with increasing delays
+            for (let i = 0; i < 5; i++) {
+                if (video.duration && video.duration !== Infinity) {
+                    duration = video.duration;
+                    console.log('✅ [DropBeat] Got valid duration:', duration);
+                    break;
+                }
+                console.log('⏳ [DropBeat] Duration not ready, attempt:', i + 1);
+                // Add small delay between checks
+                new Promise(r => setTimeout(r, 100 * (i + 1)));
             }
-            console.log('⏳ [DropBeat] Duration not ready, attempt:', i + 1);
-            // Add small delay between checks
-            new Promise(r => setTimeout(r, 100 * (i + 1)));
         }
     }
 
-    // Ensure we have a valid duration
-    const duration = video.duration && video.duration !== Infinity ? video.duration : 0;
-    console.log('⏱️ [DropBeat] Duration:', duration, 'for track:', title);
+    // Ensure times are valid
+    duration = (duration && duration !== Infinity) ? duration : 0;
+    currentTime = Math.min(Math.max(0, currentTime), duration);
 
     const trackInfo = {
         id: currentTrackId,
@@ -702,7 +919,7 @@ function getTrackInfo() {
         artist: artist,
         albumArtUrl: albumArtUrl,
         isPlaying: !video.paused,
-        currentTime: video.currentTime,
+        currentTime: currentTime,
         duration: duration,
         isLiked: likeButton?.getAttribute('like-status') === 'LIKE'
     };
@@ -733,6 +950,18 @@ function observePlayer() {
     // Watch for player bar changes
     const playerBar = document.querySelector('ytmusic-player-bar');
     if (playerBar) {
+        // Add click listener for manual interactions
+        playerBar.addEventListener('click', (event) => {
+            // Check if the click was on a control button
+            if (event.target.closest('button')) {
+                console.log('👆 [DropBeat] Manual player interaction detected');
+                // Force state sync after a short delay
+                setTimeout(() => {
+                    updateTrackInfo(true);
+                }, 100);
+            }
+        });
+
         const observer = new MutationObserver((mutations) => {
             const hasRelevantChanges = mutations.some(mutation => {
                 if (mutation.target.classList.contains('title') || 
@@ -766,6 +995,17 @@ function observePlayer() {
     // Watch video element with enhanced monitoring
     const video = document.querySelector('video');
     if (video) {
+        // Add listeners for manual video interactions
+        video.addEventListener('play', () => {
+            console.log('👆 [DropBeat] Manual video play detected');
+            updateTrackInfo(true);
+        });
+
+        video.addEventListener('pause', () => {
+            console.log('👆 [DropBeat] Manual video pause detected');
+            updateTrackInfo(true);
+        });
+
         // Set up video event listeners
         const videoEvents = {
             play: () => {
@@ -1011,24 +1251,93 @@ function updateTrackInfo(force = false) {
     }
 }
 
+// Enhanced message sending with retry and confirmation
+async function sendMessageToServiceWorker(message, maxRetries = 3) {
+    let attempt = 0;
+    while (attempt < maxRetries) {
+        try {
+            const response = await chrome.runtime.sendMessage(message);
+            if (response?.error) {
+                console.warn('⚠️ [DropBeat] Service worker reported error:', response.error);
+                throw new Error(response.error);
+            }
+            return response;
+        } catch (error) {
+            attempt++;
+            console.error(`❌ [DropBeat] Failed to send message to service worker (attempt ${attempt}/${maxRetries}):`, error);
+            if (error.message.includes('Extension context invalidated')) {
+                console.log('🔄 [DropBeat] Extension context invalid, attempting recovery');
+                // Force reinitialize on context invalidation
+                await initialize(true);
+            }
+            if (attempt === maxRetries) {
+                throw error;
+            }
+            // Exponential backoff
+            await new Promise(r => setTimeout(r, Math.min(1000 * Math.pow(2, attempt), 5000)));
+        }
+    }
+}
+
+// Update sendTrackInfo to use the enhanced message sending
 function sendTrackInfo(trackInfo) {
     console.log('📤 [DropBeat] Sending track info:', trackInfo);
 
-    chrome.runtime.sendMessage({
+    sendMessageToServiceWorker({
         type: 'TRACK_INFO',
         data: trackInfo
-    }, response => {
-        if (chrome.runtime.lastError) {
-            console.warn('⚠️ [DropBeat] Error sending track info:', chrome.runtime.lastError);
+    }).then(response => {
+        if (response?.sent) {
+            console.log('✅ [DropBeat] Track info sent successfully');
+            // Update last successful sync time
+            window._dropbeatState.lastSuccessfulSync = Date.now();
         } else {
-            if (response?.sent) {
-                console.log('✅ [DropBeat] Track info sent successfully');
-            } else {
-                console.warn('⚠️ [DropBeat] Failed to send track info');
+            console.warn('⚠️ [DropBeat] Failed to send track info');
+            // Schedule a retry if needed
+            if (!window._dropbeatState.retryTimeout) {
+                window._dropbeatState.retryTimeout = setTimeout(() => {
+                    window._dropbeatState.retryTimeout = null;
+                    updateTrackInfo(true);
+                }, 2000);
             }
+        }
+    }).catch(error => {
+        console.error('❌ [DropBeat] Error sending track info:', error);
+        // Handle disconnection if needed
+        if (error.message.includes('Extension context invalidated') || 
+            error.message.includes('Could not establish connection')) {
+            window._dropbeatState.isConnected = false;
+            // Attempt recovery
+            initialize(true);
         }
     });
 }
+
+// Add connection health monitoring
+setInterval(async () => {
+    if (!window._dropbeatState.isConnected) {
+        return;
+    }
+    
+    const timeSinceLastSync = Date.now() - (window._dropbeatState.lastSuccessfulSync || 0);
+    if (timeSinceLastSync > 10000) { // 10 seconds
+        console.warn('⚠️ [DropBeat] No successful sync for', Math.round(timeSinceLastSync/1000), 'seconds');
+        try {
+            // Check service worker connection
+            const response = await sendMessageToServiceWorker({ type: 'PING' });
+            if (!response?.pong) {
+                throw new Error('Invalid ping response');
+            }
+            // If we get here, connection is good but we might have missed updates
+            updateTrackInfo(true);
+        } catch (error) {
+            console.error('❌ [DropBeat] Connection check failed:', error);
+            // Force reconnection attempt
+            window._dropbeatState.isConnected = false;
+            initialize(true);
+        }
+    }
+}, 5000);
 
 // Get initial connection status
 chrome.runtime.sendMessage({ type: 'GET_CONNECTION_STATUS' }, (response) => {
@@ -1180,13 +1489,37 @@ function ensureYouTubeMusicReady(timeout = 10000) {
     });
 }
 
-// Add duration change listener
+// Enhanced duration change listener
 function setupDurationChangeListener() {
     const video = document.querySelector('video');
     if (video) {
         video.addEventListener('durationchange', () => {
-            console.log('⏱️ [DropBeat] Duration changed:', video.duration);
-            updateTrackInfo(true);
+            const newDuration = video.duration;
+            console.log('⏱️ [DropBeat] Duration changed:', newDuration);
+            
+            // Handle invalid states
+            if (!newDuration || newDuration === Infinity) {
+                console.log('⚠️ [DropBeat] Invalid duration, waiting...');
+                return;
+            }
+            
+            // Check for transition state
+            if (video.currentTime > newDuration) {
+                console.log('🔄 [DropBeat] Detected transition state, forcing update');
+                updateTrackInfo(true);
+            } else {
+                // Normal duration update
+                updateTrackInfo(true);
+            }
+        });
+        
+        // Add ended event listener for better transition handling
+        video.addEventListener('ended', () => {
+            console.log('🔚 [DropBeat] Track ended, preparing for transition');
+            // Force an update with reset times
+            setTimeout(() => {
+                updateTrackInfo(true);
+            }, 100);
         });
     }
 }

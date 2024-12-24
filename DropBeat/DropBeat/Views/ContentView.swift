@@ -141,108 +141,142 @@ struct ContentView: View {
     @State private var isSeeking: Bool = false
     
     var body: some View {
-        VStack(spacing: 10) {
-            if !wsManager.isConnected {
-                // Connection Error State
-                Text("Check if Chrome extension is installed")
-                    .font(.system(size: 11))
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            } else if let track = wsManager.currentTrack {
-                // Now Playing View
-                HStack(spacing: 10) {
-                    // Album Art
-                    if let albumArtURL = track.albumArt {
-                        AsyncImage(url: URL(string: albumArtURL)) { image in
-                            image
-                                .resizable()
-                                .interpolation(.high)
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 48, height: 48)
-                                .cornerRadius(4)
-                        } placeholder: {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(width: 48, height: 48)
-                                .cornerRadius(4)
+        VStack(spacing: 0) {
+            // Main content
+            VStack(spacing: 6) {
+                if !wsManager.isConnected {
+                    // Connection Error State
+                    Text("Check if Chrome extension is installed")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                } else if let track = wsManager.currentTrack {
+                    // Now Playing View
+                    HStack(spacing: 10) {
+                        // Album Art
+                        if let albumArtURL = track.albumArt {
+                            AsyncImage(url: URL(string: albumArtURL)) { image in
+                                image
+                                    .resizable()
+                                    .interpolation(.high)
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 48, height: 48)
+                                    .cornerRadius(4)
+                                    .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
+                            } placeholder: {
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(width: 48, height: 48)
+                                    .cornerRadius(4)
+                            }
                         }
-                    }
-                    
-                    // Track Info
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(track.title)
-                            .font(.system(size: 13, weight: .medium))
-                            .lineLimit(1)
-                            .truncationMode(.tail)
                         
-                        Text(track.artist)
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
+                        // Track Info
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(track.title)
+                                .font(.system(size: 13, weight: .medium))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                            
+                            Text(track.artist)
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+                    
+                    // Time Scrubber
+                    CompactScrubber(
+                        value: Binding(
+                            get: { isSeeking ? seekPosition : track.currentTime },
+                            set: { newValue in
+                                print("🎵 Slider value changed to: \(newValue)")
+                                seekPosition = newValue
+                            }
+                        ),
+                        isSeeking: $isSeeking,
+                        duration: track.duration,
+                        currentTime: track.currentTime,
+                        isEnabled: true
+                    )
+                    .padding(.top, 2)
+                    
+                    // Playback Controls
+                    HStack(spacing: 20) {
+                        Button(action: { wsManager.previous() }) {
+                            Image(systemName: "backward.fill")
+                                .font(.system(size: 16))
+                        }
+                        
+                        Button(action: {
+                            if track.isPlaying {
+                                wsManager.pause()
+                            } else {
+                                wsManager.play()
+                            }
+                        }) {
+                            Image(systemName: track.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 20))
+                        }
+                        
+                        Button(action: { wsManager.next() }) {
+                            Image(systemName: "forward.fill")
+                                .font(.system(size: 16))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 2)
+                } else {
+                    // No Track Playing State
+                    VStack(spacing: 6) {
+                        Text("No Track Playing")
+                            .font(.system(size: 13, weight: .medium))
+                        
+                        Button(action: { wsManager.openYouTubeMusic() }) {
+                            Text("Open YouTube Music")
+                                .font(.system(size: 11))
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 12)
                 }
-                .padding(.horizontal)
-                
-                // Time Scrubber
-                CompactScrubber(
-                    value: Binding(
-                        get: { isSeeking ? seekPosition : track.currentTime },
-                        set: { newValue in
-                            print("🎵 Slider value changed to: \(newValue)")
-                            seekPosition = newValue
-                        }
-                    ),
-                    isSeeking: $isSeeking,
-                    duration: track.duration,
-                    currentTime: track.currentTime,
-                    isEnabled: true
-                )
-                
-                // Playback Controls
-                HStack(spacing: 28) {
-                    Button(action: { wsManager.previous() }) {
-                        Image(systemName: "backward.fill")
-                            .font(.system(size: 16))
-                    }
-                    
-                    Button(action: {
-                        if track.isPlaying {
-                            wsManager.pause()
-                        } else {
-                            wsManager.play()
-                        }
-                    }) {
-                        Image(systemName: track.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 20))
-                    }
-                    
-                    Button(action: { wsManager.next() }) {
-                        Image(systemName: "forward.fill")
-                            .font(.system(size: 16))
+            }
+            .padding(.vertical, 8)
+            
+            // Bottom Bar
+            HStack {
+                // Search Button
+                Button(action: {
+                    CommandPalette.shared.toggle()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 12))
                     }
                 }
                 .buttonStyle(.plain)
-                .padding(.top, 2)
-            } else {
-                // No Track Playing State
-                VStack(spacing: 6) {
-                    Text("No Track Playing")
-                        .font(.system(size: 13, weight: .medium))
-                    
-                    Button(action: { wsManager.openYouTubeMusic() }) {
-                        Text("Open YouTube Music")
-                            .font(.system(size: 11))
-                            .foregroundColor(.blue)
-                    }
-                    .buttonStyle(.plain)
+                
+                Spacer()
+                
+                // Settings Button
+                Button(action: {
+                    // TODO: Implement settings action
+                }) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 12))
                 }
-                .padding(.horizontal)
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial)
         }
-        .padding(.vertical, 10)
         .frame(width: 280)
         .onAppear {
             setupSeekObserver()

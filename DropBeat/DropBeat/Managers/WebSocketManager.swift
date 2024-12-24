@@ -716,4 +716,15 @@ class WebSocketManager: ObservableObject {
             }
         }.resume()
     }
+    
+    // Add this new method for custom commands
+    func send(command type: String) async throws {
+        let message: [String: Any] = [
+            "type": "COMMAND",
+            "command": type
+        ]
+        
+        print("📤 [DropBeat] Sending custom command:", type)
+        sendResponse(message)
+    }
 }

@@ -172,4 +172,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func quitApp() {
         NSApplication.shared.terminate(self)
     }
-} 
+}
+
