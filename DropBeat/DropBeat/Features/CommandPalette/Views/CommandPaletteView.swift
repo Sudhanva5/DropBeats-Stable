@@ -8,6 +8,8 @@ struct CommandPaletteView: View {
     @State private var searchResults: [SearchResult] = []
     @State private var searchError: SearchError?
     @State private var playbackError: (error: String, url: String)?
+    @State private var isKeyboardNavigation = false
+    @State private var isNavigatingUp = false
     
     @ObservedObject private var wsManager = WebSocketManager.shared
     
@@ -91,12 +93,65 @@ struct CommandPaletteView: View {
                     sections: displaySections,
                     selectedIndex: selectedIndex,
                     showRecent: state.searchText.isEmpty,
-                    onSelect: handleSelection
+                    onSelect: handleSelection,
+                    isKeyboardNavigation: isKeyboardNavigation,
+                    isNavigatingUp: isNavigatingUp
                 )
+                .padding(.horizontal, 8)
             }
+            
+            // Bottom Bar
+            HStack {
+                // Left side - App branding
+                HStack(spacing: 6) {
+                    Image("AppIcon")
+                        .resizable()
+                        .frame(width: 16, height: 16)
+                    Text("DropBeat Power Search")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Right side - Navigation hint
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.up")
+                        .font(.caption2)
+                    Image(systemName: "arrow.down")
+                        .font(.caption2)
+                    Text("to navigate")
+                        .font(.caption)
+                }
+                .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                Rectangle()
+                    .fill(Color(.windowBackgroundColor).opacity(0.5))
+                    .overlay(
+                        Rectangle()
+                            .frame(height: 0.5)
+                            .foregroundColor(Color.primary.opacity(0.1)),
+                        alignment: .top
+                    )
+            )
         }
         .frame(width: 800, height: 400)
-        .background(.ultraThickMaterial)
+        .background(
+            ZStack {
+                // Blur layer
+                VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
+                // Overlay color
+                Color(.windowBackgroundColor)
+                    .opacity(0.85)
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .setupCommandPalette(
             isFocused: $isFocused,
@@ -104,7 +159,9 @@ struct CommandPaletteView: View {
             displayResults: displaySections.flatMap { $0.results },
             searchText: state.searchText,
             onSearch: performSearch,
-            onEscape: { CommandPalette.shared.toggle() }
+            onEscape: { CommandPalette.shared.toggle() },
+            isKeyboardNavigation: $isKeyboardNavigation,
+            isNavigatingUp: $isNavigatingUp
         )
         .onChange(of: state.searchText, perform: handleSearchTextChange)
         .onAppear {
@@ -202,12 +259,16 @@ extension View {
         displayResults: [SearchResult],
         searchText: String,
         onSearch: @escaping () -> Void,
-        onEscape: @escaping () -> Void
+        onEscape: @escaping () -> Void,
+        isKeyboardNavigation: Binding<Bool>,
+        isNavigatingUp: Binding<Bool>
     ) -> some View {
         self
             .onAppear {
                 selectedIndex.wrappedValue = 0
                 isFocused.wrappedValue = true
+                isKeyboardNavigation.wrappedValue = false
+                isNavigatingUp.wrappedValue = false
                 
                 DispatchQueue.main.async {
                     NSApp.activate(ignoringOtherApps: true)
@@ -223,10 +284,14 @@ extension View {
                 }
             }
             .onKeyPress(.upArrow) {
+                isKeyboardNavigation.wrappedValue = true
+                isNavigatingUp.wrappedValue = true
                 selectedIndex.wrappedValue = (selectedIndex.wrappedValue - 1 + displayResults.count) % displayResults.count
                 return .handled
             }
             .onKeyPress(.downArrow) {
+                isKeyboardNavigation.wrappedValue = true
+                isNavigatingUp.wrappedValue = false
                 selectedIndex.wrappedValue = (selectedIndex.wrappedValue + 1) % displayResults.count
                 return .handled
             }
@@ -244,6 +309,10 @@ extension View {
             .onKeyPress(.escape) {
                 onEscape()
                 return .handled
+            }
+            .onChange(of: searchText) { _ in
+                isKeyboardNavigation.wrappedValue = false
+                isNavigatingUp.wrappedValue = false
             }
     }
 } 

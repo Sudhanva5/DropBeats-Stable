@@ -9,8 +9,10 @@ struct SearchFieldView: View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
-            TextField("Search YouTube Music...", text: $searchText)
+            TextField("Search in youtube music...", text: $searchText)
                 .textFieldStyle(.plain)
+                .font(.title3)
+                .padding(.horizontal, 4)
                 .focused($isFocused)
             if isSearching {
                 ProgressView()
@@ -19,6 +21,9 @@ struct SearchFieldView: View {
             }
         }
         .padding()
-        .background(.ultraThinMaterial)
+        .background(
+            RoundedRectangle(cornerRadius: 0)
+                .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+        )
     }
 } 

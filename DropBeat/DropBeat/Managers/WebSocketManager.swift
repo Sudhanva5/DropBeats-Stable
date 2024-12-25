@@ -19,8 +19,11 @@ class WebSocketManager: ObservableObject {
     private let queue = DispatchQueue(label: "com.sudhanva.dropbeat.websocket")
     
     private var reconnectAttempts: Int = 0
+    private let INITIAL_RECONNECT_DELAY: TimeInterval = 1.0
+    private let MAX_RECONNECT_DELAY: TimeInterval = 60.0
     private var lastPongReceived: Date = Date()
     private let PING_INTERVAL: TimeInterval = 5.0
+    private let PONG_TIMEOUT: TimeInterval = 15.0
     
     @Published private(set) var isConnected = false
     @Published private(set) var currentTrack: Track?
@@ -28,6 +31,7 @@ class WebSocketManager: ObservableObject {
     
     // Replace Timer with DispatchWorkItem for debouncing
     private var pendingTrackUpdate: DispatchWorkItem?
+    private var reconnectTimer: DispatchWorkItem?
     
     private init() {
         print("🎵 [DropBeat] Initializing WebSocket Manager...")
@@ -98,7 +102,7 @@ class WebSocketManager: ObservableObject {
     
     private func checkConnection() {
         let timeSinceLastPong = Date().timeIntervalSince(lastPongReceived)
-        if timeSinceLastPong > PING_INTERVAL * 2 {
+        if timeSinceLastPong > PONG_TIMEOUT {
             print("⚠️ [DropBeat] Connection seems dead, last pong was \(timeSinceLastPong) seconds ago")
             handleConnectionFailure(activeConnection!)
         }
@@ -124,11 +128,19 @@ class WebSocketManager: ObservableObject {
             self?.handleConnectionChange()
         }
         
-        // Schedule restart with exponential backoff
-        reconnectAttempts += 1
-        let delay = min(pow(2.0, Double(reconnectAttempts)), 30.0)
+        // Cancel any existing reconnect timer
+        reconnectTimer?.cancel()
         
-        queue.asyncAfter(deadline: .now() + delay) { [weak self] in
+        // Calculate delay with exponential backoff, capped at max delay
+        let delay = min(
+            INITIAL_RECONNECT_DELAY * pow(2.0, Double(reconnectAttempts)),
+            MAX_RECONNECT_DELAY
+        )
+        
+        reconnectAttempts += 1
+        print("🔄 [DropBeat] Scheduling reconnect attempt \(reconnectAttempts) in \(delay) seconds")
+        
+        let workItem = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             
             // Only attempt restart if we're not already connected
@@ -137,6 +149,9 @@ class WebSocketManager: ObservableObject {
                 self.setupServer()
             }
         }
+        
+        reconnectTimer = workItem
+        queue.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
     
     private func handleNewConnection(_ connection: NWConnection) {

@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var wsManager: WebSocketManager
     private var popover: NSPopover!
+    private var popoverMonitor: Any?
     
     override init() {
         self.wsManager = WebSocketManager.shared
@@ -64,6 +65,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentSize = NSSize(width: 300, height: 400)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: ContentView())
+        popover.delegate = self
     }
     
     private func updateMenu() {
@@ -171,6 +173,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func quitApp() {
         NSApplication.shared.terminate(self)
+    }
+}
+
+// MARK: - NSPopoverDelegate
+extension AppDelegate: NSPopoverDelegate {
+    func popoverWillShow(_ notification: Notification) {
+        if let popoverWindow = popover.contentViewController?.view.window {
+            // Set window level to stay visible over full-screen apps
+            popoverWindow.level = .popUpMenu
+        }
     }
 }
 

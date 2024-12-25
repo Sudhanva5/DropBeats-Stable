@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */; };
+		40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */; settings = {ATTRIBUTES = (Required, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
