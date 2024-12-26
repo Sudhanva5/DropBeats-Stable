@@ -453,7 +453,7 @@ class WebSocketManager: ObservableObject {
     
     private func decodeWebSocketFrame(_ data: Data) -> Data? {
         guard data.count >= 2 else {
-            print("❌ Frame too small: \(data.count) bytes")
+            print("�� Frame too small: \(data.count) bytes")
             return nil
         }
         
@@ -547,6 +547,44 @@ class WebSocketManager: ObservableObject {
     
     // MARK: - Public Methods
     
+    private var playPauseDebouncer: DispatchWorkItem?
+    
+    func togglePlayPause() {
+        // Cancel any pending debounce
+        playPauseDebouncer?.cancel()
+        
+        // Create new debounce work item
+        let workItem = DispatchWorkItem { [weak self] in
+            print("⏯️ [DropBeat] Toggling play/pause state")
+            self?.sendCommand("pause")  // Using 'pause' command which acts as a toggle in YouTube Music
+        }
+        
+        // Store and execute with delay
+        playPauseDebouncer = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
+    }
+    
+    // Play specific content by ID
+    func play(id: String, type: SearchResultType) {
+        print("▶️ [DropBeat] Playing content - ID:", id, "Type:", type.rawValue)
+        
+        let data: [String: Any] = [
+            "id": id,
+            "type": type.rawValue
+        ]
+        
+        sendCommand("play", data: data)
+    }
+    
+    // Deprecate these in favor of toggle
+    func play() {
+        togglePlayPause()
+    }
+    
+    func pause() {
+        togglePlayPause()
+    }
+    
     func next() {
         print("⏭️ [DropBeat] Next track")
         sendCommand("next")
@@ -555,29 +593,6 @@ class WebSocketManager: ObservableObject {
     func previous() {
         print("⏮️ [DropBeat] Previous track")
         sendCommand("previous")
-    }
-    
-    func play() {
-        print("▶️ [DropBeat] Playing/pausing current track")
-        sendCommand("play")
-    }
-    
-    func play(id: String, type: SearchResultType) {
-        print("▶️ [DropBeat] Playing content - ID:", id, "Type:", type.rawValue)
-        
-        // For the Chrome extension, we need to send the ID and type
-        let command = "play"
-        var data: [String: Any] = ["type": type.rawValue]
-        
-        // For songs and other types, use the ID directly
-        data["id"] = id
-        
-        sendCommand(command, data: data)
-    }
-    
-    func pause() {
-        print("⏸️ [DropBeat] Pause")
-        sendCommand("pause")
     }
     
     func toggleLike() {

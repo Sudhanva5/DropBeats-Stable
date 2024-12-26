@@ -97,17 +97,19 @@ struct CommandPaletteView: View {
                     isKeyboardNavigation: isKeyboardNavigation,
                     isNavigatingUp: isNavigatingUp
                 )
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
             }
             
             // Bottom Bar
             HStack {
                 // Left side - App branding
                 HStack(spacing: 6) {
-                    Image("AppIcon")
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                    Text("DropBeat Power Search")
+                    Image(systemName: "music.note")
+                                            .resizable()
+                                            .frame(width: 8, height: 12)
+                                            .foregroundColor(.secondary)
+                    Text("DropBeats v1.0")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

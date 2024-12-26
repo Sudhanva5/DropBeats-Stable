@@ -62,7 +62,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private func setupPopover() {
         popover = NSPopover()
-        popover.contentSize = NSSize(width: 300, height: 400)
+        popover.contentSize = NSSize(width: 280, height: 0)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: ContentView())
         popover.delegate = self
@@ -144,7 +144,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if wsManager.isConnected {
             statusItem.button?.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "DropBeat")
         } else {
-            statusItem.button?.image = NSImage(systemSymbolName: "music.note.slash", accessibilityDescription: "DropBeat Disconnected")
+            // Using a more appropriate disconnected icon
+            if let disconnectedIcon = NSImage(systemSymbolName: "exclamationmark.circle", accessibilityDescription: "DropBeat Disconnected") {
+                statusItem.button?.image = disconnectedIcon
+            } else {
+                statusItem.button?.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "DropBeat")
+            }
         }
         updateMenu()
     }
@@ -154,13 +159,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func togglePlayPause() {
-        if let track = wsManager.currentTrack {
-            if track.isPlaying {
-                wsManager.pause()
-            } else {
-                wsManager.play()
-            }
-        }
+        wsManager.togglePlayPause()
     }
     
     @objc func previousTrack() {
