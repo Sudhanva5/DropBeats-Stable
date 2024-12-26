@@ -69,13 +69,12 @@ final class CommandPalette: NSObject {
                 y: y,
                 width: windowFrame.width,
                 height: windowFrame.height
-            ), display: false)
+            ), display: true)
         }
         
+        state.isVisible = true
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
-        window.orderFrontRegardless()
-        state.isVisible = true
         
         // Send refresh command to content script
         Task {

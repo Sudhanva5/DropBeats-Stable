@@ -39,42 +39,87 @@ struct CommandPaletteView: View {
     }
     
     private var displaySections: [SearchSection] {
-        state.searchText.isEmpty ? [recentlyPlayedSection] : searchSections
+        // Handle empty state
+        if state.searchText.isEmpty {
+            return [recentlyPlayedSection]
+        }
+        
+        // Handle search results
+        if searchResults.isEmpty {
+            return []
+        }
+        
+        // Group and filter results
+        let songs = searchResults.filter { $0.type == .song }
+        if songs.isEmpty {
+            return []
+        }
+        
+        return [
+            SearchSection(id: "songs", title: "Songs", results: songs.prefix(10).map { $0 })
+        ]
     }
     
     var body: some View {
         VStack(spacing: 0) {
+            // Search Field
             SearchFieldView(
                 searchText: $state.searchText,
                 isFocused: $isFocused,
                 isSearching: isSearching
             )
-            
-            if !wsManager.isConnected {
-                Text("Connecting to YouTube Music...")
-                    .foregroundColor(.secondary)
-                    .padding()
-            } else if let error = playbackError {
-                VStack(spacing: 12) {
-                    Text("Couldn't play the song directly")
-                        .foregroundColor(.secondary)
-                    
-                    Button(action: {
-                        if let url = URL(string: error.url) {
-                            NSWorkspace.shared.open(url)
-                        }
-                        CommandPalette.shared.toggle()
-                    }) {
-                        Text("Open in YouTube Music")
-                            .foregroundColor(.accentColor)
+            .focused($isFocused)
+            .onAppear {
+                isFocused = true
+            }
+            .onChange(of: state.isVisible) { isVisible in
+                if isVisible {
+                    DispatchQueue.main.async {
+                        isFocused = true
                     }
-                    .buttonStyle(.plain)
                 }
-                .padding()
-            } else if let error = searchError {
-                VStack(spacing: 12) {
-                    Text("Couldn't find any results")
+            }
+            
+            // Main Content Area
+            if !wsManager.isConnected {
+                // Connection Lost State
+                VStack(spacing: 8) {
+                    Image(systemName: "server.rack")
+                        .font(.system(size: 20))
                         .foregroundColor(.secondary)
+                        .padding(.bottom, 8)
+                    
+                    Text("Connection to server lost")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Please check if the app is running")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            } else if isSearching {
+                // Loading State
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+            } else if let error = searchError {
+                // No Results State
+                VStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 20))
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 8)
+                    
+                    Text("No results found")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Try updating your search terms to fetch results")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 16)
                     
                     Button(action: {
                         if let url = URL(string: error.searchUrl) {
@@ -82,13 +127,20 @@ struct CommandPaletteView: View {
                         }
                         CommandPalette.shared.toggle()
                     }) {
-                        Text("Search in YouTube Music")
-                            .foregroundColor(.accentColor)
+                        Text("Search on YouTube Music")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.accentColor)
+                            .cornerRadius(4)
                     }
                     .buttonStyle(.plain)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding()
             } else {
+                // Results List
                 SearchResultsList(
                     sections: displaySections,
                     selectedIndex: selectedIndex,
@@ -234,7 +286,7 @@ struct CommandPaletteView: View {
         searchError = nil
         
         wsManager.search(query: state.searchText) { results in
-            print("🔍 [CommandPalette] Received search results:", results.count)
+            print("���� [CommandPalette] Received search results:", results.count)
             self.searchResults = results
             print("📊 [CommandPalette] Results by type:", Dictionary(grouping: results, by: { $0.type.rawValue }).mapValues { $0.count })
             self.isSearching = false

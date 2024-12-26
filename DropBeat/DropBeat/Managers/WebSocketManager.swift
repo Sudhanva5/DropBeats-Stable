@@ -534,7 +534,7 @@ class WebSocketManager: ObservableObject {
         
         let frame = createWebSocketFrame(withPayload: data)
         print("📤 [DropBeat] Sending response frame of size: \(frame.count) bytes")
-        print("📤 [DropBeat] Response content: \(message)")
+        print("�� [DropBeat] Response content: \(message)")
         
         activeConnection?.send(content: frame, completion: .contentProcessed { error in
             if let error = error {
@@ -548,20 +548,12 @@ class WebSocketManager: ObservableObject {
     // MARK: - Public Methods
     
     private var playPauseDebouncer: DispatchWorkItem?
+    private var isPlayPauseInProgress = false
     
     func togglePlayPause() {
-        // Cancel any pending debounce
-        playPauseDebouncer?.cancel()
-        
-        // Create new debounce work item
-        let workItem = DispatchWorkItem { [weak self] in
-            print("⏯️ [DropBeat] Toggling play/pause state")
-            self?.sendCommand("pause")  // Using 'pause' command which acts as a toggle in YouTube Music
-        }
-        
-        // Store and execute with delay
-        playPauseDebouncer = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
+        // Simple command - just like next/previous
+        print("⏯️ [DropBeat] Sending play/pause command")
+        sendCommand("togglePlayPause")
     }
     
     // Play specific content by ID

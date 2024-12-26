@@ -146,19 +146,25 @@ struct ContentView: View {
             // Main Content first (to establish size)
             VStack(spacing: 0) {
                 // Main content
-                VStack(spacing: 6) {
+                VStack(spacing: 4) {
                     if !wsManager.isConnected {
                         // Connection Error State
-                        VStack(spacing: 8) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "puzzlepiece.extension")
+                                .font(.system(size: 16))
+                                .foregroundColor(.secondary)
+                                .padding(.bottom, 8)
+                            
+                            Text("Extension Disconnected")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.primary)
+                                .multilineTextAlignment(.center)
+                            
                             Text("Check if Chrome extension is installed")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
-                            
-                            Text("Please refresh the extension from Chrome")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
+                                .padding(.top, 0)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 12)
@@ -241,16 +247,28 @@ struct ContentView: View {
                         .padding(.bottom, 16)
                     } else {
                         // No Track Playing State
-                        VStack(spacing: 6) {
-                            Text("No Track Playing")
-                                .font(.system(size: 13, weight: .medium))
+                        VStack(spacing: 4) {
+                            
+                            Text("No Music Playing")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.primary)
+                            
+                            Text("Open YouTube Music to start playing")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .padding(.top, 0)
                             
                             Button(action: { wsManager.openYouTubeMusic() }) {
                                 Text("Open YouTube Music")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.blue)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.accentColor)
+                                    .cornerRadius(4)
                             }
                             .buttonStyle(.plain)
+                            .padding(.top, 12)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 12)

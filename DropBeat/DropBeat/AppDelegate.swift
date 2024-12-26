@@ -9,6 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var wsManager: WebSocketManager
     private var popover: NSPopover!
     private var popoverMonitor: Any?
+    private var hudWindow: NSWindow?
     
     override init() {
         self.wsManager = WebSocketManager.shared
@@ -46,13 +47,110 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 await CommandPalette.shared.toggle()
             }
         }
+        
+        KeyboardShortcuts.onKeyDown(for: .togglePlayPause) { [weak self] in
+            guard let self = self else { return }
+            self.wsManager.togglePlayPause()
+            self.showNotification(icon: "playpause.fill", text: "Music Play / Pause")
+        }
+        
+        KeyboardShortcuts.onKeyDown(for: .nextTrack) { [weak self] in
+            guard let self = self else { return }
+            self.wsManager.next()
+            self.showNotification(icon: "forward.fill", text: "Next Music")
+        }
+        
+        KeyboardShortcuts.onKeyDown(for: .previousTrack) { [weak self] in
+            guard let self = self else { return }
+            self.wsManager.previous()
+            self.showNotification(icon: "backward.fill", text: "Previous Music")
+        }
+    }
+    
+    private func showNotification(icon: String, text: String) {
+        // Cleanup existing
+        hudWindow?.close()
+        
+        // Create simple HUD window
+        let window = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 180, height: 180),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        
+        window.backgroundColor = .clear
+        window.isOpaque = false
+        window.level = .statusBar
+        window.ignoresMouseEvents = true
+        window.hasShadow = false
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
+        
+        // Create HUD view
+        let hudView = NSVisualEffectView(frame: window.contentView!.bounds)
+        hudView.material = .hudWindow
+        hudView.state = .active
+        hudView.wantsLayer = true
+        hudView.layer?.cornerRadius = 20
+        
+        // Icon
+        let imageView = NSImageView(frame: NSRect(x: 60, y: 80, width: 54, height: 54))
+        imageView.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil)?.withSymbolConfiguration(.init(pointSize: 50, weight: .regular))
+        imageView.imageScaling = .scaleNone
+        imageView.contentTintColor = .labelColor.withAlphaComponent(0.65)
+        
+        // Label
+        let label = NSTextField(frame: NSRect(x: 0, y: 48, width: 180, height: 20))
+        label.stringValue = text
+        label.alignment = .center
+        label.font = .systemFont(ofSize: 16)
+        label.textColor = .labelColor.withAlphaComponent(0.9)
+        label.isBezeled = false
+        label.isEditable = false
+        label.drawsBackground = false
+        
+        hudView.addSubview(imageView)
+        hudView.addSubview(label)
+        window.contentView = hudView
+        
+        // Center and moved slightly to the bottom of the screen
+        if let screen = NSScreen.main {
+            let x = screen.frame.midX - 100
+            let y = screen.frame.midY - 300
+            window.setFrameOrigin(NSPoint(x: x, y: y))
+        }
+        
+        hudWindow = window
+        window.orderFront(nil)
+        
+        // Fade in
+        window.alphaValue = 0
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.4
+            window.animator().alphaValue = 1
+        }
+        
+        // Auto dismiss with fade out
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.4
+                window.animator().alphaValue = 0
+            } completionHandler: {
+                window.close()
+                self.hudWindow = nil
+            }
+        }
     }
     
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "DropBeat")
+            button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "DropBeats")
             button.action = #selector(togglePopover)
             button.target = self
         }
