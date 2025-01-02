@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		40AFEC622D1DD4AF00E39235 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = 40AFEC612D1DD4AF00E39235 /* Settings */; };
 		40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */; settings = {ATTRIBUTES = (Required, ); }; };
 /* End PBXBuildFile section */
 
@@ -28,6 +29,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */,
+				40AFEC622D1DD4AF00E39235 /* Settings in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +73,7 @@
 			name = DropBeat;
 			packageProductDependencies = (
 				40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */,
+				40AFEC612D1DD4AF00E39235 /* Settings */,
 			);
 			productName = DropBeat;
 			productReference = 40FF48B72D059A300094294E /* DropBeat.app */;
@@ -102,6 +105,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				40AFEC602D1DD4AE00E39235 /* XCRemoteSwiftPackageReference "Settings" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 40FF48B82D059A300094294E /* Products */;
@@ -262,7 +266,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"DropBeat/Preview Content\"";
-				DEVELOPMENT_TEAM = KX9B67F8HJ;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -289,7 +293,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"DropBeat/Preview Content\"";
-				DEVELOPMENT_TEAM = KX9B67F8HJ;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -330,6 +334,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		40AFEC602D1DD4AE00E39235 /* XCRemoteSwiftPackageReference "Settings" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/Settings";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.1;
+			};
+		};
 		40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
@@ -341,6 +353,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		40AFEC612D1DD4AF00E39235 /* Settings */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 40AFEC602D1DD4AE00E39235 /* XCRemoteSwiftPackageReference "Settings" */;
+			productName = Settings;
+		};
 		40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;

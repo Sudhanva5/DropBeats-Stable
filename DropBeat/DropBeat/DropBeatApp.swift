@@ -7,7 +7,12 @@ struct DropBeatApp: App {
     
     var body: some Scene {
         Settings {
-            EmptyView()
+            SettingsView()
         }
+        .windowStyle(.titleBar)
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
+        .windowToolbarStyle(.unified)
+        .windowLevel(.floating)
     }
 }

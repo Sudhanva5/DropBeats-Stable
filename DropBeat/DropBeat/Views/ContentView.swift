@@ -291,9 +291,7 @@ struct ContentView: View {
                     Spacer()
                     
                     // Settings Button
-                    Button(action: {
-                        // TODO: Implement settings action
-                    }) {
+                    SettingsLink {
                         Image(systemName: "gearshape.fill")
                             .font(.system(size: 12))
                     }
