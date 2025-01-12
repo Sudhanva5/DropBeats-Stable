@@ -53,7 +53,8 @@ We may update this policy occasionally. We will notify users of any material cha
 ## Contact
 
 For privacy-related questions, please contact:
-S.M Sudhanva Acharya
+
+S.M Sudhanva Acharya  
 Email: sudhanva.udupi55@gmail.com
 
 ## Additional Information
