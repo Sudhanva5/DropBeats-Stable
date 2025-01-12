@@ -23,6 +23,7 @@ struct SearchFieldView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 0)
+                
                 .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
         )
     }

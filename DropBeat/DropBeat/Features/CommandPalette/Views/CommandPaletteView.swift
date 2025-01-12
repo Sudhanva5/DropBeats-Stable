@@ -187,7 +187,7 @@ struct CommandPaletteView: View {
                     .overlay(
                         Rectangle()
                             .frame(height: 0.5)
-                            .foregroundColor(Color.primary.opacity(0.05)),
+                            .foregroundColor(Color.primary.opacity(0.08)),
                         alignment: .top
                     )
             )

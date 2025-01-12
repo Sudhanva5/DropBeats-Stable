@@ -54,7 +54,10 @@ struct SearchResultRow: View {
         .background(
             Group {
                 if isSelected {
-                    VisualEffectView(material: .selection, blendingMode: .withinWindow)
+                    Color(.systemGray)
+                        .opacity(0.3)
+                } else {
+                    Color.clear
                 }
             }
         )
