@@ -93,7 +93,7 @@ struct CommandPaletteView: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.primary)
                     
-                    Text("Please check if the app is running")
+                    Text("Please check if the extension is running")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                 }
@@ -183,11 +183,11 @@ struct CommandPaletteView: View {
             .padding(.vertical, 8)
             .background(
                 Rectangle()
-                    .fill(Color(.windowBackgroundColor).opacity(0.5))
+                    .fill(Color(.windowBackgroundColor).opacity(0.15))
                     .overlay(
                         Rectangle()
                             .frame(height: 0.5)
-                            .foregroundColor(Color.primary.opacity(0.1)),
+                            .foregroundColor(Color.primary.opacity(0.05)),
                         alignment: .top
                     )
             )
@@ -199,7 +199,7 @@ struct CommandPaletteView: View {
                 VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
                 // Overlay color
                 Color(.windowBackgroundColor)
-                    .opacity(0.85)
+                    .opacity(0.65)
             }
         )
         .overlay(

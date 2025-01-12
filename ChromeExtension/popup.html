@@ -1,97 +1,174 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DropBeat</title>
+    <title>DropBeats</title>
     <style>
         body {
-            width: 300px;
-            padding: 15px;
+            width: 320px;
+            padding: 0;
+            margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #1a1a1a;
         }
-        
-        .status-container {
+
+        .header {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 8px;
-            border-radius: 6px;
-            background: #f5f5f5;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e9ecef;
+            background: #ffffff;
         }
-        
-        #status-icon {
-            margin-right: 8px;
-            font-size: 14px;
+
+        .header-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
         }
-        
-        .status-text {
-            font-size: 14px;
-            color: #666;
+
+        .header-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a1a1a;
         }
-        
-        .status-text.connected {
-            color: #2ecc71;
+
+        .header-separator {
+            margin: 0 4px;
+            color: #868e96;
         }
-        
-        .status-text.connecting {
-            color: #f1c40f;
-        }
-        
-        .status-text.waiting {
-            color: #3498db;
-        }
-        
-        .status-text.error {
-            color: #e74c3c;
-        }
-        
-        #additional-info {
-            font-size: 12px;
-            color: #666;
-            margin-top: 8px;
-            padding: 8px;
-            background: #fff3cd;
-            border-radius: 4px;
-            display: none;
+
+        .content {
+            padding: 16px;
         }
 
         .app-status {
-            margin-top: 12px;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            display: none;
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            transition: all 0.2s ease;
+            background: #ebfad4;
+            border: 1px solid #d8f5a2;
         }
 
         .app-status.not-running {
-            display: block;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #fff5f5;
+            border: 1px solid #ffc9c9;
         }
 
-        .app-status.running {
-            display: block;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .status-indicator {
+            position: relative;
+            margin-right: 12px;
+            margin-top: 6px;
+        }
+
+        .app-status-icon {
+            position: relative;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #2b8a3e;
+            z-index: 2;
+        }
+
+        .app-status:not(.not-running) .app-status-icon::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #2b8a3e;
+            opacity: 0.2;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.2;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0.1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.2;
+            }
+        }
+
+        .app-status.not-running .app-status-icon {
+            background-color: #c92a2a;
+        }
+
+        .app-status.not-running .app-status-icon::after {
+            display: none;
+        }
+
+        .app-status-content {
+            flex: 1;
+        }
+
+        .app-status-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .app-status-title {
+            font-weight: 500;
+            color: #2b8a3e;
+        }
+
+        .app-status.not-running .app-status-title {
+            color: #c92a2a;
         }
 
         .action-hint {
-            margin-top: 4px;
-            font-size: 11px;
-            opacity: 0.8;
+            font-size: 12px;
+            color: #495057;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
-    <div class="status-container">
-        <span id="status-icon">⚪</span>
-        <span id="connection-status" class="status-text">Initializing...</span>
+    <div class="header">
+        <img src="icons/icon32.png" alt="DropBeats" class="header-icon">
+        <span class="header-text">DropBeats Connection Status</span>
     </div>
-    <div id="additional-info"></div>
-    <div id="app-status" class="app-status">
-        <div id="app-status-message"></div>
-        <div class="action-hint">Open DropBeat app to enable media controls</div>
+    <div class="content">
+        <!-- Connected State -->
+        <div id="app-status" class="app-status">
+            <div class="status-indicator">
+                <div class="app-status-icon"></div>
+            </div>
+            <div class="app-status-content">
+                <div class="app-status-header">
+                    <div id="app-status-message" class="app-status-title">App and Extension connected</div>
+                </div>
+                <div class="action-hint">Ready to control your music playback</div>
+            </div>
+        </div>
+
+        <!-- Disconnected State (add 'not-running' class to app-status div) -->
+        <!--
+        <div id="app-status" class="app-status not-running">
+            <div class="status-indicator">
+                <div class="app-status-icon"></div>
+            </div>
+            <div class="app-status-content">
+                <div class="app-status-header">
+                    <div id="app-status-message" class="app-status-title">Connection lost</div>
+                </div>
+                <div class="action-hint">Open YouTube Music to reconnect</div>
+            </div>
+        </div>
+        -->
     </div>
     <script src="popup.js"></script>
 </body>

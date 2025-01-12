@@ -19,6 +19,8 @@ struct SettingsView: View {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
             
+            
+            
             AboutTabView()
                 .tabItem {
                     Label("About", systemImage: "info.circle")
@@ -77,10 +79,11 @@ struct EffectView: NSViewRepresentable {
 
 // MARK: - General Tab
 struct GeneralTabView: View {
-    @State private var startAtLogin: Bool = false
-    @State private var showDockIcon: Bool = true
-    @StateObject private var cardRef = AccessCardViewModel()
+    @StateObject private var appState = AppStateManager.shared
+    @AppStorage("startAtLogin") private var startAtLogin = false
+    @AppStorage("showDockIcon") private var showDockIcon = true
     @State private var isHovering: String? = nil
+    @StateObject private var cardRef = AccessCardViewModel()
     
     // Constants for layout - matching AccessCardView's dimensions
     private let cardWidth: CGFloat = 260
@@ -103,35 +106,39 @@ struct GeneralTabView: View {
                         isHovering: isHovering == "download",
                         action: { _ in
                             // Create a hosting view for the access card with 4x scale for better quality
-                            let scale: CGFloat = 4.0  // Increased scale for better quality
+                            let scale: CGFloat = 4.0
                             let hostingView = NSHostingView(rootView: AccessCardView()
                                 .environmentObject(cardRef)
-                                .frame(width: 260, height: 340))
+                                .scaleEffect(scale)
+                                .frame(width: 260 * scale, height: 340 * scale))
                             
                             // Set up the hosting view with high-quality rendering
                             hostingView.frame = CGRect(x: 0, y: 0, width: 260 * scale, height: 340 * scale)
                             hostingView.layer?.contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0
-                            hostingView.wantsLayer = true
+                            hostingView.layer?.shouldRasterize = false
                             
-                            // Allow the view to render
-                            hostingView.layoutSubtreeIfNeeded()
+                            // Create a high-resolution bitmap
+                            let bitmapRep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds)
+                            bitmapRep?.size = hostingView.bounds.size
+                            hostingView.cacheDisplay(in: hostingView.bounds, to: bitmapRep!)
                             
-                            let bitmap = hostingView.bitmapImage()
+                            // Convert to PNG with maximum quality
+                            let image = NSImage(size: hostingView.bounds.size)
+                            image.addRepresentation(bitmapRep!)
                             
-                            let panel = NSSavePanel()
-                            panel.nameFieldStringValue = "DropBeats-Access-Card.png"
-                            panel.begin { response in
-                                if response == .OK {
-                                    if let url = panel.url {
-                                        if let pngData = bitmap.tiffRepresentation,
-                                           let bitmapRep = NSBitmapImageRep(data: pngData) {
-                                            bitmapRep.size = NSSize(width: 260 * scale, height: 340 * scale)
-                                            if let data = bitmapRep.representation(using: .png, properties: [
-                                                .compressionFactor: 1.0,
-                                                .interlaced: false
-                                            ]) {
-                                                try? data.write(to: url)
-                                            }
+                            if let tiffData = image.tiffRepresentation,
+                               let bitmapImage = NSBitmapImageRep(data: tiffData),
+                               let pngData = bitmapImage.representation(using: .png, properties: [:]) {
+                                
+                                // Show save panel above settings window
+                                let savePanel = NSSavePanel()
+                                savePanel.allowedContentTypes = [.png]
+                                savePanel.nameFieldStringValue = "DropBeats-AccessCard.png"
+                                if let window = NSApp.windows.first(where: { $0.isKeyWindow }) {
+                                    savePanel.level = window.level + 1
+                                    savePanel.beginSheetModal(for: window) { response in
+                                        if response == .OK, let url = savePanel.url {
+                                            try? pngData.write(to: url)
                                         }
                                     }
                                 }
@@ -150,8 +157,7 @@ struct GeneralTabView: View {
                             let sharingText = "Check out DropBeats - my favorite YouTube Music companion! It helps me stay focused while working by providing seamless music controls. Try it out!"
                             let picker = NSSharingServicePicker(items: [sharingText])
                             
-                            // Get the actual button view and show picker above it
-                            if let buttonView = view {
+                            if let buttonView = view as? NSView {
                                 let rect = NSRect(x: 0, y: buttonView.bounds.height, width: buttonView.bounds.width, height: 0)
                                 picker.show(relativeTo: rect, of: buttonView, preferredEdge: .maxY)
                             }
@@ -183,17 +189,27 @@ struct GeneralTabView: View {
             Form {
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
-                        LicenseInfoRow(title: "Account", value: "sudhanva.udupi55@gmail.com")
-                        LicenseInfoRow(title: "Validity", value: "Lifetime")
-                        LicenseInfoRow(title: "License", value: "DB-2024-WEXS")
-                        LicenseInfoRow(title: "Member Since", value: "January 2024")
+                        if case .valid = appState.licenseStatus, let info = appState.licenseInfo {
+                            LicenseInfoRow(title: "Account", value: info.email)
+                            LicenseInfoRow(title: "Validity", value: "Lifetime")
+                            LicenseInfoRow(title: "License", value: appState.getLicenseKey() ?? "Unknown")
+                            LicenseInfoRow(
+                                title: "Member Since",
+                                value: info.createdAt.formatted(.dateTime.month().year())
+                            )
+                        } else {
+                            LicenseInfoRow(
+                                title: "Status",
+                                value: getLicenseStatusText(),
+                                valueColor: getLicenseStatusColor()
+                            )
+                        }
                     }
                 } header: {
                     Text("License Information")
                         .font(.headline)
                         .padding(.leading, -8)
                 }
-                
                 
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
@@ -212,6 +228,37 @@ struct GeneralTabView: View {
             .transparentGroupedForm()
         }
         .padding()
+        .task {
+            await appState.validateLicenseOnStartup()
+        }
+        .onChange(of: appState.licenseStatus) { oldValue, newValue in
+            cardRef.updateFromAppState()
+        }
+        .onChange(of: appState.licenseInfo) { oldValue, newValue in
+            cardRef.updateFromAppState()
+        }
+    }
+    
+    private func getLicenseStatusText() -> String {
+        switch appState.licenseStatus {
+        case .unknown:
+            return "Checking license..."
+        case .valid:
+            return "Valid"
+        case .invalid(let error):
+            return "Invalid: \(error)"
+        }
+    }
+    
+    private func getLicenseStatusColor() -> Color {
+        switch appState.licenseStatus {
+        case .unknown:
+            return .secondary
+        case .valid:
+            return .green
+        case .invalid:
+            return .red
+        }
     }
 }
 

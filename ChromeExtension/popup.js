@@ -2,60 +2,41 @@ console.log('🎵 [DropBeat] Popup loaded');
 
 document.addEventListener('DOMContentLoaded', function() {
     function updateConnectionStatus(status) {
-        const statusElement = document.getElementById('connection-status');
-        const statusIcon = document.getElementById('status-icon');
         const appStatus = document.getElementById('app-status');
         const appStatusMessage = document.getElementById('app-status-message');
+        const actionHint = document.querySelector('.action-hint');
         
-        if (!statusElement || !statusIcon) return;
+        if (!appStatus || !appStatusMessage || !actionHint) return;
         
         console.log('🔄 [DropBeat] Updating popup status:', status);
         
-        statusElement.textContent = status.stateDescription || 'Unknown';
-        
-        // Update status icon and class based on connection state
+        // Update status based on connection state
         switch (status.connectionState) {
             case 'CONNECTED':
-                statusIcon.textContent = '🟢';
-                statusElement.className = 'status-text connected';
-                appStatus.className = 'app-status running';
-                appStatusMessage.textContent = 'DropBeat is running';
+                appStatus.className = 'app-status';
+                appStatusMessage.textContent = 'App and Extension connected';
+                actionHint.textContent = 'Ready to control your music playback';
                 break;
             case 'CONNECTING':
             case 'RECONNECTING':
-                statusIcon.textContent = '🟡';
-                statusElement.className = 'status-text connecting';
-                appStatus.className = 'app-status';
+                appStatus.className = 'app-status not-running';
+                appStatusMessage.textContent = 'Establishing connection';
+                actionHint.textContent = 'Please check if DropBeats app is running';
                 break;
             case 'WAITING_FOR_APP':
-                statusIcon.textContent = '⏳';
-                statusElement.className = 'status-text waiting';
                 appStatus.className = 'app-status not-running';
-                appStatusMessage.textContent = 'DropBeat app is not running';
+                appStatusMessage.textContent = 'Connection lost';
+                actionHint.textContent = 'Please check if DropBeats app is running';
                 break;
             case 'ERROR':
-                statusIcon.textContent = '🔴';
-                statusElement.className = 'status-text error';
-                if (!status.waitingForApp) {
-                    appStatus.className = 'app-status not-running';
-                    appStatusMessage.textContent = 'Connection error - Please restart DropBeat';
-                }
+                appStatus.className = 'app-status not-running';
+                appStatusMessage.textContent = 'Connection error';
+                actionHint.textContent = 'Please check if DropBeats app is running';
                 break;
             default:
-                statusIcon.textContent = '⚪';
-                statusElement.className = 'status-text';
-                appStatus.className = 'app-status';
-        }
-        
-        // Show additional info if waiting for app
-        const infoElement = document.getElementById('additional-info');
-        if (infoElement) {
-            if (status.waitingForApp) {
-                infoElement.textContent = 'Please make sure the DropBeat app is running';
-                infoElement.style.display = 'block';
-            } else {
-                infoElement.style.display = 'none';
-            }
+                appStatus.className = 'app-status not-running';
+                appStatusMessage.textContent = 'Initializing';
+                actionHint.textContent = 'Please check if DropBeats app is running';
         }
     }
 

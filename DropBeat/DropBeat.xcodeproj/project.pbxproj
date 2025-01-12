@@ -7,8 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		40AFEC622D1DD4AF00E39235 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = 40AFEC612D1DD4AF00E39235 /* Settings */; };
-		40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */; settings = {ATTRIBUTES = (Required, ); }; };
+		401D81D02D32A2FD00FD98D7 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 401D81CF2D32A2FD00FD98D7 /* KeyboardShortcuts */; };
+		401D82192D32A45500FD98D7 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 401D82182D32A45500FD98D7 /* Auth */; };
+		401D821B2D32A45500FD98D7 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 401D821A2D32A45500FD98D7 /* Functions */; };
+		401D821D2D32A45500FD98D7 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 401D821C2D32A45500FD98D7 /* PostgREST */; };
+		401D821F2D32A45500FD98D7 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 401D821E2D32A45500FD98D7 /* Realtime */; };
+		401D82212D32A45500FD98D7 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 401D82202D32A45500FD98D7 /* Storage */; };
+		401D82232D32A45500FD98D7 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 401D82222D32A45500FD98D7 /* Supabase */; };
+		401D82A22D33BA6A00FD98D7 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 401D82A12D33BA6A00FD98D7 /* Lottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,8 +34,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */,
-				40AFEC622D1DD4AF00E39235 /* Settings in Frameworks */,
+				401D82232D32A45500FD98D7 /* Supabase in Frameworks */,
+				401D82212D32A45500FD98D7 /* Storage in Frameworks */,
+				401D821D2D32A45500FD98D7 /* PostgREST in Frameworks */,
+				401D821B2D32A45500FD98D7 /* Functions in Frameworks */,
+				401D82192D32A45500FD98D7 /* Auth in Frameworks */,
+				401D821F2D32A45500FD98D7 /* Realtime in Frameworks */,
+				401D81D02D32A2FD00FD98D7 /* KeyboardShortcuts in Frameworks */,
+				401D82A22D33BA6A00FD98D7 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,8 +84,14 @@
 			);
 			name = DropBeat;
 			packageProductDependencies = (
-				40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */,
-				40AFEC612D1DD4AF00E39235 /* Settings */,
+				401D81CF2D32A2FD00FD98D7 /* KeyboardShortcuts */,
+				401D82182D32A45500FD98D7 /* Auth */,
+				401D821A2D32A45500FD98D7 /* Functions */,
+				401D821C2D32A45500FD98D7 /* PostgREST */,
+				401D821E2D32A45500FD98D7 /* Realtime */,
+				401D82202D32A45500FD98D7 /* Storage */,
+				401D82222D32A45500FD98D7 /* Supabase */,
+				401D82A12D33BA6A00FD98D7 /* Lottie */,
 			);
 			productName = DropBeat;
 			productReference = 40FF48B72D059A300094294E /* DropBeat.app */;
@@ -104,8 +122,9 @@
 			mainGroup = 40FF48AE2D059A300094294E;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				40AFEC602D1DD4AE00E39235 /* XCRemoteSwiftPackageReference "Settings" */,
+				401D81CE2D32A2FD00FD98D7 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				401D82A02D33BA6A00FD98D7 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 40FF48B82D059A300094294E /* Products */;
@@ -334,15 +353,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		40AFEC602D1DD4AE00E39235 /* XCRemoteSwiftPackageReference "Settings" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sindresorhus/Settings";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.1.1;
-			};
-		};
-		40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+		401D81CE2D32A2FD00FD98D7 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
@@ -350,18 +361,64 @@
 				minimumVersion = 2.2.4;
 			};
 		};
+		401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase-community/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+		401D82A02D33BA6A00FD98D7 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		40AFEC612D1DD4AF00E39235 /* Settings */ = {
+		401D81CF2D32A2FD00FD98D7 /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 40AFEC602D1DD4AE00E39235 /* XCRemoteSwiftPackageReference "Settings" */;
-			productName = Settings;
-		};
-		40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			package = 401D81CE2D32A2FD00FD98D7 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
+		};
+		401D82182D32A45500FD98D7 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		401D821A2D32A45500FD98D7 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		401D821C2D32A45500FD98D7 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		401D821E2D32A45500FD98D7 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		401D82202D32A45500FD98D7 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		401D82222D32A45500FD98D7 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		401D82A12D33BA6A00FD98D7 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 401D82A02D33BA6A00FD98D7 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

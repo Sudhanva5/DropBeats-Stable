@@ -43,11 +43,52 @@ window._dropbeatState = window._dropbeatState || {
     videoEvents: null
 };
 
+// Navigation state tracking
+const navigationState = {
+    isNavigating: false,
+    lastNavigationTime: Date.now(),
+    pendingHealthCheck: false,
+    navigationCount: 0,
+    lastUrl: window.location.href
+};
+
 // Add at the top after initial declarations
 let lastActivityTime = Date.now();
 let lastHealthCheckTime = Date.now();
 let initializeAttempts = 0;
 let healthCheckInterval;
+
+// Setup navigation observer
+function setupNavigationObserver() {
+    console.log('🔍 [DropBeat] Setting up navigation observer');
+    
+    // Create an observer instance
+    const observer = new MutationObserver(async (mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                const currentUrl = window.location.href;
+                if (currentUrl !== navigationState.lastUrl) {
+                    navigationState.lastUrl = currentUrl;
+                    navigationState.navigationCount++;
+                    navigationState.lastNavigationTime = Date.now();
+                    console.log('🔄 [DropBeat] Navigation detected:', currentUrl);
+                    await handleUrlChange();
+                }
+            }
+        }
+    });
+
+    // Start observing
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['src', 'href']
+    });
+
+    window._dropbeatState.observers.navigation = observer;
+    console.log('✅ [DropBeat] Navigation observer setup complete');
+}
 
 // Enhanced activity tracking
 function updateActivityTimestamp(type = 'user') {
@@ -759,7 +800,7 @@ window._dropbeatState = window._dropbeatState || {
 
 // Update timeupdate handling in observePlayer
 function observePlayer() {
-    console.log('�� [DropBeat] Setting up player observers');
+    console.log('🔍 [DropBeat] Setting up player observers');
 
     // Preserve previous state if it exists
     if (window._dropbeatState.observers.player) {
@@ -890,15 +931,6 @@ async function waitForYTMusic(maxAttempts = 10) {
     console.log('❌ [DropBeat Debug] Timeout waiting for YouTube Music');
     return false;
 }
-
-// Add navigation state tracking
-let navigationState = {
-    isNavigating: false,
-    lastNavigationTime: 0,
-    pendingHealthCheck: false,
-    navigationCount: 0,
-    lastUrl: window.location.href
-};
 
 // Add URL change detection
 const originalPushState = history.pushState;
@@ -1254,7 +1286,7 @@ async function handlePlaylistPlayback(timeout = 8000) {
         }
 
         // Fallback to DOM method if player API fails
-        console.log('��️ [DropBeat Debug] Falling back to DOM method');
+        console.log('🔄 [DropBeat Debug] Falling back to DOM method');
         const playButton = findElement(selectors.playlistControls.playButton);
         if (playButton) {
             console.log('🎯 [DropBeat Debug] Found play button, attempting click');

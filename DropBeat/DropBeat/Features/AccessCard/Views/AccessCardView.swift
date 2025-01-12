@@ -3,13 +3,13 @@ import SwiftUI
 struct AccessCardView: View {
     @EnvironmentObject private var viewModel: AccessCardViewModel
     @State private var rotation: Double = 0
-    private let animationDuration: Double = 8  // Slower, smoother rotation
+    private let animationDuration: Double = 3  // Faster rotation
     
     private var meshGradient: AnyShapeStyle {
         let angle = Angle(degrees: rotation)
-        let radius: CGFloat = 0.5
+        let radius: CGFloat = 1.0  // Increased radius for more noticeable movement
         
-        // Calculate rotated points
+        // Calculate rotated points with wider range
         let startX = 0.5 + radius * cos(angle.radians)
         let startY = 0.5 + radius * sin(angle.radians)
         let endX = 0.5 - radius * cos(angle.radians)
@@ -28,7 +28,7 @@ struct AccessCardView: View {
         ZStack(alignment: .topLeading) {
             // Background
             Color(hex: "FFF7EA")
-                .opacity(0.95)
+                .opacity(0.9)
             
             // Decorative Element with mesh gradient
             Image("dropbeats-decorative")
@@ -37,7 +37,7 @@ struct AccessCardView: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 100)
                 .foregroundStyle(meshGradient)
-                .position(x: 210, y: 85)
+                .position(x: 180, y: 85)
             
             // Content Container
             VStack(alignment: .leading, spacing: 0) {
@@ -100,13 +100,14 @@ struct AccessCardView: View {
                     )
                 }
             }
-            .padding(16)
+            .padding(12)
         }
-        .frame(width: 260, height: 340)
+        .frame(width: 230, height: 340)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .onAppear {
+            // Start rotation animation immediately
             withAnimation(
-                .linear(duration: 2)  // Even faster rotation
+                .linear(duration: animationDuration)
                 .repeatForever(autoreverses: false)
             ) {
                 rotation = 360

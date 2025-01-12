@@ -650,9 +650,8 @@ class WebSocketManager: ObservableObject {
         
         // Create URL components for the search request
         var components = URLComponents()
-        components.scheme = "http"
-        components.host = "localhost"
-        components.port = 8000
+        components.scheme = "https"
+        components.host = "dropbeats-server.onrender.com"
         components.path = "/search/\(query)"
         
         guard let url = components.url else {

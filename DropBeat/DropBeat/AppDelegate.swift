@@ -10,6 +10,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var popover: NSPopover!
     private var popoverMonitor: Any?
     private var hudWindow: NSWindow?
+    private var serverKeepAlive: SearchServerKeepAlive?
+    var onboardingWindow: NSWindow?
     
     override init() {
         self.wsManager = WebSocketManager.shared
@@ -17,6 +19,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Initialize server keep-alive
+        serverKeepAlive = SearchServerKeepAlive.shared
+        
         // Hide dock icon
         NSApp.setActivationPolicy(.accessory)
         
@@ -39,6 +44,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSNotification.Name("TrackChanged"),
             object: nil
         )
+        
+        // Check if we need to show onboarding
+        Task {
+            await checkAndShowOnboarding()
+        }
+    }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        // Cleanup timer
+        serverKeepAlive?.cleanup()
+        
+        // Your existing cleanup code...
     }
     
     private func setupKeyboardShortcuts() {
@@ -101,14 +118,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let imageView = NSImageView(frame: NSRect(x: 60, y: 80, width: 54, height: 54))
         imageView.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil)?.withSymbolConfiguration(.init(pointSize: 50, weight: .regular))
         imageView.imageScaling = .scaleNone
-        imageView.contentTintColor = .labelColor.withAlphaComponent(0.65)
+        imageView.contentTintColor = .secondaryLabelColor
         
         // Label
         let label = NSTextField(frame: NSRect(x: 0, y: 48, width: 180, height: 20))
         label.stringValue = text
         label.alignment = .center
         label.font = .systemFont(ofSize: 16)
-        label.textColor = .labelColor.withAlphaComponent(0.9)
+        label.textColor = .labelColor
         label.isBezeled = false
         label.isEditable = false
         label.drawsBackground = false
@@ -270,6 +287,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func quitApp() {
         NSApplication.shared.terminate(self)
+    }
+    
+    private func checkAndShowOnboarding() async {
+        // Show onboarding if no license key is found
+        if UserDefaults.standard.string(forKey: "licenseKey") == nil {
+            await MainActor.run {
+                showOnboarding()
+            }
+        }
+    }
+    
+    private func showOnboarding() {
+        let onboardingView = OnboardingView()
+        
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 600, height: 400),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        
+        window.title = "Welcome to DropBeat"
+        window.contentView = NSHostingView(rootView: onboardingView)
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        window.level = .floating
+        
+        // Keep a reference to prevent deallocation
+        self.onboardingWindow = window
+        
+        // Bring app to front
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
 

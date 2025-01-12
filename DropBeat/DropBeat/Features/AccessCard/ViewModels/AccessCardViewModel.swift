@@ -5,15 +5,15 @@ class AccessCardViewModel: ObservableObject {
     @Published var gradientColors: [Color]
     
     // User info
-    @Published var userName: String = "Sudhanva Acharya"
-    @Published var userEmail: String = "sudhanv...mail.com"
+    @Published var userName: String = "Unknown User"
+    @Published var userEmail: String = ""
     
     // License info
     @Published var licensePrefix: String = "DB"
-    @Published var licenseYear: String = "2024"
-    @Published var licenseCode: String = "WEXS"
-    @Published var licenseValidity: String = "Lifetime"
-    @Published var memberSince: String = "January 2024"
+    @Published var licenseYear: String = String(Calendar.current.component(.year, from: Date()))
+    @Published var licenseCode: String = "----"
+    @Published var licenseValidity: String = "Inactive"
+    @Published var memberSince: String = ""
     
     // MARK: - Gradient Presets
     private static let gradientPresets: [[Color]] = [
@@ -58,6 +58,32 @@ class AccessCardViewModel: ObservableObject {
         let initialColors = Self.gradientPresets[0]
         self.gradientColors = initialColors
         self.primaryColor = initialColors[0]
+        
+        // Update with current license info if available
+        updateFromAppState()
+    }
+    
+    func updateFromAppState() {
+        let appState = AppStateManager.shared
+        
+        if case .valid = appState.licenseStatus, let info = appState.licenseInfo {
+            // Update user info
+            let emailComponents = info.email.split(separator: "@")
+            if let name = emailComponents.first {
+                userName = name.capitalized
+            }
+            userEmail = info.email
+            
+            // Update license info
+            if let licenseKey = appState.getLicenseKey() {
+                // Format license key for display (e.g., "ABCD-1234" -> "1234")
+                licenseCode = String(licenseKey.suffix(4))
+            }
+            
+            // Update dates
+            memberSince = info.createdAt.formatted(.dateTime.month().year())
+            licenseValidity = "Lifetime"
+        }
     }
     
     func randomizeTheme() {
