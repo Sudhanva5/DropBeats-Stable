@@ -17,40 +17,61 @@ class AccessCardViewModel: ObservableObject {
     
     // MARK: - Gradient Presets
     private static let gradientPresets: [[Color]] = [
-        // Sunset Orange to Pink
+        // Deep Coral Sunset
         [
-            Color(red: 1.0, green: 0.36, blue: 0.35),   // Bright Coral Red
-            Color(red: 1.0, green: 0.58, blue: 0.0),    // Deep Orange
-            Color(red: 1.0, green: 0.33, blue: 0.58),   // Vibrant Hot Pink
-            Color(red: 1.0, green: 0.36, blue: 0.35)    // Bright Coral Red
+            Color(red: 0.95, green: 0.30, blue: 0.25),   // Deep Coral
+            Color(red: 0.90, green: 0.35, blue: 0.20),   // Rich Orange
+            Color(red: 0.85, green: 0.25, blue: 0.30),   // Deep Rose
+            Color(red: 0.95, green: 0.30, blue: 0.25)    // Deep Coral
         ],
-        // Royal Purple to Blue
+        // Royal Sapphire
         [
-            Color(red: 0.58, green: 0.23, blue: 0.95),  // Bright Purple
-            Color(red: 0.0, green: 0.47, blue: 1.0),    // Vibrant Blue
-            Color(red: 0.45, green: 0.31, blue: 1.0),   // Deep Purple
-            Color(red: 0.58, green: 0.23, blue: 0.95)   // Bright Purple
+            Color(red: 0.15, green: 0.25, blue: 0.95),   // Deep Royal Blue
+            Color(red: 0.20, green: 0.30, blue: 1.0),    // Rich Sapphire
+            Color(red: 0.10, green: 0.20, blue: 0.90),   // Deep Blue
+            Color(red: 0.15, green: 0.25, blue: 0.95)    // Deep Royal Blue
         ],
-        // Ocean Blue to Purple
+        // Deep Emerald
         [
-            Color(red: 0.0, green: 0.47, blue: 1.0),    // Vibrant Blue
-            Color(red: 0.52, green: 0.27, blue: 0.95),  // Medium Purple
-            Color(red: 0.12, green: 0.53, blue: 1.0),   // Bright Ocean Blue
-            Color(red: 0.0, green: 0.47, blue: 1.0)     // Vibrant Blue
+            Color(red: 0.0, green: 0.45, blue: 0.40),    // Deep Emerald
+            Color(red: 0.0, green: 0.55, blue: 0.45),    // Rich Teal
+            Color(red: 0.0, green: 0.40, blue: 0.35),    // Dark Emerald
+            Color(red: 0.0, green: 0.45, blue: 0.40)     // Deep Emerald
         ],
-        // Dark Green to Emerald
+        // Rich Amethyst
         [
-            Color(red: 0.0, green: 0.50, blue: 0.25),   // Dark Forest Green
-            Color(red: 0.0, green: 0.75, blue: 0.45),   // Emerald Green
-            Color(red: 0.0, green: 0.55, blue: 0.35),   // Deep Green
-            Color(red: 0.0, green: 0.50, blue: 0.25)    // Dark Forest Green
+            Color(red: 0.45, green: 0.15, blue: 0.80),   // Deep Purple
+            Color(red: 0.50, green: 0.20, blue: 0.85),   // Rich Amethyst
+            Color(red: 0.40, green: 0.10, blue: 0.75),   // Royal Purple
+            Color(red: 0.45, green: 0.15, blue: 0.80)    // Deep Purple
         ],
-        // Rose Pink to Orange
+        // Deep Ruby
         [
-            Color(red: 1.0, green: 0.33, blue: 0.58),   // Vibrant Hot Pink
-            Color(red: 1.0, green: 0.48, blue: 0.31),   // Bright Salmon Orange
-            Color(red: 0.95, green: 0.27, blue: 0.51),  // Deep Pink
-            Color(red: 1.0, green: 0.33, blue: 0.58)    // Vibrant Hot Pink
+            Color(red: 0.80, green: 0.15, blue: 0.35),   // Deep Ruby
+            Color(red: 0.85, green: 0.20, blue: 0.40),   // Rich Red
+            Color(red: 0.75, green: 0.10, blue: 0.30),   // Dark Ruby
+            Color(red: 0.80, green: 0.15, blue: 0.35)    // Deep Ruby
+        ],
+        // Ocean Depths
+        [
+            Color(red: 0.10, green: 0.35, blue: 0.65),   // Deep Ocean
+            Color(red: 0.15, green: 0.40, blue: 0.70),   // Rich Marine
+            Color(red: 0.05, green: 0.30, blue: 0.60),   // Dark Ocean
+            Color(red: 0.10, green: 0.35, blue: 0.65)    // Deep Ocean
+        ],
+        // Imperial Purple
+        [
+            Color(red: 0.35, green: 0.15, blue: 0.55),   // Deep Imperial
+            Color(red: 0.40, green: 0.20, blue: 0.60),   // Rich Purple
+            Color(red: 0.30, green: 0.10, blue: 0.50),   // Dark Imperial
+            Color(red: 0.35, green: 0.15, blue: 0.55)    // Deep Imperial
+        ],
+        // Midnight Indigo
+        [
+            Color(red: 0.20, green: 0.25, blue: 0.70),   // Deep Indigo
+            Color(red: 0.25, green: 0.30, blue: 0.75),   // Rich Midnight
+            Color(red: 0.15, green: 0.20, blue: 0.65),   // Dark Indigo
+            Color(red: 0.20, green: 0.25, blue: 0.70)    // Deep Indigo
         ]
     ]
     

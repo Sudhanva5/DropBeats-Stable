@@ -1,6 +1,8 @@
 import SwiftUI
 import AppKit
 import KeyboardShortcuts
+import ServiceManagement
+import UserNotifications
 
 // MARK: - Main Settings View
 struct SettingsView: View {
@@ -13,21 +15,22 @@ struct SettingsView: View {
                 .tabItem {
                     Label("General", systemImage: "gearshape")
                 }
+                .frame(height: 420)  // Fixed height for General tab
             
             ShortcutsTabView()
                 .tabItem {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-            
-            
+                .frame(height: 228)  // Fixed height for Shortcuts tab
             
             AboutTabView()
                 .tabItem {
                     Label("About", systemImage: "info.circle")
                 }
+                .frame(height: 300)  // Adjusted height for About tab
         }
         .frame(width: settingsWidth)
-        .background(EffectView(material: .contentBackground))
+        .background(EffectView(material: .windowBackground))  // Standard macOS settings appearance
         .onAppear {
             NSApp.activate(ignoringOtherApps: true)
             setupGlobalShortcuts()
@@ -80,8 +83,13 @@ struct EffectView: NSViewRepresentable {
 // MARK: - General Tab
 struct GeneralTabView: View {
     @StateObject private var appState = AppStateManager.shared
-    @AppStorage("startAtLogin") private var startAtLogin = false
-    @AppStorage("showDockIcon") private var showDockIcon = true
+    @AppStorage("startAtLogin") private var startAtLogin = false {
+        didSet {
+            Task {
+                await toggleLoginItem(enabled: startAtLogin)
+            }
+        }
+    }
     @State private var isHovering: String? = nil
     @StateObject private var cardRef = AccessCardViewModel()
     
@@ -90,6 +98,23 @@ struct GeneralTabView: View {
     private let leftSectionWidth: CGFloat = 280
     private let sectionSpacing: CGFloat = 0
     private let buttonSpacing: CGFloat = 16
+    
+    // Add helper functions for login item
+    private func toggleLoginItem(enabled: Bool) async {
+        do {
+            if enabled {
+                try await SMAppService.mainApp.register()
+            } else {
+                try await SMAppService.mainApp.unregister()
+            }
+        } catch {
+            print("Failed to \(enabled ? "enable" : "disable") login item:", error)
+            // Revert the toggle if operation failed
+            await MainActor.run {
+                startAtLogin = !enabled
+            }
+        }
+    }
     
     var body: some View {
         HStack(alignment: .top, spacing: sectionSpacing) {
@@ -155,11 +180,15 @@ struct GeneralTabView: View {
                         isHovering: isHovering == "share",
                         action: { view in
                             let sharingText = "Check out DropBeats - my favorite YouTube Music companion! It helps me stay focused while working by providing seamless music controls. Try it out!"
-                            let picker = NSSharingServicePicker(items: [sharingText])
+                            let url = URL(string: "https://gumroad.com/products/osjmv")!
+                            let items: [Any] = [sharingText, url]
                             
-                            if let buttonView = view as? NSView {
+                            if let buttonView = view {
+                                let picker = NSSharingServicePicker(items: items)
                                 let rect = NSRect(x: 0, y: buttonView.bounds.height, width: buttonView.bounds.width, height: 0)
-                                picker.show(relativeTo: rect, of: buttonView, preferredEdge: .maxY)
+                                DispatchQueue.main.async {
+                                    picker.show(relativeTo: rect, of: buttonView, preferredEdge: .minY)
+                                }
                             }
                         },
                         onHover: { hovering in
@@ -215,9 +244,6 @@ struct GeneralTabView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Toggle("Start at login", isOn: $startAtLogin)
                             .help("Launch DropBeat automatically when you log in")
-                        
-                        Toggle("Show dock icon", isOn: $showDockIcon)
-                            .help("Show DropBeat icon in the Dock")
                     }
                 } header: {
                     Text("App Settings")
@@ -230,6 +256,8 @@ struct GeneralTabView: View {
         .padding()
         .task {
             await appState.validateLicenseOnStartup()
+            // Request notification permissions
+            try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
         }
         .onChange(of: appState.licenseStatus) { oldValue, newValue in
             cardRef.updateFromAppState()
@@ -331,7 +359,7 @@ struct AboutTabView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Top Section
-            HStack(alignment: .center, spacing: 16) {
+            HStack(alignment: .center, spacing: 4) {
                 // App Icon
                 Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
                     .resizable()
@@ -350,12 +378,20 @@ struct AboutTabView: View {
                 
                 // Buttons
                 VStack(alignment: .trailing, spacing: 8) {
-                    Button("Check for Updates") { }
+                    Button("Check for Updates") {
+                        if let url = URL(string: "https://dropbeats.sleekplan.app/") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
                         .buttonStyle(.bordered)
                         .frame(maxWidth: .infinity)
                         .fixedSize(horizontal: true, vertical: false)
                     
-                    Button("Request Feature") { }
+                    Button("Request Feature") {
+                        if let url = URL(string: "https://dropbeats.sleekplan.app/") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
                         .buttonStyle(.bordered)
                         .frame(maxWidth: .infinity)
                         .fixedSize(horizontal: true, vertical: false)
@@ -370,7 +406,7 @@ struct AboutTabView: View {
             
             // Description
             VStack(alignment: .leading, spacing: 16) {
-                Text("Your personal assistant for YouTube Music")
+                Text("The Missing YouTube Music Player for Mac")
                     .font(.headline)
                     .foregroundColor(.primary)
                 

@@ -40,6 +40,8 @@ class AppStateManager: ObservableObject {
                    lhs.country == rhs.country &&
                    lhs.createdAt == rhs.createdAt
         }
+        
+        static let defaultCountry = "India"
     }
     
     func validateLicenseOnStartup() async {

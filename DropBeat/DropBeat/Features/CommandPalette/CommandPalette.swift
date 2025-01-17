@@ -21,7 +21,7 @@ final class CommandPalette: NSObject {
             defer: false
         )
         
-        window.level = .floating
+        window.level = .popUpMenu
         window.backgroundColor = .clear
         window.isOpaque = false
         window.hasShadow = true
@@ -73,8 +73,16 @@ final class CommandPalette: NSObject {
         }
         
         state.isVisible = true
+        
+        // Ensure proper window activation
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+        
+        // Additional focus enforcement
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKey()
+        }
         
         // Send refresh command to content script
         Task {

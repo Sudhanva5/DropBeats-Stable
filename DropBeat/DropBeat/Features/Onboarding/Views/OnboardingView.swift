@@ -202,7 +202,7 @@ struct WelcomeStepContent: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 96, height: 96)
                     .shadow(color: .black.opacity(0.2), radius: 4)
-                    .padding(.bottom, 32)
+                    .padding(.bottom, 12)
                 
                 VStack(spacing: 8) {
                     Text("Welcome to DropBeats")
@@ -214,7 +214,7 @@ struct WelcomeStepContent: View {
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
-                .padding(.bottom, 24)
+                .padding(.bottom, 28)
                 
                 Button {
                     withAnimation {
@@ -249,9 +249,13 @@ struct TermsStepContent: View {
         
         // Set paragraph style with line spacing for the entire text
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = 8  // Add 8 points of space between lines
-        paragraphStyle.paragraphSpacing = 12 // Add extra space between paragraphs
+        paragraphStyle.lineSpacing = 16  // Slightly increased for better readability
+        paragraphStyle.paragraphSpacing = 12
         attributedString.addAttribute(.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: attributedString.length))
+        
+        // Set default text color for the entire text - soft black (87% opacity)
+        let softBlack = NSColor(calibratedWhite: 0.1, alpha: 0.87)
+        attributedString.addAttribute(.foregroundColor, value: softBlack, range: NSRange(location: 0, length: attributedString.length))
         
         for line in lines {
             let range = NSRange(location: currentPosition, length: line.count)
@@ -260,22 +264,20 @@ struct TermsStepContent: View {
             if line.uppercased() == line && !line.isEmpty {
                 attributedString.addAttribute(.font, value: NSFont.systemFont(ofSize: NSFont.systemFontSize + 2, weight: .bold), range: range)
             }
-            // Format numbered sections (e.g., "1.1", "3.2")
+            // Format numbered sections
             else if line.matches(of: #/^\d+\.\d+\s+.*/#).first != nil {
                 attributedString.addAttribute(.font, value: NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .bold), range: range)
             }
-            // Format subtitles (lines ending with :)
+            // Format subtitles
             else if line.hasSuffix(":") {
                 attributedString.addAttribute(.font, value: NSFont.systemFont(ofSize: NSFont.systemFontSize + 1, weight: .bold), range: range)
-                attributedString.addAttribute(.foregroundColor, value: NSColor.textColor, range: range)
             }
             // Format bullet points
             else if line.hasPrefix("•") {
                 attributedString.addAttribute(.font, value: NSFont.systemFont(ofSize: NSFont.systemFontSize), range: range)
-                attributedString.addAttribute(.foregroundColor, value: NSColor.textColor.withAlphaComponent(0.7), range: range)
             }
             
-            currentPosition += line.count + 1 // +1 for newline character
+            currentPosition += line.count + 1
         }
         
         return AttributedString(attributedString)
@@ -304,15 +306,15 @@ struct TermsStepContent: View {
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(24)
-                        .background(Color.white)
+                        .background(Color.white)  // Keep white background for paper look
                 }
-                .background(Color.white)
+                .background(Color.white)  // Maintain white background
                 .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                 .padding([.horizontal, .bottom], 16)
             }
-            .padding(.top, 16) // Add padding at the top of the scroll view
+            .padding(.top, 16)
             .frame(height: 400 - bottomBarHeight - verticalPadding * 2 - 140)
-            .background(Color.black.opacity(0.05))
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.05))
             .cornerRadius(4)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
@@ -500,26 +502,26 @@ struct SetupStepContent: View {
             VStack(spacing: 16) {
                 SetupStepRow(
                     step: 1,
-                    title: "Open YouTube Music",
-                    description: "First, let's open YouTube Music in your default browser",
-                    isCompleted: hasCompletedYTMusicSetup,
+                    title: "Install DropBeats Extension",
+                    description: "Install our Chrome extension to control YouTube Music",
+                    isCompleted: hasCompletedExtensionSetup,
                     action: {
-                        if let url = URL(string: "https://music.youtube.com") {
+                        if let url = URL(string: "https://chromewebstore.google.com/detail/dropbeats-for-youtube-mus/idiabjbpclngndmihbdemcjmphjbkcfj") {
                             NSWorkspace.shared.open(url)
-                            hasCompletedYTMusicSetup = true
+                            hasCompletedExtensionSetup = true
                         }
                     }
                 )
                 
                 SetupStepRow(
                     step: 2,
-                    title: "Install Chrome Extension",
-                    description: "Install our Chrome extension to control YouTube Music",
-                    isCompleted: hasCompletedExtensionSetup,
+                    title: "Open YouTube Music",
+                    description: "Now, let's open YouTube Music in your default browser",
+                    isCompleted: hasCompletedYTMusicSetup,
                     action: {
-                        if let url = URL(string: "https://chrome.google.com/webstore/detail/your-extension-id") {
+                        if let url = URL(string: "https://music.youtube.com") {
                             NSWorkspace.shared.open(url)
-                            hasCompletedExtensionSetup = true
+                            hasCompletedYTMusicSetup = true
                         }
                     }
                 )
@@ -570,7 +572,7 @@ struct SetupStepRow: View {
             
             Spacer()
             
-            Button(isCompleted ? "Done" : "Open") {
+            Button(isCompleted ? "Done" : (step == 1 ? "Open Webstore" : "Open YT Music")) {
                 action()
             }
             .buttonStyle(.bordered)

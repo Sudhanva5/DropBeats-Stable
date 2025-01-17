@@ -18,7 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		40FF48B72D059A300094294E /* DropBeat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DropBeat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		40FF48B72D059A300094294E /* DropBeats.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DropBeats.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -59,7 +59,7 @@
 		40FF48B82D059A300094294E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				40FF48B72D059A300094294E /* DropBeat.app */,
+				40FF48B72D059A300094294E /* DropBeats.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,9 +67,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		40FF48B62D059A300094294E /* DropBeat */ = {
+		40FF48B62D059A300094294E /* DropBeats */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 40FF48C62D059A330094294E /* Build configuration list for PBXNativeTarget "DropBeat" */;
+			buildConfigurationList = 40FF48C62D059A330094294E /* Build configuration list for PBXNativeTarget "DropBeats" */;
 			buildPhases = (
 				40FF48B32D059A300094294E /* Sources */,
 				40FF48B42D059A300094294E /* Frameworks */,
@@ -82,7 +82,7 @@
 			fileSystemSynchronizedGroups = (
 				40FF48B92D059A300094294E /* DropBeat */,
 			);
-			name = DropBeat;
+			name = DropBeats;
 			packageProductDependencies = (
 				401D81CF2D32A2FD00FD98D7 /* KeyboardShortcuts */,
 				401D82182D32A45500FD98D7 /* Auth */,
@@ -94,7 +94,7 @@
 				401D82A12D33BA6A00FD98D7 /* Lottie */,
 			);
 			productName = DropBeat;
-			productReference = 40FF48B72D059A300094294E /* DropBeat.app */;
+			productReference = 40FF48B72D059A300094294E /* DropBeats.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -131,7 +131,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				40FF48B62D059A300094294E /* DropBeat */,
+				40FF48B62D059A300094294E /* DropBeats */,
 			);
 		};
 /* End PBXProject section */
@@ -341,7 +341,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		40FF48C62D059A330094294E /* Build configuration list for PBXNativeTarget "DropBeat" */ = {
+		40FF48C62D059A330094294E /* Build configuration list for PBXNativeTarget "DropBeats" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				40FF48C72D059A330094294E /* Debug */,

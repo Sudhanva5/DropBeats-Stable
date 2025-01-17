@@ -301,11 +301,12 @@ struct ContentView: View {
                 .padding(.vertical, 8)
                 .background(
                     Rectangle()
-                        .fill(.thinMaterial)
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.4)
                         .overlay(
                             Rectangle()
                                 .frame(height: 0.5)
-                                .foregroundColor(Color.primary.opacity(0.1)),
+                                .foregroundColor(Color.primary.opacity(0.05)),
                             alignment: .top
                         )
                 )
@@ -319,8 +320,8 @@ struct ContentView: View {
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .blur(radius: 20)
-                                .opacity(0.7)
+                                .blur(radius: 30)
+                                .opacity(1.0)
                                 .modifier(RotatingModifier())
                                 .scaleEffect(scaleAmount)
                         } placeholder: {
@@ -330,9 +331,9 @@ struct ContentView: View {
                     
                     Rectangle()
                         .fill(.ultraThickMaterial)
-                        .opacity(0.87)
+                        .opacity(0.8)
                 }
-                .animation(.easeInOut(duration: 0.15), value: wsManager.currentTrack?.id)
+                .animation(.easeInOut(duration: 0.2), value: wsManager.currentTrack?.id)
             }
         }
         .frame(width: 280)

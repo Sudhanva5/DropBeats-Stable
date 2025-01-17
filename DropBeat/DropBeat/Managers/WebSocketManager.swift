@@ -349,7 +349,7 @@ class WebSocketManager: ObservableObject {
                                     if !(self.recentTracks.contains { $0.id == track.id }) {
                                         print("📝 [DropBeat] Adding to recent tracks:", track.title)
                                         self.recentTracks.insert(track, at: 0)
-                                        if self.recentTracks.count > 5 {
+                                        if self.recentTracks.count > 7 {
                                             self.recentTracks.removeLast()
                                         }
                                     }
@@ -648,11 +648,17 @@ class WebSocketManager: ObservableObject {
         
         print("🔍 [DropBeat] Starting search for:", query)
         
+        // Get country from AppStateManager with India as default
+        let country = AppStateManager.shared.licenseInfo?.country ?? AppStateManager.LicenseInfo.defaultCountry
+        
         // Create URL components for the search request
         var components = URLComponents()
         components.scheme = "https"
         components.host = "dropbeats-server.onrender.com"
         components.path = "/search/\(query)"
+        components.queryItems = [
+            URLQueryItem(name: "country", value: country)
+        ]
         
         guard let url = components.url else {
             onError("INVALID_URL", "https://music.youtube.com/search?q=\(query)")

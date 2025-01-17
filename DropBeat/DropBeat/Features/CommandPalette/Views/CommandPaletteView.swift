@@ -32,10 +32,21 @@ struct CommandPaletteView: View {
         guard !searchResults.isEmpty else { return [] }
         
         let songs = searchResults.filter { $0.type == .song }
+        let videos = searchResults.filter { $0.type == .video }
         
-        return [
-            SearchSection(id: "songs", title: "Songs", results: songs.prefix(10).map { $0 })
-        ]
+        var sections: [SearchSection] = []
+        
+        // Add songs section if we have songs
+        if !songs.isEmpty {
+            sections.append(SearchSection(id: "songs", title: "Songs", results: songs))
+        }
+        
+        // Add videos section if we have videos
+        if !videos.isEmpty {
+            sections.append(SearchSection(id: "videos", title: "Videos", results: videos))
+        }
+        
+        return sections
     }
     
     private var displaySections: [SearchSection] {
@@ -49,15 +60,8 @@ struct CommandPaletteView: View {
             return []
         }
         
-        // Group and filter results
-        let songs = searchResults.filter { $0.type == .song }
-        if songs.isEmpty {
-            return []
-        }
-        
-        return [
-            SearchSection(id: "songs", title: "Songs", results: songs.prefix(10).map { $0 })
-        ]
+        // Return all search sections
+        return searchSections
     }
     
     var body: some View {

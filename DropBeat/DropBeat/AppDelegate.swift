@@ -22,7 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize server keep-alive
         serverKeepAlive = SearchServerKeepAlive.shared
         
-        // Hide dock icon
+        // Always use accessory mode (menu bar only)
         NSApp.setActivationPolicy(.accessory)
         
         setupMenuBar()
@@ -179,7 +179,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover = NSPopover()
         popover.contentSize = NSSize(width: 280, height: 0)
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: ContentView())
+        
+        // Create a container view controller to handle the padding
+        let contentViewController = NSHostingController(rootView: ContentView())
+        contentViewController.view.wantsLayer = true
+        
+        popover.contentViewController = contentViewController
         popover.delegate = self
     }
     
@@ -250,7 +255,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 popover.performClose(nil)
             } else {
                 NSApp.activate(ignoringOtherApps: true)
-                popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+                // Create a zero-origin rect that maintains the button's size
+                let rect = NSRect(x: -120, y: 0, width: 280, height: button.bounds.height)
+                popover.show(relativeTo: rect, of: button, preferredEdge: .minY)
             }
         }
     }
