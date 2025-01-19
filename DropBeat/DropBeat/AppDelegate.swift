@@ -297,8 +297,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func checkAndShowOnboarding() async {
-        // Show onboarding if no license key is found
-        if UserDefaults.standard.string(forKey: "licenseKey") == nil {
+        // Check if there's a stored license key and validate it
+        if let storedKey = UserDefaults.standard.string(forKey: "licenseKey") {
+            do {
+                let response = try await LicenseService.shared.validateLicense(key: storedKey)
+                await MainActor.run {
+                    if !response.valid || response.hasCompletedOnboarding == false {
+                        // If license is invalid or onboarding not completed, show onboarding
+                        UserDefaults.standard.removeObject(forKey: "licenseKey")
+                        showOnboarding()
+                    }
+                }
+            } catch {
+                // If validation fails, show onboarding
+                await MainActor.run {
+                    showOnboarding()
+                }
+            }
+        } else {
+            // No license key found, show onboarding
             await MainActor.run {
                 showOnboarding()
             }
@@ -306,6 +323,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func showOnboarding() {
+        // If onboarding window already exists, just bring it to front
+        if let existingWindow = onboardingWindow {
+            existingWindow.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
         let onboardingView = OnboardingView()
         
         let window = NSWindow(
@@ -320,12 +344,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.center()
         window.makeKeyAndOrderFront(nil)
         window.level = .floating
+        NSApp.activate(ignoringOtherApps: true)
         
         // Keep a reference to prevent deallocation
         self.onboardingWindow = window
-        
-        // Bring app to front
-        NSApp.activate(ignoringOtherApps: true)
     }
 }
 

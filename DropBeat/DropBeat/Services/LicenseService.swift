@@ -18,7 +18,9 @@ final class LicenseService {
     }
     
     func validateLicense(key: String) async throws -> LicenseValidationResponse {
+        print("Starting license validation for key: \(key)")
         let deviceId = try await getDeviceIdentifier()
+        print("Device ID: \(deviceId)")
         
         let response = try await supabase.database
             .rpc(
@@ -138,7 +140,7 @@ final class LicenseService {
         }
     }
     
-    private func getDeviceIdentifier() async throws -> String {
+    func getDeviceIdentifier() async throws -> String {
         // Get system UUID as device identifier
         let platformExpert = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
         guard platformExpert > 0 else {

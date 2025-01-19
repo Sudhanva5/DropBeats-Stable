@@ -5,15 +5,16 @@ class AccessCardViewModel: ObservableObject {
     @Published var gradientColors: [Color]
     
     // User info
-    @Published var userName: String = "Unknown User"
+    @Published var userName: String = "Guest"
     @Published var userEmail: String = ""
     
     // License info
     @Published var licensePrefix: String = "DB"
     @Published var licenseYear: String = String(Calendar.current.component(.year, from: Date()))
     @Published var licenseCode: String = "----"
-    @Published var licenseValidity: String = "Inactive"
+    @Published var licenseValidity: String = ""
     @Published var memberSince: String = ""
+    @Published var licenseKey: String = "XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX"
     
     // MARK: - Gradient Presets
     private static let gradientPresets: [[Color]] = [
@@ -89,16 +90,12 @@ class AccessCardViewModel: ObservableObject {
         
         if case .valid = appState.licenseStatus, let info = appState.licenseInfo {
             // Update user info
-            let emailComponents = info.email.split(separator: "@")
-            if let name = emailComponents.first {
-                userName = name.capitalized
-            }
+            userName = info.name.isEmpty ? info.email.split(separator: "@").first?.capitalized ?? "Guest" : info.name
             userEmail = info.email
             
             // Update license info
-            if let licenseKey = appState.getLicenseKey() {
-                // Format license key for display (e.g., "ABCD-1234" -> "1234")
-                licenseCode = String(licenseKey.suffix(4))
+            if let key = appState.getLicenseKey() {
+                licenseKey = key
             }
             
             // Update dates

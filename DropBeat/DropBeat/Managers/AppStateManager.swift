@@ -6,8 +6,12 @@ class AppStateManager: ObservableObject {
     
     @Published var licenseStatus: LicenseStatus = .unknown
     @Published var licenseInfo: LicenseInfo?
+    @Published var hasCompletedOnboarding: Bool = false
     
-    private init() {}
+    private init() {
+        // Load onboarding state from UserDefaults
+        hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    }
     
     enum LicenseStatus: Equatable {
         case unknown
@@ -33,12 +37,14 @@ class AppStateManager: ObservableObject {
         let email: String
         let country: String
         let createdAt: Date
+        let hasCompletedOnboarding: Bool
         
         static func == (lhs: LicenseInfo, rhs: LicenseInfo) -> Bool {
             return lhs.name == rhs.name &&
                    lhs.email == rhs.email &&
                    lhs.country == rhs.country &&
-                   lhs.createdAt == rhs.createdAt
+                   lhs.createdAt == rhs.createdAt &&
+                   lhs.hasCompletedOnboarding == rhs.hasCompletedOnboarding
         }
         
         static let defaultCountry = "India"
@@ -47,7 +53,7 @@ class AppStateManager: ObservableObject {
     func validateLicenseOnStartup() async {
         // Get the saved license key from UserDefaults
         guard let licenseKey = UserDefaults.standard.string(forKey: "licenseKey") else {
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.licenseStatus = .invalid("No license key found")
             }
             return
@@ -56,7 +62,7 @@ class AppStateManager: ObservableObject {
         do {
             let response = try await LicenseService.shared.validateLicense(key: licenseKey)
             
-            DispatchQueue.main.async {
+            await MainActor.run {
                 if response.valid {
                     self.licenseStatus = .valid
                     if let email = response.email,
@@ -67,15 +73,20 @@ class AppStateManager: ObservableObject {
                             name: name,
                             email: email,
                             country: country,
-                            createdAt: createdAt
+                            createdAt: createdAt,
+                            hasCompletedOnboarding: response.hasCompletedOnboarding ?? false
                         )
+                        
+                        // Update onboarding state
+                        self.hasCompletedOnboarding = response.hasCompletedOnboarding ?? false
+                        UserDefaults.standard.set(self.hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
                     }
                 } else {
                     self.licenseStatus = .invalid(response.error ?? "Invalid license")
                 }
             }
         } catch {
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.licenseStatus = .invalid(error.localizedDescription)
             }
         }
@@ -87,5 +98,10 @@ class AppStateManager: ObservableObject {
     
     func getLicenseKey() -> String? {
         return UserDefaults.standard.string(forKey: "licenseKey")
+    }
+    
+    func setOnboardingCompleted() {
+        hasCompletedOnboarding = true
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
     }
 } 

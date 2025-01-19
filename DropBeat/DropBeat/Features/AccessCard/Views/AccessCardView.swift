@@ -93,7 +93,7 @@ struct AccessCardView: View {
                     Spacer()
                     
                     // Bottom content
-                    VStack(alignment: .leading, spacing: 32) {
+                    VStack(alignment: .leading, spacing: 20) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Welcome")
                                 .font(.system(size: 14))
@@ -106,32 +106,42 @@ struct AccessCardView: View {
                         
                         // License plate style box
                         HStack(spacing: 0) {
-                            // Prefix section
-                            Text(viewModel.licensePrefix)
-                                .frame(width: 32)
-                                .font(.system(size: 12, weight: .medium))
+                            // First section (B7E2 from B7E21F8B)
+                            Text(viewModel.licenseKey.prefix(4))
+                                .frame(width: 44)
+                                .font(.system(size: 11, weight: .medium))
                             
                             // First separator
                             Rectangle()
                                 .frame(width: 1, height: 20)
                                 .foregroundColor(viewModel.primaryColor)
                             
-                            // Year section
-                            Text(viewModel.licenseYear)
+                            // Second section (C928 from C9284376)
+                            Text(viewModel.licenseKey.dropFirst(9).prefix(4))
                                 .frame(width: 44)
-                                .font(.system(size: 12, weight: .medium))
+                                .font(.system(size: 11, weight: .medium))
                             
                             // Second separator
                             Rectangle()
                                 .frame(width: 1, height: 20)
                                 .foregroundColor(viewModel.primaryColor)
                             
-                            // Unique code section
-                            Text(viewModel.licenseCode)
-                                .frame(width: 48)
-                                .font(.system(size: 12, weight: .medium))
+                            // Third section (8611 from 86119A9F)
+                            Text(viewModel.licenseKey.dropFirst(18).prefix(4))
+                                .frame(width: 44)
+                                .font(.system(size: 11, weight: .medium))
+                            
+                            // Third separator
+                            Rectangle()
+                                .frame(width: 1, height: 20)
+                                .foregroundColor(viewModel.primaryColor)
+                            
+                            // Fourth section (EC87 from EC878EDA)
+                            Text(viewModel.licenseKey.dropFirst(27).prefix(4))
+                                .frame(width: 44)
+                                .font(.system(size: 11, weight: .medium))
                         }
-                        .frame(height: 20)
+                        .frame(height: 18)
                         .tracking(0.5)
                         .foregroundColor(viewModel.primaryColor)
                         .background(

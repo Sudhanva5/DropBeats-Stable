@@ -32,36 +32,15 @@ class OnboardingViewModel: ObservableObject {
             // Prevent recursive calls
             guard licenseKey != oldValue else { return }
             
-            // Format license key as user types
-            var cleaned = licenseKey.uppercased().filter { $0.isLetter || $0.isNumber }
+            // Clean the input (only allow letters, numbers, dashes and underscores)
+            let cleaned = licenseKey.filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }
             
-            // Limit total length first
-            if cleaned.count > 10 {
-                cleaned = String(cleaned.prefix(10))
-            }
-            
-            // Format with dashes
-            var formatted = cleaned
-            if cleaned.count >= 2 {
-                // Add DB- prefix if not present
-                if !cleaned.hasPrefix("DB") {
-                    formatted = "DB" + cleaned.dropFirst(2)
-                }
-                
-                // Add dashes for sections
-                if cleaned.count > 2 {
-                    formatted = "DB-" + cleaned.dropFirst(2)
-                    if cleaned.count > 6 {
-                        let secondPart = cleaned.dropFirst(2).prefix(4)
-                        let thirdPart = cleaned.dropFirst(6).prefix(4)
-                        formatted = "DB-\(secondPart)-\(thirdPart)"
-                    }
-                }
-            }
+            // Limit length and convert to uppercase
+            let formatted = cleaned.count > 12 ? String(cleaned.prefix(12)) : cleaned
             
             // Update only if different to prevent recursive updates
             if formatted != licenseKey {
-                licenseKey = formatted
+                licenseKey = formatted.uppercased()
             }
         }
     }
@@ -73,29 +52,44 @@ class OnboardingViewModel: ObservableObject {
     
     func validateLicense() async {
         guard !licenseKey.isEmpty else {
-            validationError = "Please enter a license key"
+            await MainActor.run {
+                validationError = "Please enter a license key"
+            }
             return
         }
         
-        isValidating = true
+        await MainActor.run {
+            isValidating = true
+        }
+        
         do {
             let response = try await LicenseService.shared.validateLicense(key: licenseKey)
-            if response.valid {
-                AppStateManager.shared.saveLicenseKey(licenseKey)
-                validationError = nil
-                showConfetti = true
-                // Reset confetti after 2 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    self.showConfetti = false
+            
+            await MainActor.run {
+                if response.valid {
+                    AppStateManager.shared.saveLicenseKey(licenseKey)
+                    validationError = nil
+                    showConfetti = true
+                    // Reset confetti after 2 seconds
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(2))
+                        self.showConfetti = false
+                    }
+                } else {
+                    validationError = response.error ?? "Invalid license key"
                 }
+                isValidating = false
+            }
+            
+            if response.valid {
                 await moveToNextStep()
-            } else {
-                validationError = response.error ?? "Invalid license key"
             }
         } catch {
-            validationError = error.localizedDescription
+            await MainActor.run {
+                validationError = error.localizedDescription
+                isValidating = false
+            }
         }
-        isValidating = false
     }
     
     @MainActor
@@ -383,12 +377,24 @@ struct LicenseStepContent: View {
             }
             
             VStack(spacing: 16) {
-                TextField("DB-XXXX-XXXX", text: $licenseKey)
+                TextField("XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX", text: $licenseKey)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
                     .multilineTextAlignment(.center)
-                    .frame(width: 160)
+                    .frame(width: 280)
                     .textCase(.uppercase)
+                    .onChange(of: licenseKey) { oldValue, newValue in
+                        // Format as user types
+                        let cleaned = newValue.uppercased().filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }
+                        
+                        // Limit length
+                        let formatted = cleaned.count > 12 ? String(cleaned.prefix(12)) : cleaned
+                        
+                        // Update only if different to prevent recursive updates
+                        if formatted != newValue {
+                            licenseKey = formatted
+                        }
+                    }
                 
                 if let error = validationError {
                     HStack(spacing: 4) {
@@ -462,7 +468,11 @@ struct BottomBar: View {
                 Spacer()
                 
                 Button("Complete Setup") {
-                    dismiss()
+                    Task {
+                        // Mark onboarding as completed using AppStateManager
+                        AppStateManager.shared.setOnboardingCompleted()
+                        dismiss()
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(!viewModel.hasCompletedYTMusicSetup || !viewModel.hasCompletedExtensionSetup)
