@@ -36,7 +36,7 @@ class OnboardingViewModel: ObservableObject {
             let cleaned = licenseKey.filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }
             
             // Limit length and convert to uppercase
-            let formatted = cleaned.count > 12 ? String(cleaned.prefix(12)) : cleaned
+            let formatted = cleaned.count > 35 ? String(cleaned.prefix(35)) : cleaned
             
             // Update only if different to prevent recursive updates
             if formatted != licenseKey {
@@ -381,14 +381,14 @@ struct LicenseStepContent: View {
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
                     .multilineTextAlignment(.center)
-                    .frame(width: 280)
+                    .frame(width: 310)
                     .textCase(.uppercase)
                     .onChange(of: licenseKey) { oldValue, newValue in
                         // Format as user types
                         let cleaned = newValue.uppercased().filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }
                         
-                        // Limit length
-                        let formatted = cleaned.count > 12 ? String(cleaned.prefix(12)) : cleaned
+                        // Limit length to 35 characters to match the full license key format
+                        let formatted = cleaned.count > 35 ? String(cleaned.prefix(35)) : cleaned
                         
                         // Update only if different to prevent recursive updates
                         if formatted != newValue {

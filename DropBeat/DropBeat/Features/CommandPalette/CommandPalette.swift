@@ -21,7 +21,7 @@ final class CommandPalette: NSObject {
             defer: false
         )
         
-        window.level = .popUpMenu
+        window.level = .floating
         window.backgroundColor = .clear
         window.isOpaque = false
         window.hasShadow = true
@@ -32,7 +32,7 @@ final class CommandPalette: NSObject {
         window.standardWindowButton(.closeButton)?.isHidden = true
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
         
         window.delegate = self
         

@@ -103,5 +103,15 @@ class AppStateManager: ObservableObject {
     func setOnboardingCompleted() {
         hasCompletedOnboarding = true
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        
+        // Update onboarding status in database
+        Task {
+            guard let licenseKey = getLicenseKey() else { return }
+            do {
+                try await LicenseService.shared.updateOnboardingStatus(key: licenseKey, completed: true)
+            } catch {
+                print("Failed to update onboarding status in database:", error)
+            }
+        }
     }
 } 

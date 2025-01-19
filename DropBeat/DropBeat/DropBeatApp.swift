@@ -16,3 +16,4 @@ struct DropBeatApp: App {
         .windowLevel(.floating)
     }
 }
+

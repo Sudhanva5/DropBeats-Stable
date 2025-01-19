@@ -19,15 +19,13 @@ final class LicenseService {
     
     func validateLicense(key: String) async throws -> LicenseValidationResponse {
         print("Starting license validation for key: \(key)")
-        let deviceId = try await getDeviceIdentifier()
-        print("Device ID: \(deviceId)")
         
         let response = try await supabase.database
             .rpc(
                 "validate_license",
                 params: [
                     "p_license_key": key,
-                    "p_device_id": deviceId
+                    "p_device_id": nil
                 ]
             )
             .execute()
@@ -153,6 +151,26 @@ final class LicenseService {
         }
         
         return serialNumber
+    }
+    
+    func updateOnboardingStatus(key: String, completed: Bool) async throws {
+        print("Updating onboarding status for key: \(key)")
+        
+        let response = try await supabase.database
+            .rpc(
+                "update_onboarding_status",
+                params: [
+                    "p_license_key": key,
+                    "p_has_completed": String(completed)
+                ]
+            )
+            .execute()
+            .data
+            
+        // Debug: Print raw response
+        if let jsonString = String(data: response, encoding: .utf8) {
+            print("Raw Response: \(jsonString)")
+        }
     }
 }
 

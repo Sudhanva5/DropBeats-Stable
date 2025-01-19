@@ -82,9 +82,9 @@ export default {
         .from('licenses')
         .upsert({
           email: payload.email,
-          full_name: payload.custom_fields?.['Your Name'] || null,
-          phone_number: payload.custom_fields?.['Mobile Number'] || null,
-          country: payload.country || null,
+          full_name: payload['Your Name'] || payload.custom_fields?.['Your Name'] || null,
+          phone_number: payload['Mobile Number'] || payload.custom_fields?.['Mobile Number'] || null,
+          country: payload.country || payload.ip_country || null,
           license_key: payload.license_key,
           sale_id: payload.sale_id,
           created_at: payload.sale_timestamp || new Date().toISOString(),
