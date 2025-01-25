@@ -136,10 +136,18 @@ struct CompactScrubber: View {
 
 struct ContentView: View {
     @StateObject private var wsManager = WebSocketManager.shared
+    @StateObject private var appState = AppStateManager.shared
     @State private var seekPosition: Double = 0
     @State private var isSeeking: Bool = false
     @State private var rotationAngle: Double = 0
     @State private var scaleAmount: CGFloat = 1.0
+    
+    private var isLicenseInvalid: Bool {
+        if case .invalid = appState.licenseStatus {
+            return true
+        }
+        return false
+    }
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -147,7 +155,46 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Main content
                 VStack(spacing: 4) {
-                    if !wsManager.isConnected {
+                    if isLicenseInvalid {
+                        // License Invalid State
+                        VStack(spacing: 4) {
+                            Image(systemName: "key.slash")
+                                .font(.system(size: 16))
+                                .foregroundColor(.secondary)
+                                .padding(.bottom, 8)
+                            
+                            Text("License Not Active")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.primary)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("Please complete the onboarding process")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 0)
+                            
+                            Button(action: {
+                                NotificationCenter.default.post(
+                                    name: NSNotification.Name("ShowOnboarding"),
+                                    object: nil
+                                )
+                            }) {
+                                Text("Complete Setup")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.accentColor)
+                                    .cornerRadius(4)
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.top, 12)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if !wsManager.isConnected {
                         // Connection Error State
                         VStack(spacing: 4) {
                             Image(systemName: "puzzlepiece.extension")
@@ -275,41 +322,43 @@ struct ContentView: View {
                     }
                 }
                 
-                // Bottom Bar
-                HStack {
-                    // Search Button
-                    Button(action: {
-                        CommandPalette.shared.toggle()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "magnifyingglass")
+                // Bottom Bar - Only show if license is valid
+                if !isLicenseInvalid {
+                    HStack {
+                        // Search Button
+                        Button(action: {
+                            CommandPalette.shared.toggle()
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 12))
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Spacer()
+                        
+                        // Settings Button
+                        SettingsLink {
+                            Image(systemName: "gearshape.fill")
                                 .font(.system(size: 12))
                         }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                    
-                    Spacer()
-                    
-                    // Settings Button
-                    SettingsLink {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 12))
-                    }
-                    .buttonStyle(.plain)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.4)
+                            .overlay(
+                                Rectangle()
+                                    .frame(height: 0.5)
+                                    .foregroundColor(Color.primary.opacity(0.05)),
+                                alignment: .top
+                            )
+                    )
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .opacity(0.4)
-                        .overlay(
-                            Rectangle()
-                                .frame(height: 0.5)
-                                .foregroundColor(Color.primary.opacity(0.05)),
-                            alignment: .top
-                        )
-                )
             }
             .background {
                 // Background layers inside background modifier

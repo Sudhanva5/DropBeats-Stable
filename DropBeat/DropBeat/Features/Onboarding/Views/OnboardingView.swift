@@ -471,6 +471,11 @@ struct BottomBar: View {
                     Task {
                         // Mark onboarding as completed using AppStateManager
                         AppStateManager.shared.setOnboardingCompleted()
+                        
+                        // Validate license to update app state
+                        await AppStateManager.shared.validateLicenseOnStartup()
+                        
+                        // Close the onboarding window
                         dismiss()
                     }
                 }

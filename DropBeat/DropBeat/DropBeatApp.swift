@@ -13,7 +13,6 @@ struct DropBeatApp: App {
         .windowResizability(.contentSize)
         .defaultPosition(.center)
         .windowToolbarStyle(.unified)
-        .windowLevel(.floating)
     }
 }
 

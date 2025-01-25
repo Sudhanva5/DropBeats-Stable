@@ -7,7 +7,19 @@ import KeyboardShortcuts
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var wsManager: WebSocketManager
-    private var popover: NSPopover!
+    private lazy var popover: NSPopover = {
+        let popover = NSPopover()
+        popover.contentSize = NSSize(width: 280, height: 0)
+        popover.behavior = .transient
+        
+        // Create a container view controller to handle the padding
+        let contentViewController = NSHostingController(rootView: ContentView())
+        contentViewController.view.wantsLayer = true
+        
+        popover.contentViewController = contentViewController
+        popover.delegate = self
+        return popover
+    }()
     private var popoverMonitor: Any?
     private var hudWindow: NSWindow?
     private var serverKeepAlive: SearchServerKeepAlive?
@@ -19,15 +31,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Initialize AppStateManager
+        AppStateManager.shared.initialize()
+        
         // Initialize server keep-alive
         serverKeepAlive = SearchServerKeepAlive.shared
         
         // Always use accessory mode (menu bar only)
         NSApp.setActivationPolicy(.accessory)
         
+        // Setup menu bar and observe license status
         setupMenuBar()
-        setupPopover()
-        setupKeyboardShortcuts()
+        
+        // Observe license status changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleLicenseStatusChange),
+            name: NSNotification.Name("LicenseStatusChanged"),
+            object: nil
+        )
+        
+        // Observe onboarding state changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleOnboardingStateChange),
+            name: NSNotification.Name("OnboardingStateChanged"),
+            object: nil
+        )
         
         // Observe WebSocket connection changes
         NotificationCenter.default.addObserver(
@@ -45,6 +75,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
         
+        // Observe forced onboarding
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleShowOnboarding),
+            name: NSNotification.Name("ShowOnboarding"),
+            object: nil
+        )
+        
+        // Setup keyboard shortcuts after checking license
+        setupKeyboardShortcuts()
+        
         // Check if we need to show onboarding
         Task {
             await checkAndShowOnboarding()
@@ -59,6 +100,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func setupKeyboardShortcuts() {
+        // Only setup shortcuts if license is valid
+        guard case .valid = AppStateManager.shared.licenseStatus else {
+            return
+        }
+        
         KeyboardShortcuts.onKeyDown(for: .toggleCommandPalette) { [weak self] in
             Task { @MainActor in
                 await CommandPalette.shared.toggle()
@@ -175,19 +221,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updateMenu()
     }
     
-    private func setupPopover() {
-        popover = NSPopover()
-        popover.contentSize = NSSize(width: 280, height: 0)
-        popover.behavior = .transient
-        
-        // Create a container view controller to handle the padding
-        let contentViewController = NSHostingController(rootView: ContentView())
-        contentViewController.view.wantsLayer = true
-        
-        popover.contentViewController = contentViewController
-        popover.delegate = self
-    }
-    
     private func updateMenu() {
         let menu = NSMenu()
         
@@ -296,6 +329,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.terminate(self)
     }
     
+    @objc private func handleShowOnboarding() {
+        // Close any open windows/popovers
+        if popover.isShown {
+            popover.performClose(nil)
+        }
+        
+        // Show onboarding
+        showOnboarding()
+    }
+    
     private func checkAndShowOnboarding() async {
         // Check if there's a stored license key and validate it
         if let storedKey = UserDefaults.standard.string(forKey: "licenseKey") {
@@ -348,6 +391,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Keep a reference to prevent deallocation
         self.onboardingWindow = window
+    }
+    
+    @objc private func handleLicenseStatusChange() {
+        updateMenu()
+        // Re-setup keyboard shortcuts based on license status
+        setupKeyboardShortcuts()
+    }
+    
+    @objc private func handleOnboardingStateChange(_ notification: Notification) {
+        updateMenu()
+    }
+    
+    private func enableAppFunctionality() {
+        updateMenu()
+        setupKeyboardShortcuts()
+    }
+    
+    private func disableAppFunctionality() {
+        updateMenu()
     }
 }
 
