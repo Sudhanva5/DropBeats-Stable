@@ -46,6 +46,7 @@ If you see "DropBeats cannot be opened because the developer cannot be verified"
 ## Feedback & Issues
 
 Found a bug or have a suggestion? Please go to: https://dropbeats.sleekplan.app/
+
 Please Include:
 - What happened
 - What you expected to happen
