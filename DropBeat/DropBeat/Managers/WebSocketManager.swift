@@ -19,11 +19,19 @@ class WebSocketManager: ObservableObject {
     private let queue = DispatchQueue(label: "com.sudhanva.dropbeat.websocket")
     
     private var reconnectAttempts: Int = 0
+    private let INITIAL_RECONNECT_DELAY: TimeInterval = 1.0
+    private let MAX_RECONNECT_DELAY: TimeInterval = 60.0
     private var lastPongReceived: Date = Date()
     private let PING_INTERVAL: TimeInterval = 5.0
+    private let PONG_TIMEOUT: TimeInterval = 15.0
     
-    @Published var isConnected = false
-    @Published var currentTrack: Track?
+    @Published private(set) var isConnected = false
+    @Published private(set) var currentTrack: Track?
+    @Published private(set) var recentTracks: [Track] = []
+    
+    // Replace Timer with DispatchWorkItem for debouncing
+    private var pendingTrackUpdate: DispatchWorkItem?
+    private var reconnectTimer: DispatchWorkItem?
     
     private init() {
         print("🎵 [DropBeat] Initializing WebSocket Manager...")
@@ -94,7 +102,7 @@ class WebSocketManager: ObservableObject {
     
     private func checkConnection() {
         let timeSinceLastPong = Date().timeIntervalSince(lastPongReceived)
-        if timeSinceLastPong > PING_INTERVAL * 2 {
+        if timeSinceLastPong > PONG_TIMEOUT {
             print("⚠️ [DropBeat] Connection seems dead, last pong was \(timeSinceLastPong) seconds ago")
             handleConnectionFailure(activeConnection!)
         }
@@ -120,11 +128,19 @@ class WebSocketManager: ObservableObject {
             self?.handleConnectionChange()
         }
         
-        // Schedule restart with exponential backoff
-        reconnectAttempts += 1
-        let delay = min(pow(2.0, Double(reconnectAttempts)), 30.0)
+        // Cancel any existing reconnect timer
+        reconnectTimer?.cancel()
         
-        queue.asyncAfter(deadline: .now() + delay) { [weak self] in
+        // Calculate delay with exponential backoff, capped at max delay
+        let delay = min(
+            INITIAL_RECONNECT_DELAY * pow(2.0, Double(reconnectAttempts)),
+            MAX_RECONNECT_DELAY
+        )
+        
+        reconnectAttempts += 1
+        print("🔄 [DropBeat] Scheduling reconnect attempt \(reconnectAttempts) in \(delay) seconds")
+        
+        let workItem = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             
             // Only attempt restart if we're not already connected
@@ -133,6 +149,9 @@ class WebSocketManager: ObservableObject {
                 self.setupServer()
             }
         }
+        
+        reconnectTimer = workItem
+        queue.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
     
     private func handleNewConnection(_ connection: NWConnection) {
@@ -299,15 +318,132 @@ class WebSocketManager: ObservableObject {
                     if let trackData = json["data"] as? [String: Any],
                        let trackJson = try? JSONSerialization.data(withJSONObject: trackData),
                        let track = try? JSONDecoder().decode(Track.self, from: trackJson) {
-                        DispatchQueue.main.async { [weak self] in
-                            self?.currentTrack = track
-                            NotificationCenter.default.post(
-                                name: NSNotification.Name("TrackChanged"),
-                                object: nil,
-                                userInfo: ["track": track]
+                        print("🎵 [DropBeat] Received track info - ID:", track.id, "Title:", track.title)
+                        
+                        // Cancel any pending update
+                        pendingTrackUpdate?.cancel()
+                        
+                        // Create new work item for the update
+                        let workItem = DispatchWorkItem { [weak self] in
+                            guard let self = self else { 
+                                print("❌ [DropBeat] Self was deallocated during track update")
+                                return 
+                            }
+                            
+                            print("⏳ [DropBeat] Processing track update on thread:", Thread.current.description)
+                            
+                            DispatchQueue.main.async {
+                                print("🔄 [DropBeat] On main thread, current track:", self.currentTrack?.title ?? "nil")
+                                print("📥 [DropBeat] New track:", track.title)
+                                
+                                // Only update if track info has actually changed
+                                if self.currentTrack?.id != track.id || 
+                                   self.currentTrack?.isPlaying != track.isPlaying ||
+                                   abs((self.currentTrack?.currentTime ?? 0) - track.currentTime) > 1 {
+                                    
+                                    print("✨ [DropBeat] Track info changed, updating UI")
+                                    self.currentTrack = track
+                                    print("✅ [DropBeat] Track info updated to:", track.title)
+                                    
+                                    // Add to recent tracks if it's a new track
+                                    if !(self.recentTracks.contains { $0.id == track.id }) {
+                                        print("📝 [DropBeat] Adding to recent tracks:", track.title)
+                                        self.recentTracks.insert(track, at: 0)
+                                        if self.recentTracks.count > 7 {
+                                            self.recentTracks.removeLast()
+                                        }
+                                    }
+                                    
+                                    // Post notification after state is updated
+                                    NotificationCenter.default.post(
+                                        name: NSNotification.Name("TrackChanged"),
+                                        object: nil,
+                                        userInfo: ["track": track]
+                                    )
+                                    print("📢 [DropBeat] Posted TrackChanged notification")
+                                } else {
+                                    print("⏭️ [DropBeat] Track info unchanged, skipping update")
+                                }
+                            }
+                        }
+                        
+                        // Store and schedule the new work item
+                        pendingTrackUpdate = workItem
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
+                    }
+                    
+                case "SEARCH_RESULTS":
+                    if let data = json["data"] as? [String: Any],
+                       let categories = data["categories"] as? [String: [[String: Any]]],
+                       let songs = categories["songs"] as? [[String: Any]] {
+                        print("🔍 [DropBeat] Received songs:", songs.count)
+                        var allResults: [SearchResult] = []
+                        var seenIds = Set<String>() // Track seen IDs to avoid duplicates
+                        
+                        // Process songs
+                        let songResults = songs.compactMap { result -> SearchResult? in
+                            // Get ID and validate
+                            guard let id = result["id"] as? String,
+                                  !id.isEmpty else {
+                                print("⚠️ [DropBeat] Skipping result: Missing or empty ID")
+                                return nil
+                            }
+                            
+                            // Skip if we've seen this ID before
+                            guard !seenIds.contains(id) else {
+                                print("⚠️ [DropBeat] Skipping duplicate result with ID:", id)
+                                return nil
+                            }
+                            
+                            // Get title and validate
+                            guard let title = result["title"] as? String,
+                                  !title.isEmpty,
+                                  title != "Unknown Title" else {
+                                print("⚠️ [DropBeat] Skipping result: Invalid title for ID:", id)
+                                return nil
+                            }
+                            
+                            // Get artist information
+                            let artist = result["artist"] as? String ?? "Unknown Artist"
+                            
+                            // Add ID to seen set
+                            seenIds.insert(id)
+                            
+                            print("🏷️ [DropBeat] Valid result - ID:", id, "Title:", title, "Artist:", artist)
+                            
+                            return SearchResult(
+                                id: id,
+                                title: title,
+                                artist: artist,
+                                type: .song,
+                                thumbnailUrl: result["thumbnailUrl"] as? String
                             )
                         }
+                        
+                        allResults.append(contentsOf: songResults)
+                        print("✅ [DropBeat] Total valid songs:", allResults.count)
+                        
+                        // Post notification with search results
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("SearchResults"),
+                            object: nil,
+                            userInfo: ["results": allResults]
+                        )
                     }
+                    
+                case "SEARCH_ERROR":
+                    if let error = json["error"] as? String,
+                       let searchUrl = json["searchUrl"] as? String {
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("SearchError"),
+                            object: nil,
+                            userInfo: [
+                                "error": error,
+                                "searchUrl": searchUrl
+                            ]
+                        )
+                    }
+                    
                 default:
                     break
                 }
@@ -317,7 +453,7 @@ class WebSocketManager: ObservableObject {
     
     private func decodeWebSocketFrame(_ data: Data) -> Data? {
         guard data.count >= 2 else {
-            print("❌ Frame too small: \(data.count) bytes")
+            print("�� Frame too small: \(data.count) bytes")
             return nil
         }
         
@@ -398,7 +534,7 @@ class WebSocketManager: ObservableObject {
         
         let frame = createWebSocketFrame(withPayload: data)
         print("📤 [DropBeat] Sending response frame of size: \(frame.count) bytes")
-        print("📤 [DropBeat] Response content: \(message)")
+        print("�� [DropBeat] Response content: \(message)")
         
         activeConnection?.send(content: frame, completion: .contentProcessed { error in
             if let error = error {
@@ -411,6 +547,36 @@ class WebSocketManager: ObservableObject {
     
     // MARK: - Public Methods
     
+    private var playPauseDebouncer: DispatchWorkItem?
+    private var isPlayPauseInProgress = false
+    
+    func togglePlayPause() {
+        // Simple command - just like next/previous
+        print("⏯️ [DropBeat] Sending play/pause command")
+        sendCommand("togglePlayPause")
+    }
+    
+    // Play specific content by ID
+    func play(id: String, type: SearchResultType) {
+        print("▶️ [DropBeat] Playing content - ID:", id, "Type:", type.rawValue)
+        
+        let data: [String: Any] = [
+            "id": id,
+            "type": type.rawValue
+        ]
+        
+        sendCommand("play", data: data)
+    }
+    
+    // Deprecate these in favor of toggle
+    func play() {
+        togglePlayPause()
+    }
+    
+    func pause() {
+        togglePlayPause()
+    }
+    
     func next() {
         print("⏭️ [DropBeat] Next track")
         sendCommand("next")
@@ -419,16 +585,6 @@ class WebSocketManager: ObservableObject {
     func previous() {
         print("⏮️ [DropBeat] Previous track")
         sendCommand("previous")
-    }
-    
-    func play() {
-        print("▶️ [DropBeat] Play")
-        sendCommand("play")
-    }
-    
-    func pause() {
-        print("⏸️ [DropBeat] Pause")
-        sendCommand("pause")
     }
     
     func toggleLike() {
@@ -457,8 +613,8 @@ class WebSocketManager: ObservableObject {
                 title: track.title,
                 artist: track.artist,
                 albumArt: track.albumArt,
-                isLiked: track.isLiked,
                 duration: track.duration,
+                isLiked: track.isLiked,
                 isPlaying: track.isPlaying,
                 currentTime: roundedPosition
             )
@@ -479,6 +635,123 @@ class WebSocketManager: ObservableObject {
         }
         
         print("📤 [DropBeat] Sending message:", message)
+        sendResponse(message)
+    }
+    
+    // MARK: - Command Palette Methods
+    
+    func search(query: String, onSuccess: @escaping ([SearchResult]) -> Void, onError: @escaping (String, String) -> Void) {
+        guard isConnected else {
+            onError("NOT_CONNECTED", "https://music.youtube.com/search?q=\(query)")
+            return
+        }
+        
+        print("🔍 [DropBeat] Starting search for:", query)
+        
+        // Get country from AppStateManager with India as default
+        let country = AppStateManager.shared.licenseInfo?.country ?? AppStateManager.LicenseInfo.defaultCountry
+        
+        // Create URL components for the search request
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "dropbeats-server.onrender.com"
+        components.path = "/search/\(query)"
+        components.queryItems = [
+            URLQueryItem(name: "country", value: country)
+        ]
+        
+        guard let url = components.url else {
+            onError("INVALID_URL", "https://music.youtube.com/search?q=\(query)")
+            return
+        }
+        
+        // Make the search request to our server
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("❌ [DropBeat] Search error:", error)
+                DispatchQueue.main.async {
+                    onError("NETWORK_ERROR", "https://music.youtube.com/search?q=\(query)")
+                }
+                return
+            }
+            
+            guard let data = data else {
+                print("❌ [DropBeat] No data received")
+                DispatchQueue.main.async {
+                    onError("NO_DATA", "https://music.youtube.com/search?q=\(query)")
+                }
+                return
+            }
+            
+            do {
+                // First, print raw response for debugging
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("📥 [DropBeat] Raw search response:", jsonString)
+                }
+                
+                // Parse the nested response structure
+                struct SearchResponse: Codable {
+                    struct Categories: Codable {
+                        var songs: [SearchResult]?
+                        var albums: [SearchResult]?
+                        var playlists: [SearchResult]?
+                        var videos: [SearchResult]?
+                        var podcasts: [SearchResult]?
+                        var episodes: [SearchResult]?
+                    }
+                    
+                    let categories: Categories
+                    let total: Int
+                }
+                
+                let response = try JSONDecoder().decode(SearchResponse.self, from: data)
+                print("📊 [DropBeat] Decoded response - Total items:", response.total)
+                
+                // Debug print each category's count
+                print("🔢 [DropBeat] Category counts:")
+                print("   Songs:", response.categories.songs?.count ?? 0)
+                print("   Albums:", response.categories.albums?.count ?? 0)
+                print("   Playlists:", response.categories.playlists?.count ?? 0)
+                print("   Videos:", response.categories.videos?.count ?? 0)
+                print("   Podcasts:", response.categories.podcasts?.count ?? 0)
+                print("   Episodes:", response.categories.episodes?.count ?? 0)
+                
+                let allResults = [
+                    response.categories.songs,
+                    response.categories.albums,
+                    response.categories.playlists,
+                    response.categories.videos,
+                    response.categories.podcasts,
+                    response.categories.episodes
+                ].compactMap { $0 }.flatMap { $0 }
+                
+                print("✅ [DropBeat] Total results after processing:", allResults.count)
+                print("📊 [DropBeat] Results by type:", Dictionary(grouping: allResults, by: { $0.type.rawValue }).mapValues { $0.count })
+                
+                DispatchQueue.main.async {
+                    onSuccess(allResults)
+                }
+            } catch {
+                print("❌ [DropBeat] JSON decode error:", error)
+                // Print the raw data for debugging
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("📄 [DropBeat] Failed to decode JSON:", jsonString)
+                }
+                DispatchQueue.main.async {
+                    onError("DECODE_ERROR", "https://music.youtube.com/search?q=\(query)")
+                }
+            }
+        }.resume()
+    }
+    
+    // Add this new method for custom commands
+    func send(command type: String) async throws {
+        let message: [String: Any] = [
+            "type": "COMMAND",
+            "command": type
+        ]
+        
+        print("📤 [DropBeat] Sending custom command:", type)
         sendResponse(message)
     }
 }

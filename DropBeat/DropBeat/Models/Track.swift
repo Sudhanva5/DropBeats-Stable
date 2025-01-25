@@ -1,53 +1,50 @@
 import Foundation
 
-struct Track: Identifiable, Codable, Equatable {
-    let id: String
+struct Track: Codable, Identifiable {
+    let id: String?
     let title: String
     let artist: String
     let albumArt: String?
-    var isLiked: Bool
-    let duration: Double
+    let duration: TimeInterval
+    let isLiked: Bool
     let isPlaying: Bool
-    let currentTime: Double
+    let currentTime: TimeInterval
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case artist
+        case albumArt = "albumArtUrl"
+        case duration
+        case isLiked
+        case isPlaying
+        case currentTime
+    }
     
     static let empty = Track(
         id: "empty",
         title: "No Track Playing",
         artist: "No Artist",
         albumArt: nil,
-        isLiked: false,
         duration: 0,
+        isLiked: false,
         isPlaying: false,
         currentTime: 0
     )
-    
-    init(id: String = UUID().uuidString, title: String, artist: String, albumArt: String?, isLiked: Bool, duration: Double, isPlaying: Bool, currentTime: Double) {
-        self.id = id
-        self.title = title
-        self.artist = artist
-        self.albumArt = albumArt
-        self.isLiked = isLiked
-        self.duration = duration
-        self.isPlaying = isPlaying
-        self.currentTime = currentTime
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case id, title, artist, albumArt, isLiked, duration, isPlaying, currentTime
-    }
 }
 
-// MARK: - Helper extensions
-extension Track {
-    var formattedDuration: String {
-        let minutes = Int(duration / 60)
-        let seconds = Int(duration.truncatingRemainder(dividingBy: 60))
-        return String(format: "%d:%02d", minutes, seconds)
-    }
-    
-    var formattedCurrentTime: String {
-        let minutes = Int(currentTime / 60)
-        let seconds = Int(currentTime.truncatingRemainder(dividingBy: 60))
-        return String(format: "%d:%02d", minutes, seconds)
+// Custom Equatable implementation to handle null IDs
+extension Track: Equatable {
+    static func == (lhs: Track, rhs: Track) -> Bool {
+        // If both IDs are present, compare them
+        if let lhsId = lhs.id, let rhsId = rhs.id {
+            return lhsId == rhsId
+        }
+        
+        // If IDs are nil or different, compare other relevant fields
+        return lhs.title == rhs.title &&
+               lhs.artist == rhs.artist &&
+               lhs.isPlaying == rhs.isPlaying &&
+               abs(lhs.currentTime - rhs.currentTime) < 1 // Allow 1 second difference
     }
 } 
