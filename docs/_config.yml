@@ -2,18 +2,3 @@ theme: jekyll-theme-minimal
 title: DropBeats Documentation
 description: Privacy Policy and Documentation for DropBeats
 show_downloads: false
-
-# Custom styling
-colors:
-  brand: "#EC3B42"  # DropBeats red color
-
-# Add custom CSS
-sass:
-  style: compressed
-
-# Custom CSS file
-custom_css: |
-  a { color: #EC3B42 !important; }
-  a:hover { color: #C62E2E !important; }
-  .btn { background-color: #EC3B42 !important; }
-  h1, h2 { color: #EC3B42; } 
