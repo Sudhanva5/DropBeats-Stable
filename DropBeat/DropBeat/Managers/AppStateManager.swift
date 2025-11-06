@@ -39,7 +39,12 @@ class AppStateManager: ObservableObject {
     
     private let validationInterval: TimeInterval = 24 * 60 * 60 // 24 hours
     private var lastValidationTime: Date?
-    
+
+    // Prevent aggressive re-validation
+    private var isValidationInProgress = false
+    private var lastValidationAttemptTime: Date?
+    private let minValidationInterval: TimeInterval = 10 // Don't validate more than once per 10 seconds
+
     private init() {
         // Load onboarding state from UserDefaults
         hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
@@ -88,6 +93,22 @@ class AppStateManager: ObservableObject {
     }
     
     func validateLicenseOnStartup() async {
+        // Prevent aggressive re-validation within the minimum interval
+        let now = Date()
+        if let lastAttempt = lastValidationAttemptTime {
+            let timeSinceLastAttempt = now.timeIntervalSince(lastAttempt)
+            if timeSinceLastAttempt < minValidationInterval {
+                print("⏳ [DropBeat] License validation already in progress or recently attempted, skipping")
+                return
+            }
+        }
+
+        // Prevent multiple simultaneous validation attempts
+        if isValidationInProgress {
+            print("🔄 [DropBeat] License validation already in progress, skipping duplicate request")
+            return
+        }
+
         // Get the saved license key from UserDefaults
         guard let licenseKey = UserDefaults.standard.string(forKey: "licenseKey") else {
             await MainActor.run {
@@ -96,42 +117,89 @@ class AppStateManager: ObservableObject {
             }
             return
         }
-        
-        do {
-            let response = try await LicenseService.shared.validateLicense(key: licenseKey)
-            
-            await MainActor.run {
-                if response.valid {
-                    self.licenseStatus = .valid
-                    if let email = response.email,
-                       let name = response.name,
-                       let country = response.country,
-                       let createdAt = response.createdAt {
-                        self.licenseInfo = LicenseInfo(
-                            name: name,
-                            email: email,
-                            country: country,
-                            createdAt: createdAt,
-                            hasCompletedOnboarding: response.hasCompletedOnboarding ?? false
-                        )
-                        
-                        // Update onboarding state
-                        self.hasCompletedOnboarding = response.hasCompletedOnboarding ?? false
-                        UserDefaults.standard.set(self.hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+
+        await MainActor.run {
+            self.isValidationInProgress = true
+            self.lastValidationAttemptTime = now
+        }
+
+        // Retry logic with exponential backoff
+        var retryCount = 0
+        let maxRetries = 2
+        var lastError: Error?
+
+        while retryCount < maxRetries {
+            do {
+                let response = try await LicenseService.shared.validateLicense(key: licenseKey)
+
+                await MainActor.run {
+                    self.isValidationInProgress = false
+
+                    if response.valid {
+                        print("✅ [DropBeat] License validation successful")
+                        self.licenseStatus = .valid
+                        if let email = response.email,
+                           let name = response.name,
+                           let country = response.country,
+                           let createdAt = response.createdAt {
+                            self.licenseInfo = LicenseInfo(
+                                name: name,
+                                email: email,
+                                country: country,
+                                createdAt: createdAt,
+                                hasCompletedOnboarding: response.hasCompletedOnboarding ?? false
+                            )
+
+                            // Update onboarding state
+                            self.hasCompletedOnboarding = response.hasCompletedOnboarding ?? false
+                            UserDefaults.standard.set(self.hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+                        }
+
+                        // Update last validation time
+                        self.lastValidationTime = now
+                        UserDefaults.standard.set(self.lastValidationTime, forKey: "lastLicenseValidation")
+                    } else {
+                        // Server explicitly says the license is invalid - this is a permanent state
+                        print("❌ [DropBeat] Server returned invalid license: \(response.error ?? "unknown error")")
+                        self.licenseStatus = .invalid(response.error ?? "Invalid license")
+                        self.forceOnboarding()
                     }
-                    
-                    // Update last validation time
-                    self.lastValidationTime = Date()
-                    UserDefaults.standard.set(self.lastValidationTime, forKey: "lastLicenseValidation")
+                }
+                return
+            } catch {
+                lastError = error
+                retryCount += 1
+
+                if retryCount < maxRetries {
+                    // Exponential backoff: 1 second, then 2 seconds
+                    let delay = TimeInterval(pow(2.0, Double(retryCount - 1)))
+                    print("⚠️ [DropBeat] License validation failed (attempt \(retryCount)/\(maxRetries)), retrying in \(delay)s: \(error)")
+                    try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 } else {
-                    self.licenseStatus = .invalid(response.error ?? "Invalid license")
-                    self.forceOnboarding()
+                    print("❌ [DropBeat] License validation failed after \(maxRetries) attempts: \(error)")
                 }
             }
-        } catch {
-            await MainActor.run {
-                self.licenseStatus = .invalid(error.localizedDescription)
-                self.forceOnboarding()
+        }
+
+        // All retries exhausted - handle network error gracefully
+        await MainActor.run {
+            self.isValidationInProgress = false
+
+            // CRITICAL FIX: Don't invalidate on network errors - only on explicit server rejection
+            // If we have a valid license cached and it's a network error, keep the existing state
+            if licenseKey == UserDefaults.standard.string(forKey: "licenseKey"),
+               let licenseInfo = self.licenseInfo,
+               case .valid = self.licenseStatus {
+                // Network error but we have a valid cached license - keep it valid
+                print("🔐 [DropBeat] Network error validating license, but keeping cached valid license")
+                // Update the timestamp anyway since we tried to validate
+                self.lastValidationTime = now
+                UserDefaults.standard.set(self.lastValidationTime, forKey: "lastLicenseValidation")
+            } else if self.licenseStatus == .unknown {
+                // Only mark as invalid if we've never successfully validated before
+                print("⚠️ [DropBeat] License validation failed and no cached license found: \(lastError?.localizedDescription ?? "unknown error")")
+                self.licenseStatus = .invalid("Unable to validate license - check your internet connection")
+                // Don't force onboarding here - give user a chance to retry
             }
         }
     }

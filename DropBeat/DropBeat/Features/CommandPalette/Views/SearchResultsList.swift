@@ -22,10 +22,13 @@ struct SearchResultsList: View {
                     }
                     
                     if showRecent {
+                        // DESIGN: Section header - "Recently Played"
                         Text("Recently Played")
+                            // DESIGN: Header font size
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            // DESIGN: Header padding
                             .padding(.horizontal, 4)
                             .padding(.vertical, 4)
                     }
@@ -34,23 +37,28 @@ struct SearchResultsList: View {
                         if !section.results.isEmpty {
                             VStack(alignment: .leading, spacing: 0) {
                                 if !showRecent {
+                                    // DESIGN: Search result section titles (Songs, Videos, etc)
                                     Text(section.title)
+                                        // DESIGN: Section title font size
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
+                                        // DESIGN: Section title padding
                                         .padding(.horizontal, 4)
                                         .padding(.vertical, 4)
                                 }
-                                
+
                                 ForEach(section.results) { result in
                                     let index = flattenedResults.firstIndex(where: { $0.id == result.id }) ?? 0
+                                    // DESIGN: Individual result row - customize in SearchResultRow.swift
                                     SearchResultRow(result: result, isSelected: index == selectedIndex)
                                         .id(index)
                                         .onTapGesture {
                                             onSelect(result)
                                         }
                                 }
-                                
+
                                 if !showRecent {
+                                    // DESIGN: Divider between sections - adjust padding
                                     Divider()
                                         .padding(.vertical, 12)
                                 }

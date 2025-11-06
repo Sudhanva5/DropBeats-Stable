@@ -86,7 +86,27 @@ struct GeneralTabView: View {
     @AppStorage("startAtLogin") private var startAtLogin = false {
         didSet {
             Task {
-                await toggleLoginItem(enabled: startAtLogin)
+                do {
+                    if startAtLogin {
+                        if SMAppService.mainApp.status == .enabled {
+                            print("Login item already enabled")
+                            return
+                        }
+                        try await SMAppService.mainApp.register()
+                    } else {
+                        if SMAppService.mainApp.status == .notRegistered {
+                            print("Login item already disabled")
+                            return
+                        }
+                        try await SMAppService.mainApp.unregister()
+                    }
+                } catch {
+                    print("Failed to \(startAtLogin ? "enable" : "disable") login item:", error.localizedDescription)
+                    // Revert the toggle if operation failed
+                    await MainActor.run {
+                        startAtLogin = !startAtLogin
+                    }
+                }
             }
         }
     }
@@ -98,23 +118,6 @@ struct GeneralTabView: View {
     private let leftSectionWidth: CGFloat = 280
     private let sectionSpacing: CGFloat = 0
     private let buttonSpacing: CGFloat = 16
-    
-    // Add helper functions for login item
-    private func toggleLoginItem(enabled: Bool) async {
-        do {
-            if enabled {
-                try await SMAppService.mainApp.register()
-            } else {
-                try await SMAppService.mainApp.unregister()
-            }
-        } catch {
-            print("Failed to \(enabled ? "enable" : "disable") login item:", error)
-            // Revert the toggle if operation failed
-            await MainActor.run {
-                startAtLogin = !enabled
-            }
-        }
-    }
     
     var body: some View {
         HStack(alignment: .top, spacing: sectionSpacing) {
@@ -255,7 +258,10 @@ struct GeneralTabView: View {
         }
         .padding()
         .task {
-            await appState.validateLicenseOnStartup()
+            // REMOVED: Aggressive license re-validation on view appearance
+            // License validation is handled at startup and periodically in AppStateManager
+            // Re-validating on every view appearance can cause false invalidations due to transient network errors
+
             // Request notification permissions
             try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
         }

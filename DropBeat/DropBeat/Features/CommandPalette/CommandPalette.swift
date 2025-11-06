@@ -14,19 +14,20 @@ final class CommandPalette: NSObject {
     }
     
     private func setupWindow() {
+        // DESIGN: Adjust window size (width: 800, height: 400)
         let window = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
             styleMask: [.titled, .fullSizeContentView, .utilityWindow],
             backing: .buffered,
             defer: false
         )
-        
+
         window.level = .floating
-        window.backgroundColor = .clear
-        window.isOpaque = false
-        window.hasShadow = true
-        window.isMovable = false
-        window.hidesOnDeactivate = false
+        window.backgroundColor = .clear // DESIGN: Background color for transparent window
+        window.isOpaque = false // DESIGN: Allows transparency
+        window.hasShadow = true // DESIGN: Add/remove drop shadow
+        window.isMovable = false // DESIGN: Set to true to make window draggable
+        window.hidesOnDeactivate = false // DESIGN: Keep visible when app loses focus
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.standardWindowButton(.closeButton)?.isHidden = true
@@ -55,15 +56,18 @@ final class CommandPalette: NSObject {
     
     private func show() {
         guard let window = window else { return }
-        
+
+        // Mark as visible FIRST before anything else
+        state.isVisible = true
+
         // Center window on screen
         if let screen = NSScreen.main {
             let screenFrame = screen.visibleFrame
             let windowFrame = window.frame
-            
+
             let x = screenFrame.midX - windowFrame.width / 2
             let y = screenFrame.midY - windowFrame.height / 2 + (screenFrame.height * 0.1)
-            
+
             window.setFrame(NSRect(
                 x: x,
                 y: y,
@@ -71,19 +75,40 @@ final class CommandPalette: NSObject {
                 height: windowFrame.height
             ), display: true)
         }
-        
-        state.isVisible = true
-        
-        // Ensure proper window activation
+
+        // Aggressive window activation to make it prominent
+        // This ensures the window appears above all other windows including fullscreen apps
+        window.level = .statusBar // Higher than .floating to ensure visibility over fullscreen content
         NSApp.activate(ignoringOtherApps: true)
+        print("🎯 [palette] Making window key and ordered front (initial)")
         window.makeKeyAndOrderFront(nil)
-        
-        // Additional focus enforcement
+        window.orderFrontRegardless()
+
+        // Multiple activation attempts to ensure focus reaches the window
         DispatchQueue.main.async {
+            print("🎯 [palette] Async activation attempt 1")
             NSApp.activate(ignoringOtherApps: true)
             window.makeKey()
+            window.makeKeyAndOrderFront(nil)
         }
-        
+
+        // Additional attempt after a brief delay to overcome fullscreen app focus hogging
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            print("🎯 [palette] Async activation attempt 2 at +50ms")
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+        }
+
+        // Ensure window stays visible across all spaces by enabling the proper collection behaviors
+        if #available(macOS 12.0, *) {
+            window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle]
+        }
+
+        // Signal to the view that the window is now visible and ready for input
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: NSNotification.Name("CommandPaletteWillShow"), object: nil)
+        }
+
         // Send refresh command to content script
         Task {
             do {
@@ -106,15 +131,19 @@ final class CommandPalette: NSObject {
 extension CommandPalette: NSWindowDelegate {
     nonisolated
     func windowDidResignKey(_ notification: Notification) {
-        Task { @MainActor in
-            await hide()
-        }
+        // CRITICAL: Don't auto-hide! Using CGEventTap means hotkey is triggered at OS level
+        // Window should stay visible until user dismisses with Escape or clicks outside
+        // Auto-hiding here causes the "flashing" issue when switching between fullscreen apps
+        // Task { @MainActor in
+        //     await hide()
+        // }
     }
-    
+
     nonisolated
     func windowDidResignMain(_ notification: Notification) {
-        Task { @MainActor in
-            await hide()
-        }
+        // CRITICAL: Same - don't auto-hide
+        // Task { @MainActor in
+        //     await hide()
+        // }
     }
 } 

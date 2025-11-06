@@ -66,21 +66,50 @@ struct CommandPaletteView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Search Field
+            // DESIGN: Search field section
             SearchFieldView(
                 searchText: $state.searchText,
                 isFocused: $isFocused,
                 isSearching: isSearching
             )
-            .focused($isFocused)
+            .focused($isFocused) // DESIGN: Keyboard focus indicator
+            .onChange(of: isFocused) { focused in
+                print("🎯 [palette] Focus state changed: \(focused)")
+            }
             .onAppear {
-                isFocused = true
+                DispatchQueue.main.async {
+                    print("🎯 [palette] SearchField onAppear - setting focus to true")
+                    isFocused = true
+                }
             }
             .onChange(of: state.isVisible) { isVisible in
                 if isVisible {
+                    print("🎯 [palette] Palette became visible - aggressive focus")
+                    // Aggressive focus when palette becomes visible
                     DispatchQueue.main.async {
+                        print("🎯 [palette] Setting focus immediately")
                         isFocused = true
                     }
+                    // Reinforce focus after a brief delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                        print("🎯 [palette] Reinforcing focus at +10ms")
+                        isFocused = true
+                    }
+                    // Extra reinforcement at longer delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        print("🎯 [palette] Extra focus enforcement at +50ms")
+                        isFocused = true
+                    }
+                } else {
+                    print("🎯 [palette] Palette hidden - clearing focus")
+                    isFocused = false
+                }
+            }
+            // Listen for explicit palette show signal from AppDelegate
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("CommandPaletteWillShow"))) { _ in
+                DispatchQueue.main.async {
+                    print("🎯 [palette] Received show signal, setting focus to search field")
+                    isFocused = true
                 }
             }
             
@@ -157,59 +186,64 @@ struct CommandPaletteView: View {
                 .padding(.vertical, 8)
             }
             
-            // Bottom Bar
+            // DESIGN: Bottom bar section
             HStack {
-                // Left side - App branding
+                // DESIGN: Left side - App branding
                 HStack(spacing: 6) {
                     Image(systemName: "music.note")
                                             .resizable()
+                                            // DESIGN: Icon size - adjust width and height
                                             .frame(width: 8, height: 12)
                                             .foregroundColor(.secondary)
                     Text("DropBeats v1.0")
+                        // DESIGN: Font size for app branding text
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
-                // Right side - Navigation hint
+
+                // DESIGN: Right side - Navigation hint text and icons
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.up")
+                        // DESIGN: Navigation icon size
                         .font(.caption2)
                     Image(systemName: "arrow.down")
                         .font(.caption2)
                     Text("to navigate")
+                        // DESIGN: Navigation hint text size
                         .font(.caption)
                 }
                 .foregroundColor(.secondary)
             }
+            // DESIGN: Bottom bar padding - adjust for spacing around content
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
                 Rectangle()
-                    .fill(Color(.windowBackgroundColor).opacity(0.15))
+                    // DESIGN: Bottom bar background opacity - adjust for brightness
+                    .fill(Color(.windowBackgroundColor).opacity(0.2))
                     .overlay(
                         Rectangle()
+                            // DESIGN: Top border separator of bottom bar
                             .frame(height: 0.5)
-                            .foregroundColor(Color.primary.opacity(0.08)),
+                            .foregroundColor(Color.primary.opacity(0.05)),
                         alignment: .top
                     )
             )
         }
+        // DESIGN: Window size (must match CommandPalette.swift setupWindow dimensions)
         .frame(width: 800, height: 400)
         .background(
-            ZStack {
-                // Blur layer
-                VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
-                // Overlay color
-                Color(.windowBackgroundColor)
-                    .opacity(0.65)
-            }
+            // DESIGN: Blur material - change to .hudWindow, .menu, .popover, etc for different effects
+            VisualEffectView(material: .menu, blendingMode: .behindWindow)
         )
         .overlay(
+            // DESIGN: Border styling - adjust cornerRadius, opacity, and lineWidth
             RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5)
         )
+        // DESIGN: Corner radius - tweak this value for different roundedness
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .setupCommandPalette(
             isFocused: $isFocused,
@@ -323,21 +357,27 @@ extension View {
     ) -> some View {
         self
             .onAppear {
+                print("🎯 [palette] setupCommandPalette.onAppear called")
                 selectedIndex.wrappedValue = 0
+                print("🎯 [palette] Setting focus via modifier onAppear")
                 isFocused.wrappedValue = true
                 isKeyboardNavigation.wrappedValue = false
                 isNavigatingUp.wrappedValue = false
-                
+
                 DispatchQueue.main.async {
+                    print("🎯 [palette] Activating app from setupCommandPalette")
                     NSApp.activate(ignoringOtherApps: true)
                     if let window = NSApp.windows.first(where: { $0.isVisible }) {
+                        print("🎯 [palette] Making window key from setupCommandPalette")
                         window.makeKey()
                     }
                 }
             }
             .onChange(of: CommandPaletteState.shared.isVisible) { isVisible in
+                print("🎯 [palette] setupCommandPalette.onChange isVisible: \(isVisible)")
                 if isVisible {
                     selectedIndex.wrappedValue = 0
+                    print("🎯 [palette] Setting focus via modifier onChange")
                     isFocused.wrappedValue = true
                 }
             }

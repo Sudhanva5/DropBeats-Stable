@@ -3,6 +3,89 @@ import SwiftUI
 import AppKit
 import Network
 import KeyboardShortcuts
+import CoreGraphics
+import Accessibility
+
+// MARK: - Global Event Tap for Command Palette Hotkey
+// This allows the hotkey to work over fullscreen apps by intercepting at OS level
+var globalEventTap: CFMachPort?
+var globalEventTapSource: CFRunLoopSource?
+
+func eventTapCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent, userInfo: UnsafeMutableRawPointer?) -> Unmanaged<CGEvent>? {
+    // Check if this is a key down event
+    guard type == .keyDown else { return Unmanaged.passRetained(event) }
+
+    // Get the key code
+    let keyCode = Int64(event.getIntegerValueField(.keyboardEventKeycode))
+
+    // Get modifier flags
+    let flags = event.flags
+
+    // Cmd+Option+Space = Cmd (1048576) + Option (524288) + Space (49)
+    // Check for Command (0x100000) + Option (0x80000) + Space keycode (49)
+    let hasCmdModifier = flags.rawValue & 0x100000 != 0
+    let hasOptModifier = flags.rawValue & 0x80000 != 0
+    let isSpaceKey = keyCode == 49
+
+    if hasCmdModifier && hasOptModifier && isSpaceKey {
+        print("🎹 [palette] Command Palette hotkey detected at OS level (fullscreen compatible)")
+
+        // Show command palette
+        Task { @MainActor in
+            await CommandPalette.shared.toggle()
+        }
+
+        // Consume the event so the fullscreen app doesn't see it
+        return nil
+    }
+
+    // If palette is visible, handle keyboard input for it
+    // NOTE: eventTapCallback runs on a non-main thread, so we need to check main-actor properties safely
+    var paletteVisible = false
+    let semaphore = DispatchSemaphore(value: 0)
+
+    DispatchQueue.main.async {
+        paletteVisible = CommandPaletteState.shared.isVisible
+        semaphore.signal()
+    }
+    semaphore.wait()
+
+    if paletteVisible {
+        // Escape key (keyCode 53) - dismiss palette
+        if keyCode == 53 {
+            print("🎹 [palette] Escape key pressed - dismissing palette")
+            Task { @MainActor in
+                await CommandPalette.shared.toggle()
+            }
+            return nil  // Consume the Escape key
+        }
+
+        // Return/Enter key (keyCode 36) - handled by view, pass through
+        // Delete/Backspace (keyCode 51) - pass through
+        // Arrow keys (keyCode 123-126) - pass through
+        // Command key combinations - pass through
+
+        // All other keyboard input: pass through to palette window
+        // The palette's search field can receive input even without window focus
+        // when text is passed through the event system
+
+        // For text input keys, we need to ensure the palette window is active
+        let isTextInput = !(flags.rawValue & 0x100000 != 0) && // Not command
+                         !(flags.rawValue & 0x80000 != 0)     // Not option
+
+        if isTextInput || keyCode == 36 || keyCode == 51 || (keyCode >= 123 && keyCode <= 126) {
+            // Reinforce that palette should be in focus for these important keys
+            if isTextInput {
+                print("📝 [palette] Feeding text input to palette (keyCode: \(keyCode))")
+            }
+        }
+
+        return Unmanaged.passRetained(event)
+    }
+
+    // When palette is not visible, let all events pass through
+    return Unmanaged.passRetained(event)
+}
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
@@ -85,7 +168,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Setup keyboard shortcuts after checking license
         setupKeyboardShortcuts()
-        
+
+        // Setup global event tap for command palette hotkey (works over fullscreen apps)
+        setupGlobalEventTap()
+
         // Check if we need to show onboarding
         Task {
             await checkAndShowOnboarding()
@@ -129,7 +215,53 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.showNotification(icon: "backward.fill", text: "Previous Music")
         }
     }
-    
+
+    private func setupGlobalEventTap() {
+        print("🔍 [palette] Checking accessibility permissions...")
+
+        // Request accessibility permissions
+        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+        let accessibilityEnabled = AXIsProcessTrustedWithOptions(options)
+
+        print("🔍 [palette] AXIsProcessTrustedWithOptions returned: \(accessibilityEnabled)")
+
+        guard accessibilityEnabled else {
+            print("⚠️ [palette] Accessibility permissions not granted - command palette hotkey won't work over fullscreen apps")
+            print("   Please grant DropBeat accessibility permissions in System Preferences > Security & Privacy > Accessibility")
+            return
+        }
+
+        print("✅ [palette] Accessibility permissions granted - setting up global event tap")
+
+        // Create event tap for keyboard events
+        let eventMask = CGEventMask((1 << CGEventType.keyDown.rawValue))
+
+        print("🔍 [palette] Creating event tap...")
+
+        guard let eventTap = CGEvent.tapCreate(
+            tap: .cghidEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: eventMask,
+            callback: eventTapCallback,
+            userInfo: nil
+        ) else {
+            print("❌ [palette] Failed to create event tap")
+            return
+        }
+
+        print("🔍 [palette] Event tap created, creating run loop source...")
+
+        let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
+        CGEvent.tapEnable(tap: eventTap, enable: true)
+
+        globalEventTap = eventTap
+        globalEventTapSource = runLoopSource
+
+        print("🎹 [palette] Global event tap installed - Cmd+Option+Space will work over fullscreen apps")
+    }
+
     private func showNotification(icon: String, text: String) {
         // Cleanup existing
         hudWindow?.close()
@@ -330,12 +462,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc private func handleShowOnboarding() {
+        print("🎯 [dropbeats] ShowOnboarding notification received")
+
         // Close any open windows/popovers
         if popover.isShown {
+            print("🎯 [dropbeats] Closing popover")
             popover.performClose(nil)
         }
-        
+
         // Show onboarding
+        print("🎯 [dropbeats] Calling showOnboarding()")
         showOnboarding()
     }
     
@@ -384,10 +520,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         window.title = "Welcome to DropBeat"
         window.contentView = NSHostingView(rootView: onboardingView)
+        window.level = .floating
         window.center()
         window.makeKeyAndOrderFront(nil)
-        window.level = .floating
         NSApp.activate(ignoringOtherApps: true)
+
+        print("🎯 [dropbeats] Onboarding window shown")
         
         // Keep a reference to prevent deallocation
         self.onboardingWindow = window

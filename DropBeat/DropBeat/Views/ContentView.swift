@@ -175,6 +175,7 @@ struct ContentView: View {
                                 .padding(.top, 0)
                             
                             Button(action: {
+                                print("🎯 [dropbeats] Complete Setup button tapped")
                                 NotificationCenter.default.post(
                                     name: NSNotification.Name("ShowOnboarding"),
                                     object: nil

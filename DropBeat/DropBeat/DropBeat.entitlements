@@ -14,5 +14,11 @@
     <true/>
     <key>com.apple.security.network.client.listen</key>
     <true/>
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+    <key>com.apple.security.temporary-exception.apple-events</key>
+    <array>
+        <string>com.apple.systemevents</string>
+    </array>
 </dict>
 </plist>

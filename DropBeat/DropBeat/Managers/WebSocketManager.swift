@@ -87,15 +87,18 @@ class WebSocketManager: ObservableObject {
     private func startPingInterval() {
         queue.asyncAfter(deadline: .now() + PING_INTERVAL) { [weak self] in
             guard let self = self else { return }
-            
+
             // Only check connection if we have an active connection
             if self.activeConnection != nil {
                 self.checkConnection()
             }
-            
+
             // Continue ping interval if we're still running
+            // This prevents indefinite recursion if server is nil
             if self.server != nil {
                 self.startPingInterval()
+            } else {
+                print("⏰ [DropBeat] Stopping ping interval - server is nil")
             }
         }
     }
@@ -104,7 +107,10 @@ class WebSocketManager: ObservableObject {
         let timeSinceLastPong = Date().timeIntervalSince(lastPongReceived)
         if timeSinceLastPong > PONG_TIMEOUT {
             print("⚠️ [DropBeat] Connection seems dead, last pong was \(timeSinceLastPong) seconds ago")
-            handleConnectionFailure(activeConnection!)
+            // Only handle failure if we have an active connection to fail
+            if let connection = activeConnection {
+                handleConnectionFailure(connection)
+            }
         }
     }
     

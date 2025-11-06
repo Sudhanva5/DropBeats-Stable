@@ -11,7 +11,7 @@ class WebSocketManager {
         this.MAX_RECONNECT_DELAY = 30000;
         this.PING_INTERVAL = 5000;
         this.lastPongReceived = Date.now();
-        this.PONG_TIMEOUT = 10000;
+        this.PONG_TIMEOUT = 15000; // 15 seconds - match macOS app timeout to prevent false disconnections
         this.MAX_RECONNECT_ATTEMPTS = 0;
         this.appDetected = false;
         this.lastTabRecoveryAttempt = 0;
@@ -20,6 +20,7 @@ class WebSocketManager {
         this.MAX_LOG_ENTRIES = 100;
         this.portCheckTimer = null;
         this.PORT_CHECK_INTERVAL = 30000; // 30 seconds
+        this.pendingReconnectTimeouts = new Set(); // Track all pending reconnect timeouts for cleanup
         
         this.state = {
             isConnected: false,
@@ -79,11 +80,11 @@ class WebSocketManager {
 
     async handleConnectionError(error, wasConnected = false) {
         console.log('❌ [DropBeat] Connection error:', error, 'Was connected:', wasConnected);
-        
+
         // If this was a disconnect from a previously working connection
         if (wasConnected) {
             this.appDetected = true; // Remember that app was working
-            
+
             // Limit tab recovery to once every 30 seconds
             const now = Date.now();
             if (!this.lastTabRecoveryAttempt || (now - this.lastTabRecoveryAttempt) > 30000) {
@@ -91,7 +92,7 @@ class WebSocketManager {
                 try {
                     const tabs = await chrome.tabs.query({ url: "*://music.youtube.com/*" });
                     console.log('🔍 [DropBeat] Found YouTube Music tabs:', tabs.length);
-                    
+
                     // Only recover the active tab or the first tab found
                     const tabToRecover = tabs.find(tab => tab.active) || tabs[0];
                     if (tabToRecover) {
@@ -105,9 +106,11 @@ class WebSocketManager {
                 console.log('⏳ [DropBeat] Skipping tab recovery, too soon since last attempt');
             }
         }
-        
+
         this.handleDisconnection(error.message || 'Connection error');
     }
+
+    // REMOVED: Duplicate handleConnectionError method that was overriding the above method
 
     handleOpen() {
         const wasConnected = this.state.isConnected;
@@ -172,9 +175,15 @@ class WebSocketManager {
 
     async cleanup() {
         console.log('[DropBeat] Cleaning up connection...');
-        
+
         this.stopPingInterval();
         this.stopPortChecking();
+
+        // Clear all pending reconnect timeouts
+        for (const timeoutId of this.pendingReconnectTimeouts) {
+            clearTimeout(timeoutId);
+        }
+        this.pendingReconnectTimeouts.clear();
 
         // Clear diagnostic logs when cleaning up
         this.diagnosticLog = [];
@@ -191,9 +200,9 @@ class WebSocketManager {
     }
 
     async connect() {
-        this.logDiagnostic('connect_attempt', { 
+        this.logDiagnostic('connect_attempt', {
             reconnectAttempts: this.reconnectAttempts,
-            lastReconnectTime: this.lastReconnectTime
+            lastAttemptTime: this.state.lastAttemptTime
         });
 
         if (this.isConnecting || this.ws?.readyState === WebSocket.OPEN) {
@@ -205,21 +214,28 @@ class WebSocketManager {
         this.state.connectionState = 'CONNECTING';
         this.state.lastAttemptTime = Date.now();
         this.broadcastState();
-        
+
         console.log('🔌 [DropBeat] Initiating connection...');
 
         try {
+            // Ensure cleanup is complete before creating new connection
             await this.cleanup();
-            
+
+            // Double-check WebSocket is null after cleanup
+            if (this.ws) {
+                console.log('⚠️ [DropBeat] WebSocket still exists after cleanup, force clearing');
+                this.ws = null;
+            }
+
             return new Promise((resolve, reject) => {
                 this.ws = new WebSocket('ws://localhost:8089');
-                
+
                 this.ws.onopen = () => {
                     this.isConnecting = false;
                     this.handleOpen();
                     resolve();
                 };
-                
+
                 this.ws.onclose = (event) => {
                     this.isConnecting = false;
                     if (!event.wasClean) {
@@ -228,13 +244,13 @@ class WebSocketManager {
                     this.handleDisconnection(`Connection closed (${event.code}): ${event.reason || 'No reason provided'}`);
                     reject(event);
                 };
-                
+
                 this.ws.onerror = (event) => {
                     this.isConnecting = false;
                     this.handleConnectionError(event);
                     // Don't reject here, let onclose handle it
                 };
-                
+
                 this.ws.onmessage = this.handleMessage.bind(this);
             });
         } catch (error) {
@@ -272,10 +288,15 @@ class WebSocketManager {
         try {
             const message = JSON.parse(event.data);
             console.log('📥 [DropBeat] WebSocket message received:', message);
-            
+
             if (message.type === 'PONG') {
-                this.lastPongReceived = Date.now();
-                console.log('✅ [DropBeat] Pong received');
+                // Only update pong if we still have an active connection
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.lastPongReceived = Date.now();
+                    console.log('✅ [DropBeat] Pong received');
+                } else {
+                    console.log('⚠️ [DropBeat] Received PONG but connection is not open');
+                }
             } else if (message.type === 'COMMAND') {
                 console.log('🎮 [DropBeat] Command received:', message.command);
                 this.forwardCommandToYouTubeMusic(message);
@@ -345,41 +366,45 @@ class WebSocketManager {
         this.recentAttempts = this.recentAttempts || [];
         this.recentAttempts = this.recentAttempts.filter(time => (now - time) < 60000);
         this.recentAttempts.push(now);
-        
+
         if (this.recentAttempts.length > 5) {
             console.log('⚠️ [DropBeat] Too many recent reconnection attempts, waiting longer');
-        this.state.reconnecting = true;
+            this.state.reconnecting = true;
             this.state.nextReconnectTime = now + 60000;
             this.broadcastState();
-            
-            setTimeout(() => {
+
+            const timeoutId = setTimeout(() => {
+                this.pendingReconnectTimeouts.delete(timeoutId);
                 this.recentAttempts = [];
                 this.reconnectAttempts = 0;
                 this.connect().catch(console.error);
             }, 60000); // Wait a full minute
+            this.pendingReconnectTimeouts.add(timeoutId);
             return;
         }
-        
+
         // Calculate delay with exponential backoff, capped at max delay
         const delay = Math.min(
             this.INITIAL_RECONNECT_DELAY * Math.pow(2, this.reconnectAttempts),
             this.MAX_RECONNECT_DELAY
         );
-        
+
         this.reconnectAttempts++;
         this.state.reconnecting = true;
         this.state.nextReconnectTime = now + delay;
         this.broadcastState();
-        
+
         console.log(`🔄 [DropBeat] Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
-        
-        setTimeout(async () => {
+
+        const timeoutId = setTimeout(async () => {
+            this.pendingReconnectTimeouts.delete(timeoutId);
             try {
                 await this.connect();
             } catch (error) {
                 console.log('❌ [DropBeat] Reconnection failed:', error);
             }
         }, delay);
+        this.pendingReconnectTimeouts.add(timeoutId);
     }
 
     broadcastState() {
@@ -434,27 +459,6 @@ class WebSocketManager {
         if (this.diagnosticLog.length > this.MAX_LOG_ENTRIES) {
             this.diagnosticLog.pop();
         }
-    }
-
-    handleConnectionError(event) {
-        this.logDiagnostic('connection_error', {
-            code: event.code,
-            reason: event.reason,
-            wasClean: event.wasClean
-        });
-        
-        this.state.isConnected = false;
-        this.state.connectionState = 'ERROR';
-        this.state.lastError = 'Connection failed';
-        this.state.reconnecting = true;
-        
-        // If we haven't detected the app yet, we should be in waiting state
-        if (!this.appDetected) {
-            this.state.connectionState = 'WAITING_FOR_APP';
-            this.state.waitingForApp = true;
-        }
-        
-        this.broadcastState();
     }
 
     async checkPortAvailable() {
