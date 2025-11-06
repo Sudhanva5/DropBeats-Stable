@@ -7,7 +7,8 @@ final class CommandPalette: NSObject {
     private var window: NSPanel?
     private let state = CommandPaletteState.shared
     private let wsManager = WebSocketManager.shared
-    
+    private var mouseEventTap: CFMachPort?
+
     private override init() {
         super.init()
         setupWindow()
@@ -109,21 +110,94 @@ final class CommandPalette: NSObject {
             NotificationCenter.default.post(name: NSNotification.Name("CommandPaletteWillShow"), object: nil)
         }
 
+        // Setup mouse event tap to detect clicks outside the window
+        setupMouseEventTap()
+
         // Send refresh command to content script
         Task {
             do {
                 try await wsManager.send(command: "COMMAND_PALETTE_OPENED")
-                print("✅ [DropBeat] Sent command palette refresh command")
+                print("✅ [dropbeats] Sent command palette refresh command")
             } catch {
-                print("❌ [DropBeat] Failed to send command palette refresh command:", error)
+                print("❌ [dropbeats] Failed to send command palette refresh command:", error)
             }
         }
     }
     
     private func hide() {
+        print("🎯 [palette] Hiding palette")
+        // Cleanup mouse event tap
+        cleanupMouseEventTap()
         window?.orderOut(nil)
         state.isVisible = false
         state.searchText = ""
+    }
+
+    private func setupMouseEventTap() {
+        print("🎯 [palette] Setting up mouse event tap for click-outside detection")
+        guard let paletteWindow = window else { return }
+
+        // Store window frame for callback reference
+        let windowFrame = paletteWindow.frame
+
+        // Create mouse event tap to detect clicks outside the palette window
+        let eventMask = CGEventMask((1 << CGEventType.leftMouseDown.rawValue) | (1 << CGEventType.rightMouseDown.rawValue))
+
+        // Create a callback that checks if click is inside window
+        let mouseEventCallback: @convention(c) (CGEventTapProxy, CGEventType, CGEvent, UnsafeMutableRawPointer?) -> Unmanaged<CGEvent>? = { proxy, type, event, userInfo in
+            guard let userInfo = userInfo else { return Unmanaged.passRetained(event) }
+
+            // Retrieve the palette pointer and window frame
+            let palettePointer = Unmanaged<CommandPalette>.fromOpaque(userInfo).takeUnretainedValue()
+
+            // Get the click location (in screen coordinates)
+            let location = event.location
+
+            // Get the palette window's current frame
+            guard let currentWindow = palettePointer.window else {
+                return Unmanaged.passRetained(event)
+            }
+
+            // Check if click is inside the palette window
+            if currentWindow.frame.contains(location) {
+                // Click inside palette - let it through
+                return Unmanaged.passRetained(event)
+            } else {
+                // Click outside palette - close it
+                print("🎯 [palette] Click detected outside palette at \(location) vs window \(currentWindow.frame)")
+                Task { @MainActor in
+                    await palettePointer.hide()
+                }
+                return Unmanaged.passRetained(event)
+            }
+        }
+
+        guard let eventTap = CGEvent.tapCreate(
+            tap: .cghidEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: eventMask,
+            callback: mouseEventCallback,
+            userInfo: Unmanaged.passUnretained(self).toOpaque()
+        ) else {
+            print("❌ [palette] Failed to create mouse event tap")
+            return
+        }
+
+        let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
+        CGEvent.tapEnable(tap: eventTap, enable: true)
+
+        mouseEventTap = eventTap
+        print("🎯 [palette] Mouse event tap installed")
+    }
+
+    private func cleanupMouseEventTap() {
+        print("🎯 [palette] Cleaning up mouse event tap")
+        if let eventTap = mouseEventTap {
+            CGEvent.tapEnable(tap: eventTap, enable: false)
+            mouseEventTap = nil
+        }
     }
 }
 
