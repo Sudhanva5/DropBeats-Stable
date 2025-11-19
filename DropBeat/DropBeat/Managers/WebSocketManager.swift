@@ -109,8 +109,12 @@ class WebSocketManager: ObservableObject {
             print("⚠️ [DropBeat] Connection seems dead, last pong was \(timeSinceLastPong) seconds ago")
             // Only handle failure if we have an active connection to fail
             if let connection = activeConnection {
+                print("🔌 [DropBeat] Closing dead connection - will attempt reconnect")
                 handleConnectionFailure(connection)
             }
+        } else {
+            // Connection is healthy
+            print("✅ [DropBeat] Connection healthy - last message \(String(format: "%.1f", timeSinceLastPong))s ago")
         }
     }
     
@@ -306,12 +310,15 @@ class WebSocketManager: ObservableObject {
     }
     
     private func handleMessage(_ data: Data) {
+        // UPDATE: ANY incoming data is a heartbeat signal - we're connected!
+        lastPongReceived = Date()
+
         if let str = String(data: data, encoding: .utf8) {
             print("📝 [DropBeat] Message:", str)
-            
+
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let type = json["type"] as? String {
-                
+
                 print("📦 [DropBeat] Message type:", type)
                 
                 switch type {

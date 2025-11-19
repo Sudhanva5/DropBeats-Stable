@@ -7,7 +7,7 @@ final class CommandPalette: NSObject {
     private var window: NSPanel?
     private let state = CommandPaletteState.shared
     private let wsManager = WebSocketManager.shared
-    private var mouseEventTap: CFMachPort?
+    private var mouseEventMonitor: Any?
 
     private override init() {
         super.init()
@@ -134,69 +134,51 @@ final class CommandPalette: NSObject {
     }
 
     private func setupMouseEventTap() {
-        print("🎯 [palette] Setting up mouse event tap for click-outside detection")
+        print("🎯 [palette] Setting up global mouse event monitor for click-outside detection")
         guard let paletteWindow = window else { return }
 
-        // Store window frame for callback reference
-        let windowFrame = paletteWindow.frame
+        // Use NSEvent GLOBAL monitor to detect clicks anywhere (no accessibility required)
+        // Global monitor can't modify events but can detect them from all windows
+        let monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            guard let self = self else { return }
 
-        // Create mouse event tap to detect clicks outside the palette window
-        let eventMask = CGEventMask((1 << CGEventType.leftMouseDown.rawValue) | (1 << CGEventType.rightMouseDown.rawValue))
-
-        // Create a callback that checks if click is inside window
-        let mouseEventCallback: @convention(c) (CGEventTapProxy, CGEventType, CGEvent, UnsafeMutableRawPointer?) -> Unmanaged<CGEvent>? = { proxy, type, event, userInfo in
-            guard let userInfo = userInfo else { return Unmanaged.passRetained(event) }
-
-            // Retrieve the palette pointer and window frame
-            let palettePointer = Unmanaged<CommandPalette>.fromOpaque(userInfo).takeUnretainedValue()
-
-            // Get the click location (in screen coordinates)
-            let location = event.location
-
-            // Get the palette window's current frame
-            guard let currentWindow = palettePointer.window else {
-                return Unmanaged.passRetained(event)
+            // Check if palette is visible
+            guard self.state.isVisible, let currentWindow = self.window else {
+                print("🎯 [palette] Global monitor: palette not visible")
+                return
             }
+
+            print("🎯 [palette] Global mouse click detected")
+
+            // Get the click location in screen coordinates
+            let clickLocation = NSEvent.mouseLocation
+            let windowFrame = currentWindow.frame
+
+            print("🎯 [palette] Window frame: \(windowFrame), Click location: \(clickLocation)")
 
             // Check if click is inside the palette window
-            if currentWindow.frame.contains(location) {
-                // Click inside palette - let it through
-                return Unmanaged.passRetained(event)
+            if windowFrame.contains(clickLocation) {
+                // Click inside palette - do nothing
+                print("🎯 [palette] Click INSIDE palette - ignoring")
             } else {
                 // Click outside palette - close it
-                print("🎯 [palette] Click detected outside palette at \(location) vs window \(currentWindow.frame)")
+                print("🎯 [palette] Click OUTSIDE palette at \(clickLocation) - closing")
                 Task { @MainActor in
-                    await palettePointer.hide()
+                    print("🎯 [palette] Calling hide from global mouse event monitor")
+                    await self.hide()
                 }
-                return Unmanaged.passRetained(event)
             }
         }
 
-        guard let eventTap = CGEvent.tapCreate(
-            tap: .cghidEventTap,
-            place: .headInsertEventTap,
-            options: .defaultTap,
-            eventsOfInterest: eventMask,
-            callback: mouseEventCallback,
-            userInfo: Unmanaged.passUnretained(self).toOpaque()
-        ) else {
-            print("❌ [palette] Failed to create mouse event tap")
-            return
-        }
-
-        let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
-        CGEvent.tapEnable(tap: eventTap, enable: true)
-
-        mouseEventTap = eventTap
-        print("🎯 [palette] Mouse event tap installed")
+        mouseEventMonitor = monitor
+        print("🎯 [palette] Global mouse event monitor installed")
     }
 
     private func cleanupMouseEventTap() {
-        print("🎯 [palette] Cleaning up mouse event tap")
-        if let eventTap = mouseEventTap {
-            CGEvent.tapEnable(tap: eventTap, enable: false)
-            mouseEventTap = nil
+        print("🎯 [palette] Cleaning up mouse event monitor")
+        if let monitor = mouseEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseEventMonitor = nil
         }
     }
 }
