@@ -7,18 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		401D81D02D32A2FD00FD98D7 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 401D81CF2D32A2FD00FD98D7 /* KeyboardShortcuts */; };
-		401D82192D32A45500FD98D7 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 401D82182D32A45500FD98D7 /* Auth */; };
-		401D821B2D32A45500FD98D7 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 401D821A2D32A45500FD98D7 /* Functions */; };
-		401D821D2D32A45500FD98D7 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 401D821C2D32A45500FD98D7 /* PostgREST */; };
-		401D821F2D32A45500FD98D7 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 401D821E2D32A45500FD98D7 /* Realtime */; };
-		401D82212D32A45500FD98D7 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 401D82202D32A45500FD98D7 /* Storage */; };
-		401D82232D32A45500FD98D7 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 401D82222D32A45500FD98D7 /* Supabase */; };
-		401D82A22D33BA6A00FD98D7 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 401D82A12D33BA6A00FD98D7 /* Lottie */; };
+		40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */; };
+		40DCCBDF2D0E3387005578B7 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDE2D0E3387005578B7 /* Supabase */; };
+		40DCCBE02D0E3388005578B8 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDF2D0E3388005578B8 /* Lottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		40FF48B72D059A300094294E /* DropBeats.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DropBeats.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		40FF48B72D059A300094294E /* DropBeat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DropBeat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -34,14 +29,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				401D82232D32A45500FD98D7 /* Supabase in Frameworks */,
-				401D82212D32A45500FD98D7 /* Storage in Frameworks */,
-				401D821D2D32A45500FD98D7 /* PostgREST in Frameworks */,
-				401D821B2D32A45500FD98D7 /* Functions in Frameworks */,
-				401D82192D32A45500FD98D7 /* Auth in Frameworks */,
-				401D821F2D32A45500FD98D7 /* Realtime in Frameworks */,
-				401D81D02D32A2FD00FD98D7 /* KeyboardShortcuts in Frameworks */,
-				401D82A22D33BA6A00FD98D7 /* Lottie in Frameworks */,
+				40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */,
+				40DCCBDF2D0E3387005578B7 /* Supabase in Frameworks */,
+				40DCCBE02D0E3388005578B8 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,7 +49,7 @@
 		40FF48B82D059A300094294E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				40FF48B72D059A300094294E /* DropBeats.app */,
+				40FF48B72D059A300094294E /* DropBeat.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,9 +57,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		40FF48B62D059A300094294E /* DropBeats */ = {
+		40FF48B62D059A300094294E /* DropBeat */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 40FF48C62D059A330094294E /* Build configuration list for PBXNativeTarget "DropBeats" */;
+			buildConfigurationList = 40FF48C62D059A330094294E /* Build configuration list for PBXNativeTarget "DropBeat" */;
 			buildPhases = (
 				40FF48B32D059A300094294E /* Sources */,
 				40FF48B42D059A300094294E /* Frameworks */,
@@ -82,19 +72,12 @@
 			fileSystemSynchronizedGroups = (
 				40FF48B92D059A300094294E /* DropBeat */,
 			);
-			name = DropBeats;
+			name = DropBeat;
 			packageProductDependencies = (
-				401D81CF2D32A2FD00FD98D7 /* KeyboardShortcuts */,
-				401D82182D32A45500FD98D7 /* Auth */,
-				401D821A2D32A45500FD98D7 /* Functions */,
-				401D821C2D32A45500FD98D7 /* PostgREST */,
-				401D821E2D32A45500FD98D7 /* Realtime */,
-				401D82202D32A45500FD98D7 /* Storage */,
-				401D82222D32A45500FD98D7 /* Supabase */,
-				401D82A12D33BA6A00FD98D7 /* Lottie */,
+				40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */,
 			);
 			productName = DropBeat;
-			productReference = 40FF48B72D059A300094294E /* DropBeats.app */;
+			productReference = 40FF48B72D059A300094294E /* DropBeat.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -122,16 +105,16 @@
 			mainGroup = 40FF48AE2D059A300094294E;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				401D81CE2D32A2FD00FD98D7 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */,
-				401D82A02D33BA6A00FD98D7 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				40DCCBDD2D0E3387005578B7 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				40DCCBDE2D0E3388005578B8 /* XCRemoteSwiftPackageReference "lottie-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 40FF48B82D059A300094294E /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				40FF48B62D059A300094294E /* DropBeats */,
+				40FF48B62D059A300094294E /* DropBeat */,
 			);
 		};
 /* End PBXProject section */
@@ -210,7 +193,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -267,7 +250,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -280,25 +263,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = DropBeat/DropBeat.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"DropBeat/Preview Content\"";
-				DEVELOPMENT_TEAM = 27KHWRZ25B;
+				DEVELOPMENT_TEAM = KX9B67F8HJ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = DropBeats;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sudhanva.dropbeat.DropBeat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -311,25 +290,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = DropBeat/DropBeat.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"DropBeat/Preview Content\"";
-				DEVELOPMENT_TEAM = 27KHWRZ25B;
+				DEVELOPMENT_TEAM = KX9B67F8HJ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = DropBeats;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sudhanva.dropbeat.DropBeat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -349,7 +324,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		40FF48C62D059A330094294E /* Build configuration list for PBXNativeTarget "DropBeats" */ = {
+		40FF48C62D059A330094294E /* Build configuration list for PBXNativeTarget "DropBeat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				40FF48C72D059A330094294E /* Debug */,
@@ -361,7 +336,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		401D81CE2D32A2FD00FD98D7 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+		40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
@@ -369,63 +344,38 @@
 				minimumVersion = 2.2.4;
 			};
 		};
-		401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+		40DCCBDD2D0E3387005578B7 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/supabase-community/supabase-swift.git";
+			repositoryURL = "https://github.com/supabase/supabase-swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.5.1;
+				minimumVersion = 2.0.0;
 			};
 		};
-		401D82A02D33BA6A00FD98D7 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+		40DCCBDE2D0E3388005578B8 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			repositoryURL = "https://github.com/airbnb/lottie-spm";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.5.1;
+				minimumVersion = 4.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		401D81CF2D32A2FD00FD98D7 /* KeyboardShortcuts */ = {
+		40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 401D81CE2D32A2FD00FD98D7 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			package = 40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
 		};
-		401D82182D32A45500FD98D7 /* Auth */ = {
+		40DCCBDE2D0E3387005578B7 /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Auth;
-		};
-		401D821A2D32A45500FD98D7 /* Functions */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Functions;
-		};
-		401D821C2D32A45500FD98D7 /* PostgREST */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = PostgREST;
-		};
-		401D821E2D32A45500FD98D7 /* Realtime */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Realtime;
-		};
-		401D82202D32A45500FD98D7 /* Storage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Storage;
-		};
-		401D82222D32A45500FD98D7 /* Supabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 401D81D12D32A34400FD98D7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			package = 40DCCBDD2D0E3387005578B7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
 		};
-		401D82A12D33BA6A00FD98D7 /* Lottie */ = {
+		40DCCBDF2D0E3388005578B8 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 401D82A02D33BA6A00FD98D7 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			package = 40DCCBDE2D0E3388005578B8 /* XCRemoteSwiftPackageReference "lottie-spm" */;
 			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */

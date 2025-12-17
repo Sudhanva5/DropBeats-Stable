@@ -17,7 +17,7 @@ private struct LottieView: NSViewRepresentable {
     var looping: Bool = false
     
     func makeNSView(context: Context) -> LottieAnimationView {
-        let view = LottieAnimationView(animation: animation)
+        let view = LottieAnimationView(animation: animation, configuration: LottieConfiguration(renderingEngine: .automatic))
         view.contentMode = .scaleAspectFit
         view.loopMode = looping ? .loop : .playOnce
         view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
