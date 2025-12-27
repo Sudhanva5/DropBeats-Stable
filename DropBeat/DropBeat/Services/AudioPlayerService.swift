@@ -22,7 +22,10 @@ class AudioPlayerService: ObservableObject {
     }
 
     deinit {
+        print("🗑️ [AudioPlayerService] Deinitializing...")
+        // DEFENSIVE: Ensure cleanup happens even during deallocation
         cleanup()
+        print("🗑️ [AudioPlayerService] Deinitialized")
     }
 
     // MARK: - Public Methods
@@ -32,21 +35,42 @@ class AudioPlayerService: ObservableObject {
         print("🎵 [AudioPlayerService] Loading stream: \(url.absoluteString.prefix(80))...")
 
         await MainActor.run {
-            // Clean up existing player
+            // DEFENSIVE: Clean up existing player
             cleanup()
 
-            // Create new player item
+            // DEFENSIVE: Create AVPlayerItem with validation (known crash point on macOS 26)
             let newPlayerItem = AVPlayerItem(url: url)
-            playerItem = newPlayerItem
 
-            // Create or reuse player
+            // DEFENSIVE: Verify item was created successfully
+            guard newPlayerItem.asset.isPlayable else {
+                print("❌ [AudioPlayerService] Asset is not playable")
+                self.onPlaybackFailed?(PlaybackError.playerError("Asset is not playable"))
+                return
+            }
+
+            playerItem = newPlayerItem
+            print("✅ [AudioPlayerService] AVPlayerItem created successfully")
+
+            // DEFENSIVE: Create or reuse player with additional validation
             if player == nil {
                 player = AVPlayer(playerItem: newPlayerItem)
+                guard player != nil else {
+                    print("❌ [AudioPlayerService] Failed to create AVPlayer")
+                    self.onPlaybackFailed?(PlaybackError.playerError("Failed to create AVPlayer"))
+                    return
+                }
+                print("✅ [AudioPlayerService] AVPlayer created successfully")
             } else {
+                // DEFENSIVE: Verify player is in valid state before replacing item
+                guard player?.status != .failed else {
+                    print("⚠️ [AudioPlayerService] Player in failed state, recreating...")
+                    player = AVPlayer(playerItem: newPlayerItem)
+                    return
+                }
                 player?.replaceCurrentItem(with: newPlayerItem)
             }
 
-            // Setup observers for new item
+            // DEFENSIVE: Setup observers with error handling
             setupPlayerItemObservers(newPlayerItem)
             setupTimeObserver()
 
@@ -56,8 +80,27 @@ class AudioPlayerService: ObservableObject {
 
     /// Start playback
     func play() {
+        // DEFENSIVE: Validate player and item exist
         guard let player = player else {
             print("⚠️ [AudioPlayerService] Cannot play: No player instance")
+            return
+        }
+
+        guard let playerItem = playerItem else {
+            print("⚠️ [AudioPlayerService] Cannot play: No player item")
+            return
+        }
+
+        // DEFENSIVE: Verify player item is in playable state
+        guard playerItem.status == .readyToPlay else {
+            print("⚠️ [AudioPlayerService] Cannot play: Player item not ready (status: \(playerItem.status.rawValue))")
+            return
+        }
+
+        // DEFENSIVE: Check for errors before playing
+        if let error = playerItem.error {
+            print("⚠️ [AudioPlayerService] Cannot play: Player item has error: \(error)")
+            onPlaybackFailed?(error)
             return
         }
 
@@ -68,8 +111,15 @@ class AudioPlayerService: ObservableObject {
 
     /// Pause playback
     func pause() {
+        // DEFENSIVE: Validate player exists
         guard let player = player else {
             print("⚠️ [AudioPlayerService] Cannot pause: No player instance")
+            return
+        }
+
+        // DEFENSIVE: Only pause if actually playing
+        guard player.rate > 0 else {
+            print("⚠️ [AudioPlayerService] Cannot pause: Already paused")
             return
         }
 
@@ -80,24 +130,37 @@ class AudioPlayerService: ObservableObject {
 
     /// Seek to a specific time
     func seek(to time: CMTime) {
+        // DEFENSIVE: Validate player and item exist
         guard let player = player, let playerItem = playerItem else {
             print("⚠️ [AudioPlayerService] Cannot seek: No player instance")
             return
         }
 
-        // Check if seeking is supported and the time is valid
+        // DEFENSIVE: Verify player item is ready for seeking
+        guard playerItem.status == .readyToPlay else {
+            print("⚠️ [AudioPlayerService] Cannot seek: Player item not ready (status: \(playerItem.status.rawValue))")
+            return
+        }
+
+        // DEFENSIVE: Check if seeking is supported and the time is valid
         let duration = playerItem.duration
         guard duration.isNumeric && !duration.isIndefinite else {
             print("⚠️ [AudioPlayerService] Cannot seek: Duration not available")
             return
         }
 
-        // Clamp seek time to valid range
+        // DEFENSIVE: Validate seek time is numeric
+        guard time.isNumeric && !time.isIndefinite else {
+            print("⚠️ [AudioPlayerService] Cannot seek: Invalid seek time")
+            return
+        }
+
+        // DEFENSIVE: Clamp seek time to valid range
         let seekTime = min(max(time, .zero), duration)
 
         print("⏩ [AudioPlayerService] Seeking to \(seekTime.seconds)s / \(duration.seconds)s...")
 
-        // Use completion handler to detect seek issues
+        // DEFENSIVE: Use completion handler to detect seek issues
         player.seek(to: seekTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
             if finished {
                 print("✅ [AudioPlayerService] Seek completed to \(seekTime.seconds)s")
@@ -131,11 +194,17 @@ class AudioPlayerService: ObservableObject {
     // MARK: - Private Methods
 
     private func setupTimeObserver() {
-        guard let player = player else { return }
+        // DEFENSIVE: Verify player exists before setting up observer
+        guard let player = player else {
+            print("⚠️ [AudioPlayerService] Cannot setup time observer: No player instance")
+            return
+        }
 
-        // Remove existing observer
+        // DEFENSIVE: Remove existing observer to prevent multiple observers
         if let existingObserver = timeObserver {
             player.removeTimeObserver(existingObserver)
+            timeObserver = nil
+            print("🔄 [AudioPlayerService] Removed existing time observer")
         }
 
         // Add periodic time observer (updates every 100ms for smooth scrubber)
@@ -146,25 +215,37 @@ class AudioPlayerService: ObservableObject {
             queue: .main
         ) { [weak self] time in
             guard let self = self else { return }
+
+            // DEFENSIVE: Validate time values before using them
+            guard time.isNumeric && !time.isIndefinite else {
+                return
+            }
+
             let currentTime = time.seconds
             let duration = self.playerItem?.duration.seconds ?? 0
 
-            // Only call callback if we have valid values
+            // DEFENSIVE: Only call callback if we have valid values
             if !currentTime.isNaN && !duration.isNaN && duration > 0 {
                 // Clamp currentTime to duration to prevent UI showing time beyond track length
                 let clampedTime = min(currentTime, duration)
                 self.onTimeUpdate?(clampedTime, duration)
             }
         }
+        print("✅ [AudioPlayerService] Time observer setup complete")
     }
 
     private func setupPlayerItemObservers(_ item: AVPlayerItem) {
-        // Remove existing notification observers before adding new ones
+        // DEFENSIVE: Remove existing notification observers before adding new ones
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemFailedToPlayToEndTime, object: nil)
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemPlaybackStalled, object: nil)
+        print("🔄 [AudioPlayerService] Removed existing notification observers")
 
-        // Observe THIS specific player item's playback end
+        // DEFENSIVE: Cancel existing Combine observers before creating new ones
+        itemObserver?.cancel()
+        playerObserver?.cancel()
+
+        // DEFENSIVE: Observe THIS specific player item's playback end
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(playerItemDidPlayToEnd),
@@ -172,7 +253,7 @@ class AudioPlayerService: ObservableObject {
             object: item  // Observe only this specific item
         )
 
-        // Observe THIS specific player item's playback failures
+        // DEFENSIVE: Observe THIS specific player item's playback failures
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(playerItemFailedToPlay),
@@ -180,7 +261,7 @@ class AudioPlayerService: ObservableObject {
             object: item  // Observe only this specific item
         )
 
-        // Observe THIS specific player item's playback stalls
+        // DEFENSIVE: Observe THIS specific player item's playback stalls
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(playerItemStalled),
@@ -188,34 +269,46 @@ class AudioPlayerService: ObservableObject {
             object: item  // Observe only this specific item
         )
 
-        // Observe status changes
+        // DEFENSIVE: Observe status changes with error handling
         itemObserver = item.publisher(for: \.status)
             .sink { [weak self] status in
+                guard let self = self else { return }
+
                 switch status {
                 case .readyToPlay:
                     print("✅ [AudioPlayerService] Player item ready to play")
                 case .failed:
                     let error = item.error ?? PlaybackError.playerError("Unknown error")
                     print("❌ [AudioPlayerService] Player item failed: \(error.localizedDescription)")
-                    self?.onPlaybackFailed?(error)
+                    self.onPlaybackFailed?(error)
+
+                    // DEFENSIVE: Attempt recovery by recreating player
+                    DispatchQueue.main.async {
+                        print("🔄 [AudioPlayerService] Attempting player recovery after failure")
+                        self.cleanup()
+                    }
                 case .unknown:
                     print("⚠️ [AudioPlayerService] Player item status unknown")
                 @unknown default:
+                    print("⚠️ [AudioPlayerService] Player item unknown status case")
                     break
                 }
             }
 
-        // Observe buffering
+        // DEFENSIVE: Observe buffering with null checks
         playerObserver = item.publisher(for: \.isPlaybackLikelyToKeepUp)
             .sink { [weak self] isLikelyToKeepUp in
+                guard let self = self else { return }
                 let isBuffering = !isLikelyToKeepUp
-                self?.onBufferingStateChanged?(isBuffering)
+                self.onBufferingStateChanged?(isBuffering)
                 if isBuffering {
                     print("⏳ [AudioPlayerService] Buffering...")
                 } else {
                     print("✅ [AudioPlayerService] Buffer ready")
                 }
             }
+
+        print("✅ [AudioPlayerService] Player item observers setup complete")
     }
 
     @objc private func playerItemDidPlayToEnd(_ notification: Notification) {
@@ -247,19 +340,39 @@ class AudioPlayerService: ObservableObject {
     }
 
     private func cleanup() {
-        // Remove time observer
+        print("🧹 [AudioPlayerService] Starting cleanup...")
+
+        // DEFENSIVE: Remove time observer safely
         if let observer = timeObserver, let player = player {
             player.removeTimeObserver(observer)
             timeObserver = nil
+            print("🧹 [AudioPlayerService] Removed time observer")
         }
 
-        // Cancel observers
+        // DEFENSIVE: Cancel Combine observers
         playerObserver?.cancel()
+        playerObserver = nil
         itemObserver?.cancel()
+        itemObserver = nil
+        print("🧹 [AudioPlayerService] Cancelled Combine observers")
 
-        // Pause and clear player item
-        player?.pause()
+        // DEFENSIVE: Remove NotificationCenter observers
+        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemFailedToPlayToEndTime, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemPlaybackStalled, object: nil)
+        print("🧹 [AudioPlayerService] Removed notification observers")
+
+        // DEFENSIVE: Pause player if it exists and is playing
+        if let player = player, player.rate > 0 {
+            player.pause()
+            print("🧹 [AudioPlayerService] Paused player")
+        }
+
+        // DEFENSIVE: Clear player item safely
         player?.replaceCurrentItem(with: nil)
         playerItem = nil
+        print("🧹 [AudioPlayerService] Cleared player item")
+
+        print("✅ [AudioPlayerService] Cleanup complete")
     }
 }
