@@ -11,10 +11,10 @@ struct CommandPaletteView: View {
     @State private var isKeyboardNavigation = false
     @State private var isNavigatingUp = false
     
-    @ObservedObject private var wsManager = WebSocketManager.shared
-    
+    @ObservedObject private var playerManager = MusicPlayerManager.shared
+
     private var recentlyPlayedSection: SearchSection {
-        let recentResults = wsManager.recentTracks.compactMap { track -> SearchResult? in
+        let recentResults = playerManager.recentTracks.compactMap { track -> SearchResult? in
             // Only create search results for tracks with valid IDs
             guard let id = track.id else { return nil }
             return SearchResult(
@@ -114,25 +114,7 @@ struct CommandPaletteView: View {
             }
             
             // Main Content Area
-            if !wsManager.isConnected {
-                // Connection Lost State
-                VStack(spacing: 8) {
-                    Image(systemName: "server.rack")
-                        .font(.system(size: 20))
-                        .foregroundColor(.secondary)
-                        .padding(.bottom, 8)
-                    
-                    Text("Connection to server lost")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
-                    Text("Please check if the extension is running")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-            } else if isSearching {
+            if isSearching {
                 // Loading State
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -315,15 +297,10 @@ struct CommandPaletteView: View {
     
     private func performSearch() {
         guard !state.searchText.isEmpty else { return }
-        guard wsManager.isConnected else {
-            print("⚠️ Cannot search: WebSocket not connected")
-            return
-        }
-        
         isSearching = true
         searchError = nil
         
-        wsManager.search(query: state.searchText) { results in
+        SearchService.shared.search(query: state.searchText) { results in
             print("���� [CommandPalette] Received search results:", results.count)
             self.searchResults = results
             print("📊 [CommandPalette] Results by type:", Dictionary(grouping: results, by: { $0.type.rawValue }).mapValues { $0.count })
@@ -338,7 +315,23 @@ struct CommandPaletteView: View {
     }
     
     private func handleSelection(_ result: SearchResult) {
-        wsManager.play(id: result.id, type: result.type)
+        // Convert SearchResult to Track
+        let track = Track(
+            id: result.id,
+            title: result.title,
+            artist: result.artist,
+            albumArt: result.thumbnailUrl,
+            duration: 0,  // Will be determined during playback
+            isLiked: false,
+            isPlaying: false,
+            currentTime: 0
+        )
+
+        // Play track using playerManager
+        Task {
+            await playerManager.play(track: track)
+        }
+
         CommandPalette.shared.toggle()
     }
 }
@@ -396,7 +389,20 @@ extension View {
             .onKeyPress(.return) {
                 if !displayResults.isEmpty {
                     let selectedResult = displayResults[selectedIndex.wrappedValue]
-                    WebSocketManager.shared.play(id: selectedResult.id, type: selectedResult.type)
+                    // Convert SearchResult to Track and play via playerManager
+                    let track = Track(
+                        id: selectedResult.id,
+                        title: selectedResult.title,
+                        artist: selectedResult.artist,
+                        albumArt: selectedResult.thumbnailUrl,
+                        duration: 0,
+                        isLiked: false,
+                        isPlaying: false,
+                        currentTime: 0
+                    )
+                    Task {
+                        await MusicPlayerManager.shared.play(track: track)
+                    }
                     CommandPalette.shared.toggle()
                 } else if !searchText.isEmpty {
                     // Trigger search on Enter if there are no results yet

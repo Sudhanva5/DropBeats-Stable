@@ -1,12 +1,17 @@
 import SwiftUI
 import AppKit
 
+// Custom NSPanel that can always become key window for proper keyboard focus
+class AlwaysKeyPanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
+}
+
 @MainActor
 final class CommandPalette: NSObject {
     static let shared = CommandPalette()
     private var window: NSPanel?
     private let state = CommandPaletteState.shared
-    private let wsManager = WebSocketManager.shared
     private var mouseEventMonitor: Any?
 
     private override init() {
@@ -16,14 +21,16 @@ final class CommandPalette: NSObject {
     
     private func setupWindow() {
         // DESIGN: Adjust window size (width: 800, height: 400)
-        let window = NSPanel(
+        // Use custom NSPanel subclass that can always become key window
+        let window = AlwaysKeyPanel(
             contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
-            styleMask: [.titled, .fullSizeContentView, .utilityWindow],
+            styleMask: [.titled, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
 
-        window.level = .floating
+        // Use higher window level for better visibility over all apps
+        window.level = .popUpMenu  // Higher than .floating, works better for popovers
         window.backgroundColor = .clear // DESIGN: Background color for transparent window
         window.isOpaque = false // DESIGN: Allows transparency
         window.hasShadow = true // DESIGN: Add/remove drop shadow
@@ -34,13 +41,13 @@ final class CommandPalette: NSObject {
         window.standardWindowButton(.closeButton)?.isHidden = true
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
-        
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+
         window.delegate = self
-        
+
         let hostingView = NSHostingView(rootView: CommandPaletteView())
         window.contentView = hostingView
-        
+
         self.window = window
     }
     
@@ -77,32 +84,19 @@ final class CommandPalette: NSObject {
             ), display: true)
         }
 
-        // Aggressive window activation to make it prominent
-        // This ensures the window appears above all other windows including fullscreen apps
-        window.level = .statusBar // Higher than .floating to ensure visibility over fullscreen content
+        // Activate app and show window with proper focus
+        // Using AlwaysKeyPanel ensures the window can become key and receive keyboard input
         NSApp.activate(ignoringOtherApps: true)
-        print("🎯 [palette] Making window key and ordered front (initial)")
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
 
-        // Multiple activation attempts to ensure focus reaches the window
-        DispatchQueue.main.async {
-            print("🎯 [palette] Async activation attempt 1")
-            NSApp.activate(ignoringOtherApps: true)
-            window.makeKey()
-            window.makeKeyAndOrderFront(nil)
-        }
+        print("🎯 [palette] Window shown - AlwaysKeyPanel ensures keyboard focus")
 
-        // Additional attempt after a brief delay to overcome fullscreen app focus hogging
+        // Reinforce activation after brief delay to overcome fullscreen app focus issues
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            print("🎯 [palette] Async activation attempt 2 at +50ms")
             NSApp.activate(ignoringOtherApps: true)
             window.makeKeyAndOrderFront(nil)
-        }
-
-        // Ensure window stays visible across all spaces by enabling the proper collection behaviors
-        if #available(macOS 12.0, *) {
-            window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle]
+            print("🎯 [palette] Reinforced activation at +50ms")
         }
 
         // Signal to the view that the window is now visible and ready for input
@@ -112,16 +106,6 @@ final class CommandPalette: NSObject {
 
         // Setup mouse event tap to detect clicks outside the window
         setupMouseEventTap()
-
-        // Send refresh command to content script
-        Task {
-            do {
-                try await wsManager.send(command: "COMMAND_PALETTE_OPENED")
-                print("✅ [dropbeats] Sent command palette refresh command")
-            } catch {
-                print("❌ [dropbeats] Failed to send command palette refresh command:", error)
-            }
-        }
     }
     
     private func hide() {

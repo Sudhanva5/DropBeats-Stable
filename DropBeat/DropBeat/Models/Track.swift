@@ -14,7 +14,7 @@ struct Track: Codable, Identifiable {
         case id
         case title
         case artist
-        case albumArt = "albumArtUrl"
+        case albumArt
         case duration
         case isLiked
         case isPlaying

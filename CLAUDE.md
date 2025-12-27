@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-DropBeats is a multi-platform music control application for YouTube Music consisting of:
-- **macOS App** (Swift/SwiftUI) - Menu bar utility with album art display and global keyboard shortcuts
-- **Chrome Extension** (JavaScript) - Browser integration for YouTube Music
-- **Backend API** (Python/FastAPI) - WebSocket server for real-time sync between clients
+DropBeats is a standalone macOS music player for YouTube Music consisting of:
+- **macOS App** (Swift/SwiftUI) - Menu bar utility with direct audio streaming, album art display, and global keyboard shortcuts
+- **Backend API** (Python/FastAPI) - HTTP API for search and stream URL extraction using ytmusicapi and yt-dlp
 - **Infrastructure** (Supabase + Cloudflare Workers) - License management and webhooks
+
+**Architecture:** The macOS app streams audio directly from YouTube Music using yt-dlp-extracted URLs, with search and recommendations powered by ytmusicapi via the Python backend. No browser or extension required.
 
 ## Build & Development Commands
 
@@ -39,28 +40,22 @@ open DropBeat/DropBeat.xcodeproj
 
 ### Python Backend API
 
-Start the WebSocket server:
+Start the HTTP server:
 ```bash
 cd Server/api
 pip install -r requirements.txt
 python -m uvicorn main:app --host 0.0.0.0 --port 8000
-# WebSocket runs on port 8089
 ```
 
 Configuration (create `.env` from `.env.example`):
 - `PORT`: HTTP API port (default: 8000)
-- `WS_PORT`: WebSocket port (default: 8089)
 - `YTMUSIC_OAUTH_FILE`: YouTube Music OAuth credentials
 - `SEARCH_CACHE_DURATION`: Search cache TTL in seconds (default: 3600)
+- `PLAYLIST_CACHE_DURATION`: Watch playlist cache TTL in seconds (default: 300)
 
-### Chrome Extension
-
-No build step required - load unpacked extension in Chrome:
-1. Navigate to `chrome://extensions`
-2. Enable Developer Mode
-3. Click "Load unpacked" and select `ChromeExtension/` directory
-
-To update after code changes, click the refresh button in `chrome://extensions`.
+**Dependencies:**
+- `ytmusicapi` - YouTube Music API wrapper for search and recommendations
+- `yt-dlp` - YouTube downloader for extracting direct stream URLs
 
 ### Cloudflare Workers
 
@@ -95,31 +90,60 @@ supabase stop
 
 ## Architecture
 
-### WebSocket Communication
+### Playback Flow
 
-All clients communicate via a centralized FastAPI WebSocket server on port 8089. The protocol uses JSON messages with specific types:
+**How It Works:**
+1. User searches for music via Command Palette (Cmd+Option+Space)
+2. SearchService calls backend `/search/{query}` endpoint
+3. Backend uses ytmusicapi to search YouTube Music and returns results
+4. User selects a track → MusicPlayerManager.play(track)
+5. YTDLPService fetches stream URL from backend `/stream-url/{videoId}`
+6. Backend executes yt-dlp subprocess to extract direct audio stream URL (valid ~6 hours)
+7. AudioPlayerService loads stream URL into AVPlayer and begins playback
+8. When song ends or user clicks next, RecommendationService fetches auto-play tracks from `/watch-playlist/{videoId}`
+9. Queue is auto-refilled when < 5 tracks remain
+10. Next 2-3 tracks are pre-fetched in background for instant playback
 
-**Message Types:**
-- `track_update` - Current track metadata
-- `ping` / `pong` - Heartbeat (5s interval, 15s timeout)
-- `search_request` / `search_response` - Track search
-- `recent_tracks` - Recently played tracks
-
-**Connection Flow:**
-1. Chrome extension scrapes YouTube Music DOM → sends `track_update` to server
-2. Server broadcasts to all connected clients (macOS app, other extensions)
-3. macOS app receives and updates UI
-4. Ping/pong heartbeat ensures connection health
-
-**Important:** ANY incoming WebSocket message resets the connection timeout timer, not just PING/PONG. This prevents false "dead connection" detection during active data flow.
+**Benefits:**
+- No browser dependency - works standalone
+- No extension maintenance - no risk of YouTube UI changes breaking the app
+- Direct audio streaming - better quality than browser audio capture
+- Offline-capable backend - can self-host or use cloud deployment
 
 ### Key Components
 
-**WebSocketManager.swift** ([DropBeat/DropBeat/Managers/WebSocketManager.swift](DropBeat/DropBeat/Managers/WebSocketManager.swift))
-- NWListener-based WebSocket server (port 8089)
-- Ping/pong heartbeat with exponential backoff reconnection
-- Track state management and recent tracks caching
-- Connection health monitoring with automatic recovery
+**MusicPlayerManager.swift** ([DropBeat/DropBeat/Managers/MusicPlayerManager.swift](DropBeat/DropBeat/Managers/MusicPlayerManager.swift))
+- Main playback orchestrator
+- @Published state for UI reactivity: currentTrack, isPlaying, currentTime, duration, playbackQueue
+- Integrates YTDLPService, AudioPlayerService, and RecommendationService
+- Queue management with auto-refill when < 5 tracks
+- Pre-fetching next 2-3 tracks for smooth playback
+- Error handling with auto-skip for unavailable tracks
+
+**AudioPlayerService.swift** ([DropBeat/DropBeat/Services/AudioPlayerService.swift](DropBeat/DropBeat/Services/AudioPlayerService.swift))
+- AVPlayer wrapper with callback-based API
+- 100ms time observer for smooth scrubber updates
+- Playback end detection for auto-advance
+- Buffering state monitoring
+- Playback failure handling
+
+**YTDLPService.swift** ([DropBeat/DropBeat/Services/YTDLPService.swift](DropBeat/DropBeat/Services/YTDLPService.swift))
+- HTTP client for `/stream-url/{videoId}` backend endpoint
+- 6-hour stream URL cache with automatic expiry cleanup
+- Parallel pre-fetching for next 2-3 tracks
+- Automatic URL refresh before playback if expired
+
+**RecommendationService.swift** ([DropBeat/DropBeat/Services/RecommendationService.swift](DropBeat/DropBeat/Services/RecommendationService.swift))
+- HTTP client for `/watch-playlist/{videoId}` endpoint (YouTube Music Radio)
+- 5-minute recommendation cache per videoId
+- Auto-triggers when queue < 5 tracks
+- Returns ~25 tracks per request
+
+**SearchService.swift** ([DropBeat/DropBeat/Services/SearchService.swift](DropBeat/DropBeat/Services/SearchService.swift))
+- HTTP client for `/search/{query}` endpoint
+- ytmusicapi-powered search across songs, albums, playlists, videos
+- Country-specific search support
+- Flattens categorized results into unified list
 
 **License Service** ([DropBeat/DropBeat/Services/LicenseService.swift](DropBeat/DropBeat/Services/LicenseService.swift))
 - Gumroad license key verification via Supabase
@@ -130,13 +154,26 @@ All clients communicate via a centralized FastAPI WebSocket server on port 8089.
 **Command Palette** ([DropBeat/DropBeat/Features/CommandPalette/](DropBeat/DropBeat/Features/CommandPalette/))
 - Global keyboard shortcut: Cmd+Option+Space
 - Uses CFMachPort event tap for system-wide hotkey (works in fullscreen apps)
-- Track search with server-side caching
-- Recent tracks display
+- Track search with SearchService
+- Recent tracks display from MusicPlayerManager
 
-**Chrome Extension** ([ChromeExtension/](ChromeExtension/))
-- `content.js`: DOM scraping of YouTube Music player state
-- `background.js`: WebSocket client and state management
-- Manifest v3 service worker architecture
+### Backend API Endpoints
+
+**GET /search/{query}?country={country}&limit={limit}**
+- Search YouTube Music using ytmusicapi
+- Returns songs, albums, playlists, videos, podcasts, episodes
+- Response: `{"categories": {"songs": [...], "albums": [...]}, "total": 123}`
+
+**GET /stream-url/{video_id}**
+- Executes yt-dlp subprocess to extract direct stream URL
+- Timeout: 10 seconds
+- Returns: `{"videoId": "...", "streamUrl": "https://...", "expiresAt": "2025-12-27T..."}`
+- Stream URL valid for ~6 hours
+
+**GET /watch-playlist/{video_id}?limit={limit}**
+- Fetch YouTube Music Radio recommendations using ytmusicapi.get_watch_playlist()
+- Returns ~25 tracks similar to the input videoId
+- Response: `{"tracks": [...], "total": 25}`
 
 ### Important Patterns
 
@@ -145,11 +182,22 @@ All clients communicate via a centralized FastAPI WebSocket server on port 8089.
 - Uses `CGEvent.tapCreate` with `kCGHeadInsertEventTap` for global shortcuts
 - Must be initialized in AppDelegate, not SwiftUI App lifecycle
 
-**Connection Resilience**
-- Exponential backoff: 1s initial → 60s max delay
-- Port checking every 30s when disconnected
-- Multiple connection attempts before declaring failure
-- Both client and server implement heartbeat independently
+**@MainActor for UI Safety**
+- MusicPlayerManager marked with @MainActor to ensure all state updates happen on main thread
+- Prevents UI update crashes and race conditions
+- Task { @MainActor in ... } used in callbacks from background services
+
+**Stream URL Caching Strategy**
+- Stream URLs expire in ~6 hours (yt-dlp limitation)
+- YTDLPService maintains cache with expiry timestamps
+- Pre-fetching ensures next 2-3 tracks always have valid URLs
+- Auto-refresh before playback if URL expired
+
+**Error Handling Philosophy**
+- Unavailable videos: Auto-skip with toast notification
+- Network errors: Retry once, then skip
+- Stream URL failures: Skip to next track
+- Empty queue: Show "Search for a track" UI
 
 **Album Art Theme Generation** ([AccessCard/](DropBeat/DropBeat/Features/AccessCard/))
 - Extract dominant/accent colors from album artwork
@@ -166,20 +214,14 @@ All clients communicate via a centralized FastAPI WebSocket server on port 8089.
 ```
 DropBeat/DropBeat/
 ├── Features/           # Feature-based modules (AccessCard, CommandPalette, etc.)
-├── Managers/          # Core managers (WebSocket, AppState)
-├── Services/          # External integrations (License, Gumroad)
-├── Models/            # Data models (Track, License)
+├── Managers/          # Core managers (MusicPlayerManager, AppState)
+├── Services/          # External integrations (YTDLP, Recommendation, Search, License)
+├── Models/            # Data models (Track, PlaybackState, License)
 ├── Config/            # Configuration (Supabase)
 └── Utilities/         # Helper functions and extensions
 
-ChromeExtension/
-├── background.js      # Service worker, WebSocket client
-├── content.js         # YouTube Music DOM integration
-├── popup.js/html      # Extension popup UI
-└── manifest.json      # Extension configuration
-
 Server/api/
-└── main.py           # FastAPI app with WebSocket endpoints
+└── main.py           # FastAPI app with HTTP endpoints (search, stream-url, watch-playlist)
 
 Supabase/
 ├── functions/        # Edge functions (webhooks, license verification)
@@ -191,18 +233,54 @@ cloudflare/dropbeats-webhook-proxy/
 
 ## Development Notes
 
-### WebSocket Message Format
+### Backend API Response Formats
 
-Track update message structure:
+**Search Response:**
 ```json
 {
-  "type": "track_update",
-  "title": "Song Title",
-  "artist": "Artist Name",
-  "album": "Album Name",
-  "albumArtUrl": "https://...",
-  "duration": "3:45",
-  "timestamp": 1234567890
+  "categories": {
+    "songs": [
+      {
+        "id": "videoId",
+        "title": "Song Title",
+        "artist": "Artist Name",
+        "thumbnailUrl": "https://...",
+        "duration": 180
+      }
+    ],
+    "albums": [...],
+    "playlists": [...],
+    "videos": [...]
+  },
+  "total": 123
+}
+```
+
+**Stream URL Response:**
+```json
+{
+  "videoId": "abc123",
+  "streamUrl": "https://rr5---sn-ab5szn7l.googlevideo.com/...",
+  "expiresAt": "2025-12-27T12:00:00"
+}
+```
+
+**Watch Playlist Response:**
+```json
+{
+  "tracks": [
+    {
+      "id": "videoId",
+      "title": "Song Title",
+      "artist": "Artist Name",
+      "albumArt": "https://...",
+      "duration": 180,
+      "isLiked": false,
+      "isPlaying": false,
+      "currentTime": 0
+    }
+  ],
+  "total": 25
 }
 ```
 
@@ -216,24 +294,37 @@ Track update message structure:
 ### macOS App Requirements
 
 - **Minimum macOS:** 14.0 (Sonoma)
-- **Entitlements:** Network client/server, Apple Events, file access
+- **Entitlements:** Network client, Apple Events, file access (no server entitlement needed)
 - **Permissions:** Accessibility (for global hotkey)
 - **App Category:** Music
 - **Background-only:** LSBackgroundOnly = true (no dock icon)
 
-### Testing WebSocket Locally
+### Testing Backend Locally
 
 1. Start Python backend: `cd Server/api && python -m uvicorn main:app --reload`
-2. Open YouTube Music in Chrome with extension loaded
-3. Run macOS app from Xcode
-4. Verify connection logs in both extension console and Xcode console
+2. Test search endpoint: `curl http://localhost:8000/search/test`
+3. Test stream URL endpoint: `curl http://localhost:8000/stream-url/abc123`
+4. Test watch playlist endpoint: `curl http://localhost:8000/watch-playlist/abc123`
+5. Run macOS app from Xcode
+6. Search for music and verify playback works
 
 ### Common Issues
 
-**WebSocket won't connect:**
-- Check port 8089 is not blocked by firewall
-- Verify Python server is running: `lsof -i :8089`
-- Check Chrome extension has host permissions for `music.youtube.com`
+**Backend won't start:**
+- Check yt-dlp is installed: `yt-dlp --version`
+- Verify Python dependencies: `pip install -r requirements.txt`
+- Check port 8000 is not in use: `lsof -i :8000`
+
+**Stream URL fetch fails:**
+- Verify yt-dlp is in PATH: `which yt-dlp`
+- Check video is not region-locked or private
+- Backend logs show yt-dlp subprocess output
+- Stream URLs expire in ~6 hours
+
+**Search returns no results:**
+- Check ytmusicapi authentication (oauth.json or headers_auth.json)
+- Verify backend can reach YouTube Music API
+- Check backend logs for ytmusicapi errors
 
 **Global hotkey not working:**
 - Verify Accessibility permissions granted in System Preferences
@@ -245,15 +336,22 @@ Track update message structure:
 - Check network connectivity to Supabase
 - Review Cloudflare Worker logs for webhook delivery
 
+**Audio playback stutters:**
+- Check network connection quality
+- Verify stream URL is not expired (should auto-refresh)
+- macOS may throttle network when on battery - plug in to test
+
 ## Distribution
 
 - **macOS App:** Distributed via Gumroad as DMG or ZIP
-- **Chrome Extension:** Chrome Web Store (planned)
-- **Backend:** Self-hosted or cloud deployment (Render, Railway, etc.)
+- **Backend:** Self-hosted or cloud deployment (Render, Railway, Fly.io)
+  - Render.com deployment requires: Python 3.11+, yt-dlp system package
+  - Environment variables: YTMUSIC_OAUTH_FILE, PORT, SEARCH_CACHE_DURATION
 
 ## Current Phase
 
-Phase 4: Beta Launch
+Phase 4: yt-dlp Migration
 - Main branch: `main`
-- Current branch: `phase4-beta-launch`
-- Focus: Stability, UX polish, distribution readiness
+- Current branch: `yt-dlp`
+- Focus: Migrate from Chrome Extension + WebSocket to standalone yt-dlp architecture
+- Status: Implementation complete, ready for testing

@@ -89,7 +89,8 @@ func eventTapCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent,
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
-    private var wsManager: WebSocketManager
+    private var contextMenu: NSMenu?
+    private var playerManager: MusicPlayerManager
     private lazy var popover: NSPopover = {
         let popover = NSPopover()
         popover.contentSize = NSSize(width: 280, height: 0)
@@ -109,7 +110,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var onboardingWindow: NSWindow?
     
     override init() {
-        self.wsManager = WebSocketManager.shared
+        self.playerManager = MusicPlayerManager.shared
         super.init()
     }
     
@@ -199,20 +200,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         KeyboardShortcuts.onKeyDown(for: .togglePlayPause) { [weak self] in
             guard let self = self else { return }
-            self.wsManager.togglePlayPause()
-            self.showNotification(icon: "playpause.fill", text: "Music Play / Pause")
+            Task { @MainActor in
+                self.playerManager.togglePlayPause()
+                self.showNotification(icon: "playpause.fill", text: "Music Play / Pause")
+            }
         }
-        
+
         KeyboardShortcuts.onKeyDown(for: .nextTrack) { [weak self] in
             guard let self = self else { return }
-            self.wsManager.next()
-            self.showNotification(icon: "forward.fill", text: "Next Music")
+            Task { @MainActor in
+                self.playerManager.next()
+                self.showNotification(icon: "forward.fill", text: "Next Music")
+            }
         }
-        
+
         KeyboardShortcuts.onKeyDown(for: .previousTrack) { [weak self] in
             guard let self = self else { return }
-            self.wsManager.previous()
-            self.showNotification(icon: "backward.fill", text: "Previous Music")
+            Task { @MainActor in
+                self.playerManager.previous()
+                self.showNotification(icon: "backward.fill", text: "Previous Music")
+            }
         }
     }
 
@@ -236,10 +243,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Create event tap for keyboard events
         let eventMask = CGEventMask((1 << CGEventType.keyDown.rawValue))
 
-        print("🔍 [palette] Creating event tap...")
+        print("🔍 [palette] Creating event tap with session-level tap for fullscreen compatibility...")
 
+        // Use .cgSessionEventTap for better fullscreen app compatibility
+        // This allows the event tap to work even when fullscreen apps are active
         guard let eventTap = CGEvent.tapCreate(
-            tap: .cghidEventTap,
+            tap: .cgSessionEventTap,
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: eventMask,
@@ -343,75 +352,85 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        
+
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "DropBeats")
-            button.action = #selector(togglePopover)
+            button.action = #selector(handleStatusBarClick)
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             button.target = self
         }
-        
+
         updateMenu()
+    }
+
+    @objc private func handleStatusBarClick() {
+        guard let event = NSApp.currentEvent else { return }
+
+        if event.type == .rightMouseUp {
+            // Right-click: show context menu
+            if let button = statusItem.button, let menu = contextMenu {
+                menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height), in: button)
+            }
+        } else {
+            // Left-click: show popover
+            togglePopover()
+        }
     }
     
     private func updateMenu() {
-        let menu = NSMenu()
-        
-        // Now Playing Section
-        if let currentTrack = wsManager.currentTrack {
-            let nowPlayingItem = NSMenuItem()
-            nowPlayingItem.title = "Now Playing: \(currentTrack.title)"
-            nowPlayingItem.isEnabled = false
-            menu.addItem(nowPlayingItem)
-            
-            let artistItem = NSMenuItem()
-            artistItem.title = "By \(currentTrack.artist)"
-            artistItem.isEnabled = false
-            menu.addItem(artistItem)
-            
+        Task { @MainActor in
+            let menu = NSMenu()
+
+            // Now Playing Section
+            if let currentTrack = playerManager.currentTrack {
+                let nowPlayingItem = NSMenuItem()
+                nowPlayingItem.title = "Now Playing: \(currentTrack.title)"
+                nowPlayingItem.isEnabled = false
+                menu.addItem(nowPlayingItem)
+
+                let artistItem = NSMenuItem()
+                artistItem.title = "By \(currentTrack.artist)"
+                artistItem.isEnabled = false
+                menu.addItem(artistItem)
+
+                menu.addItem(NSMenuItem.separator())
+            }
+
+            // Playback Controls
+            let playPauseItem = NSMenuItem(
+                title: playerManager.isPlaying ? "Pause" : "Play",
+                action: #selector(togglePlayPause),
+                keyEquivalent: "p"
+            )
+                menu.addItem(playPauseItem)
+
+            let previousItem = NSMenuItem(
+                title: "Previous",
+                action: #selector(previousTrack),
+                keyEquivalent: "["
+            )
+            menu.addItem(previousItem)
+
+            let nextItem = NSMenuItem(
+                title: "Next",
+                action: #selector(nextTrack),
+                keyEquivalent: "]"
+            )
+            menu.addItem(nextItem)
+
             menu.addItem(NSMenuItem.separator())
+
+            // Quit
+            let quitItem = NSMenuItem(
+                title: "Quit DropBeat",
+                action: #selector(quitApp),
+                keyEquivalent: "q"
+            )
+            menu.addItem(quitItem)
+
+            // Store menu separately - don't set statusItem.menu or it overrides button action
+            self.contextMenu = menu
         }
-        
-        // Playback Controls
-        let playPauseItem = NSMenuItem(
-            title: wsManager.currentTrack?.isPlaying == true ? "Pause" : "Play",
-            action: #selector(togglePlayPause),
-            keyEquivalent: "p"
-        )
-        menu.addItem(playPauseItem)
-        
-        let previousItem = NSMenuItem(
-            title: "Previous",
-            action: #selector(previousTrack),
-            keyEquivalent: "["
-        )
-        menu.addItem(previousItem)
-        
-        let nextItem = NSMenuItem(
-            title: "Next",
-            action: #selector(nextTrack),
-            keyEquivalent: "]"
-        )
-        menu.addItem(nextItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        
-        // Connection Status
-        let statusItem = NSMenuItem()
-        statusItem.title = wsManager.isConnected ? "Connected" : "Disconnected"
-        statusItem.isEnabled = false
-        menu.addItem(statusItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        
-        // Quit
-        let quitItem = NSMenuItem(
-            title: "Quit DropBeat",
-            action: #selector(quitApp),
-            keyEquivalent: "q"
-        )
-        menu.addItem(quitItem)
-        
-        statusItem.menu = menu
     }
     
     @objc private func togglePopover() {
@@ -419,25 +438,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if popover.isShown {
                 popover.performClose(nil)
             } else {
+                // Activate app first to ensure proper focus
                 NSApp.activate(ignoringOtherApps: true)
+
                 // Create a zero-origin rect that maintains the button's size
                 let rect = NSRect(x: -120, y: 0, width: 280, height: button.bounds.height)
                 popover.show(relativeTo: rect, of: button, preferredEdge: .minY)
+
+                // Don't force makeKeyAndOrderFront - let popover manage its own focus
+                // The .transient behavior conflicts with forced focus changes
             }
         }
     }
     
     @objc func handleConnectionChange() {
-        if wsManager.isConnected {
-            statusItem.button?.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "DropBeat")
-        } else {
-            // Using a more appropriate disconnected icon
-            if let disconnectedIcon = NSImage(systemSymbolName: "exclamationmark.circle", accessibilityDescription: "DropBeat Disconnected") {
-                statusItem.button?.image = disconnectedIcon
-            } else {
-                statusItem.button?.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "DropBeat")
-            }
-        }
+        // No longer needed (no Chrome Extension dependency)
         updateMenu()
     }
     
@@ -446,15 +461,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func togglePlayPause() {
-        wsManager.togglePlayPause()
+        Task { @MainActor in
+            playerManager.togglePlayPause()
+        }
     }
-    
+
     @objc func previousTrack() {
-        wsManager.previous()
+        Task { @MainActor in
+            playerManager.previous()
+        }
     }
-    
+
     @objc func nextTrack() {
-        wsManager.next()
+        Task { @MainActor in
+            playerManager.next()
+        }
     }
     
     @objc func quitApp() {
@@ -557,6 +578,9 @@ extension AppDelegate: NSPopoverDelegate {
         if let popoverWindow = popover.contentViewController?.view.window {
             // Set window level to stay visible over full-screen apps
             popoverWindow.level = .popUpMenu
+
+            // Don't force makeKeyAndOrderFront - NSPopover with .transient behavior
+            // manages its own focus and forcing it causes premature closure
         }
     }
 }

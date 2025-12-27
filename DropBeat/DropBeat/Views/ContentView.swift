@@ -135,7 +135,7 @@ struct CompactScrubber: View {
 }
 
 struct ContentView: View {
-    @StateObject private var wsManager = WebSocketManager.shared
+    @StateObject private var playerManager = MusicPlayerManager.shared
     @StateObject private var appState = AppStateManager.shared
     @State private var seekPosition: Double = 0
     @State private var isSeeking: Bool = false
@@ -195,28 +195,7 @@ struct ContentView: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 12)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if !wsManager.isConnected {
-                        // Connection Error State
-                        VStack(spacing: 4) {
-                            Image(systemName: "puzzlepiece.extension")
-                                .font(.system(size: 16))
-                                .foregroundColor(.secondary)
-                                .padding(.bottom, 8)
-                            
-                            Text("Extension Disconnected")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(.primary)
-                                .multilineTextAlignment(.center)
-                            
-                            Text("Check if Chrome extension is installed")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.top, 0)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 12)
-                    } else if let track = wsManager.currentTrack {
+                    } else if let track = playerManager.currentTrack {
                         // Now Playing View
                         HStack(spacing: 10) {
                             // Album Art
@@ -259,15 +238,15 @@ struct ContentView: View {
                         // Time Scrubber
                         CompactScrubber(
                             value: Binding(
-                                get: { isSeeking ? seekPosition : track.currentTime },
+                                get: { isSeeking ? seekPosition : playerManager.currentTime },
                                 set: { newValue in
                                     print("🎵 Slider value changed to: \(newValue)")
                                     seekPosition = newValue
                                 }
                             ),
                             isSeeking: $isSeeking,
-                            duration: track.duration,
-                            currentTime: track.currentTime,
+                            duration: playerManager.duration,
+                            currentTime: playerManager.currentTime,
                             isEnabled: true
                         )
                         .padding(.horizontal, 12)
@@ -275,17 +254,17 @@ struct ContentView: View {
                         
                         // Playback Controls
                         HStack(spacing: 20) {
-                            Button(action: { wsManager.previous() }) {
+                            Button(action: { playerManager.previous() }) {
                                 Image(systemName: "backward.fill")
                                     .font(.system(size: 16))
                             }
-                            
-                            Button(action: { wsManager.togglePlayPause() }) {
-                                Image(systemName: track.isPlaying ? "pause.fill" : "play.fill")
+
+                            Button(action: { playerManager.togglePlayPause() }) {
+                                Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
                                     .font(.system(size: 20))
                             }
-                            
-                            Button(action: { wsManager.next() }) {
+
+                            Button(action: { playerManager.next() }) {
                                 Image(systemName: "forward.fill")
                                     .font(.system(size: 16))
                             }
@@ -300,20 +279,26 @@ struct ContentView: View {
                             Text("No Music Playing")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.primary)
-                            
-                            Text("Open YouTube Music to start playing")
+
+                            Text("Search for a track to start playing")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                                 .padding(.top, 0)
-                            
-                            Button(action: { wsManager.openYouTubeMusic() }) {
-                                Text("Open YouTube Music")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color.accentColor)
-                                    .cornerRadius(4)
+
+                            Button(action: {
+                                CommandPalette.shared.toggle()
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.system(size: 10))
+                                    Text("Search Music")
+                                        .font(.system(size: 11, weight: .medium))
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.accentColor)
+                                .cornerRadius(4)
                             }
                             .buttonStyle(.plain)
                             .padding(.top, 12)
@@ -364,7 +349,7 @@ struct ContentView: View {
             .background {
                 // Background layers inside background modifier
                 ZStack {
-                    if let track = wsManager.currentTrack,
+                    if let track = playerManager.currentTrack,
                        let albumArtURL = track.albumArt {
                         AsyncImage(url: URL(string: albumArtURL)) { image in
                             image
@@ -383,7 +368,7 @@ struct ContentView: View {
                         .fill(.ultraThickMaterial)
                         .opacity(0.8)
                 }
-                .animation(.easeInOut(duration: 0.2), value: wsManager.currentTrack?.id)
+                .animation(.easeInOut(duration: 0.2), value: playerManager.currentTrack?.id)
             }
         }
         .frame(width: 280)
@@ -405,7 +390,7 @@ struct ContentView: View {
         ) { notification in
             if let position = notification.userInfo?["position"] as? Double {
                 print("🎵 Seek notification received: \(position)")
-                wsManager.seek(to: position)
+                playerManager.seek(to: position)
             }
         }
     }
