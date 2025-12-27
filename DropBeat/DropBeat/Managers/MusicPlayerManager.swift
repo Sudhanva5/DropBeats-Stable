@@ -396,8 +396,8 @@ class MusicPlayerManager: ObservableObject {
     }
 
     private func prefetchUpcomingStreams() async {
-        // OPTIMIZATION: Increased from 3 to 7 tracks for faster playback
-        let itemsToPrefetch = Array(playbackQueue.prefix(7))
+        // OPTIMIZATION: Increased from 3 to 5 tracks for faster playback
+        let itemsToPrefetch = Array(playbackQueue.prefix(5))
         let videoIds = itemsToPrefetch.compactMap { $0.track.id }
 
         if !videoIds.isEmpty {
