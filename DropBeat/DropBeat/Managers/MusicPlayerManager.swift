@@ -141,6 +141,11 @@ class MusicPlayerManager: ObservableObject {
                 await refillQueue(basedOn: trackId)
             }
 
+            // OPTIMIZATION: Proactively pre-fetch upcoming tracks as soon as playback starts
+            Task {
+                await prefetchUpcomingStreams()
+            }
+
         } catch let error as PlaybackError {
             // Only handle error if this is still the track we care about
             guard currentLoadingTrackId == trackId else {
@@ -326,7 +331,8 @@ class MusicPlayerManager: ObservableObject {
         print("⏭️ [MusicPlayerManager] Current track: \(currentTrack?.title ?? "nil")")
 
         // Check if we need to refill the queue
-        if recommendationService.shouldFetchMore(currentQueueSize: playbackQueue.count) {
+        // OPTIMIZATION: Refill earlier (threshold 10 instead of 5) to maintain buffer
+        if recommendationService.shouldFetchMore(currentQueueSize: playbackQueue.count, threshold: 10) {
             print("⏭️ [MusicPlayerManager] Queue needs refilling")
             if let currentId = currentTrack?.id {
                 await refillQueue(basedOn: currentId)
@@ -390,10 +396,12 @@ class MusicPlayerManager: ObservableObject {
     }
 
     private func prefetchUpcomingStreams() async {
-        let itemsToPrefetch = Array(playbackQueue.prefix(3))
+        // OPTIMIZATION: Increased from 3 to 7 tracks for faster playback
+        let itemsToPrefetch = Array(playbackQueue.prefix(7))
         let videoIds = itemsToPrefetch.compactMap { $0.track.id }
 
         if !videoIds.isEmpty {
+            print("🚀 [MusicPlayerManager] Pre-fetching \(videoIds.count) upcoming tracks for instant playback")
             // Pre-fetch both stream URLs and song info in parallel
             async let streamPrefetch = ytdlpService.prefetchStreamURLs(videoIds: videoIds)
             async let infoPrefetch = songInfoService.prefetchSongInfo(videoIds: videoIds)

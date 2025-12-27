@@ -89,8 +89,10 @@ class YTDLPService {
 
         await withTaskGroup(of: Void.self) { group in
             for videoId in videoIds {
-                // Skip if already cached and valid
-                if let cached = getCachedStream(videoId), cached.expiresAt > Date().addingTimeInterval(300) {
+                // OPTIMIZATION: Only skip if cached URL is valid for at least 30 minutes (was 5 minutes)
+                // This ensures we refresh URLs more aggressively before they expire during playback
+                if let cached = getCachedStream(videoId), cached.expiresAt > Date().addingTimeInterval(1800) {
+                    print("🎵 [YTDLPService] Skipping \(videoId) - cached URL valid for \(Int(cached.expiresAt.timeIntervalSinceNow / 60))+ minutes")
                     continue
                 }
 
