@@ -1,14 +1,15 @@
 import SwiftUI
 import PDFKit
 import WebKit
+import ServiceManagement
 
 // MARK: - OnboardingStep
 enum OnboardingStep: Int, CaseIterable {
     case welcome
     case termsAndConditions
     case licenseActivation
-    case setup
-    
+    case permissions
+
     var title: String {
         switch self {
         case .welcome:
@@ -17,8 +18,8 @@ enum OnboardingStep: Int, CaseIterable {
             return "Terms & Conditions"
         case .licenseActivation:
             return "Activate Your License"
-        case .setup:
-            return "Quick Setup"
+        case .permissions:
+            return "Grant Permissions"
         }
     }
 }
@@ -46,8 +47,8 @@ class OnboardingViewModel: ObservableObject {
     }
     @Published var isValidating: Bool = false
     @Published var validationError: String?
-    @Published var hasCompletedYTMusicSetup: Bool = false
-    @Published var hasCompletedExtensionSetup: Bool = false
+    @Published var hasAccessibilityPermission: Bool = false
+    @Published var hasLoginItemsPermission: Bool = false
     @Published var showConfetti: Bool = false
     
     func validateLicense() async {
@@ -70,6 +71,10 @@ class OnboardingViewModel: ObservableObject {
                     AppStateManager.shared.saveLicenseKey(licenseKey)
                     validationError = nil
                     showConfetti = true
+
+                    // Enable app immediately after license activation
+                    AppStateManager.shared.setOnboardingCompleted()
+
                     // Reset confetti after 2 seconds
                     Task { @MainActor in
                         try? await Task.sleep(for: .seconds(2))
@@ -80,7 +85,7 @@ class OnboardingViewModel: ObservableObject {
                 }
                 isValidating = false
             }
-            
+
             if response.valid {
                 await moveToNextStep()
             }
@@ -129,9 +134,8 @@ struct StyledTextView: NSViewRepresentable {
 
 struct OnboardingView: View {
     @StateObject private var viewModel: OnboardingViewModel
-    @Environment(\.dismiss) private var dismiss
     private let bottomBarHeight: CGFloat = 44
-    
+
     init(viewModel: OnboardingViewModel = OnboardingViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -152,10 +156,10 @@ struct OnboardingView: View {
                         isValidating: viewModel.isValidating,
                         validationError: viewModel.validationError
                     )
-                case .setup:
-                    SetupStepContent(
-                        hasCompletedYTMusicSetup: $viewModel.hasCompletedYTMusicSetup,
-                        hasCompletedExtensionSetup: $viewModel.hasCompletedExtensionSetup
+                case .permissions:
+                    PermissionsStepContent(
+                        hasAccessibilityPermission: $viewModel.hasAccessibilityPermission,
+                        hasLoginItemsPermission: $viewModel.hasLoginItemsPermission
                     )
                 }
             }
@@ -169,7 +173,7 @@ struct OnboardingView: View {
             if viewModel.currentStep != .welcome {
                 VStack {
                     Spacer()
-                    BottomBar(viewModel: viewModel, dismiss: dismiss)
+                    BottomBar(viewModel: viewModel)
                 }
             }
             
@@ -414,8 +418,7 @@ struct LicenseStepContent: View {
 
 struct BottomBar: View {
     @ObservedObject var viewModel: OnboardingViewModel
-    let dismiss: DismissAction
-    
+
     var body: some View {
         HStack(spacing: 12) {
             switch viewModel.currentStep {
@@ -459,28 +462,21 @@ struct BottomBar: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(viewModel.licenseKey.isEmpty || viewModel.isValidating)
                 
-            case .setup:
+            case .permissions:
                 Button("Go Back") {
                     withAnimation { viewModel.currentStep = .licenseActivation }
                 }
                 .buttonStyle(.bordered)
-                
+
                 Spacer()
-                
+
                 Button("Complete Setup") {
-                    Task {
-                        // Mark onboarding as completed using AppStateManager
-                        AppStateManager.shared.setOnboardingCompleted()
-                        
-                        // Validate license to update app state
-                        await AppStateManager.shared.validateLicenseOnStartup()
-                        
-                        // Close the onboarding window
-                        dismiss()
+                    // Close window directly
+                    if let window = NSApp.windows.first(where: { $0.title == "Welcome to DropBeat" }) {
+                        window.close()
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(!viewModel.hasCompletedYTMusicSetup || !viewModel.hasCompletedExtensionSetup)
             }
         }
         .frame(height: 44)
@@ -494,49 +490,56 @@ struct BottomBar: View {
     }
 }
 
-struct SetupStepContent: View {
-    @Binding var hasCompletedYTMusicSetup: Bool
-    @Binding var hasCompletedExtensionSetup: Bool
-    
+struct PermissionsStepContent: View {
+    @Binding var hasAccessibilityPermission: Bool
+    @Binding var hasLoginItemsPermission: Bool
+
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 36))
                 .foregroundColor(.accentColor)
-            
+
             VStack(spacing: 8) {
                 Text("License Key Activated")
                     .font(.system(size: 24, weight: .bold))
-                
-                Text("Just two more steps to complete your setup")
+
+                Text("Grant permissions to unlock all features")
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
-            
+
             VStack(spacing: 16) {
-                SetupStepRow(
+                PermissionRow(
                     step: 1,
-                    title: "Install DropBeats Extension",
-                    description: "Install our Chrome extension to control YouTube Music",
-                    isCompleted: hasCompletedExtensionSetup,
+                    title: "Accessibility Permission",
+                    description: "Required for global keyboard shortcuts",
                     action: {
-                        if let url = URL(string: "https://chromewebstore.google.com/detail/dropbeats-for-youtube-mus/idiabjbpclngndmihbdemcjmphjbkcfj") {
-                            NSWorkspace.shared.open(url)
-                            hasCompletedExtensionSetup = true
+                        // Show accessibility permission prompt
+                        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+                        _ = AXIsProcessTrustedWithOptions(options)
+
+                        // Bring System Preferences to front if it opens
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            if let systemPrefs = NSWorkspace.shared.runningApplications.first(where: {
+                                $0.bundleIdentifier == "com.apple.systempreferences" ||
+                                $0.bundleIdentifier == "com.apple.Settings"
+                            }) {
+                                systemPrefs.activate(options: .activateIgnoringOtherApps)
+                            }
                         }
                     }
                 )
-                
-                SetupStepRow(
+
+                PermissionRow(
                     step: 2,
-                    title: "Open YouTube Music",
-                    description: "Now, let's open YouTube Music in your default browser",
-                    isCompleted: hasCompletedYTMusicSetup,
+                    title: "Launch at Login",
+                    description: "Start DropBeats automatically when you log in",
                     action: {
-                        if let url = URL(string: "https://music.youtube.com") {
+                        // Open System Settings to Login Items page
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") {
                             NSWorkspace.shared.open(url)
-                            hasCompletedYTMusicSetup = true
                         }
                     }
                 )
@@ -546,37 +549,24 @@ struct SetupStepContent: View {
     }
 }
 
-struct SetupStepRow: View {
+struct PermissionRow: View {
     let step: Int
     let title: String
     let description: String
-    let isCompleted: Bool
     let action: () -> Void
-    
+
     var body: some View {
         HStack(spacing: 16) {
-            ZStack {
-                if isCompleted {
-                    Circle()
-                        .fill(Color.blue.opacity(0.8))
-                        .frame(width: 32, height: 32)
-                } else {
-                    Circle()
-                        .stroke(Color.accentColor.opacity(0.8), lineWidth: 2)
-                        .frame(width: 32, height: 32)
-                }
-                
-                if isCompleted {
-                    Image(systemName: "checkmark")
-                        .foregroundColor(.white)
-                        .imageScale(.small)
-                } else {
+            // Just show the step number - no status checking
+            Circle()
+                .stroke(Color.accentColor.opacity(0.8), lineWidth: 2)
+                .frame(width: 32, height: 32)
+                .overlay(
                     Text("\(step)")
                         .foregroundColor(Color.accentColor)
                         .font(.headline)
-                }
-            }
-            
+                )
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
@@ -584,14 +574,13 @@ struct SetupStepRow: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
-            Button(isCompleted ? "Done" : (step == 1 ? "Open Webstore" : "Open YT Music")) {
+
+            Button("Open Settings") {
                 action()
             }
             .buttonStyle(.bordered)
-            .disabled(isCompleted)
         }
         .padding()
         .background(Color(.controlBackgroundColor).opacity(0.5))
@@ -600,7 +589,14 @@ struct SetupStepRow: View {
 }
 
 #Preview {
-    OnboardingView()
+    // Create a mock view model for preview
+    let viewModel = OnboardingViewModel()
+    viewModel.currentStep = .permissions
+    viewModel.hasAccessibilityPermission = false
+    viewModel.hasLoginItemsPermission = false
+
+    return OnboardingView(viewModel: viewModel)
+        .frame(width: 600, height: 400)
 }
 
 

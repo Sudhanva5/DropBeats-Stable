@@ -20,5 +20,7 @@
     <array>
         <string>com.apple.systemevents</string>
     </array>
+    <key>com.apple.application-identifier</key>
+    <string>$(AppIdentifierPrefix)$(CFBundleIdentifier)</string>
 </dict>
 </plist>

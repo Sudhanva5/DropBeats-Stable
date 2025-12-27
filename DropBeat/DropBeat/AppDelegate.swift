@@ -168,6 +168,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSNotification.Name("ShowOnboarding"),
             object: nil
         )
+
+        // Observe onboarding completion
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCloseOnboarding),
+            name: NSNotification.Name("CloseOnboarding"),
+            object: nil
+        )
         
         // Setup keyboard shortcuts after checking license
         setupKeyboardShortcuts()
@@ -228,8 +236,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupGlobalEventTap() {
         print("🔍 [palette] Checking accessibility permissions...")
 
-        // Request accessibility permissions
-        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+        // Check accessibility permissions without prompting (onboarding handles permission requests)
+        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false]
         let accessibilityEnabled = AXIsProcessTrustedWithOptions(options)
 
         print("🔍 [palette] AXIsProcessTrustedWithOptions returned: \(accessibilityEnabled)")
@@ -558,25 +566,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let onboardingView = OnboardingView()
-        
+
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 400),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
-        
+
         window.title = "Welcome to DropBeat"
         window.contentView = NSHostingView(rootView: onboardingView)
-        window.level = .floating
+        window.level = .normal  // Use normal level so system permission dialogs appear above
         window.center()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
 
         print("🎯 [dropbeats] Onboarding window shown")
-        
+
         // Keep a reference to prevent deallocation
         self.onboardingWindow = window
+    }
+
+    @objc private func handleCloseOnboarding() {
+        print("🎯 [dropbeats] CloseOnboarding notification received")
+
+        if let window = onboardingWindow {
+            window.close()
+            onboardingWindow = nil
+            print("🎯 [dropbeats] Onboarding window closed")
+        }
     }
     
     @objc private func handleLicenseStatusChange() {
