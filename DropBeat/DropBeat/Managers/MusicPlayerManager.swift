@@ -29,6 +29,7 @@ class MusicPlayerManager: ObservableObject {
     private var currentLoadingTrackId: String? = nil
     private var trackHistory: [Track] = []  // Stack for previous track functionality
     private let maxHistorySize = 50
+    private var hasTriggeredAutoPlay = false  // Track if we've triggered auto-play for current track
 
     private init() {
         setupAudioPlayerCallbacks()
@@ -40,6 +41,9 @@ class MusicPlayerManager: ObservableObject {
     /// Play a track by video ID
     func play(trackId: String, trackMetadata: Track? = nil, type: SearchResultType = .song) async {
         print("🎵 [MusicPlayerManager] Playing track: \(trackId)")
+
+        // Reset auto-play flag for new track
+        hasTriggeredAutoPlay = false
 
         // Pause current playback while loading new track
         audioPlayer.pause()
@@ -244,6 +248,8 @@ class MusicPlayerManager: ObservableObject {
     // MARK: - Private Methods
 
     private func setupAudioPlayerCallbacks() {
+        print("🎵 [MusicPlayerManager] Setting up audio player callbacks")
+
         // Time updates for scrubber
         audioPlayer.onTimeUpdate = { [weak self] current, total in
             guard let self = self else { return }
@@ -251,17 +257,38 @@ class MusicPlayerManager: ObservableObject {
                 self.currentTime = current
                 // Don't update duration from AVPlayer - use accurate duration from Track metadata instead
                 // AVPlayer's duration can be incorrect (e.g., wrong video version, extended/live versions)
+
+                // Check if we've reached the end using ACCURATE duration, not AVPlayer's duration
+                // Use 1.0s threshold to prevent premature triggering if user seeks near end
+                if !self.hasTriggeredAutoPlay && self.duration > 0 && current >= (self.duration - 1.0) {
+                    print("🔚 [MusicPlayerManager] Detected end of track via accurate duration")
+                    print("🔚 [MusicPlayerManager] currentTime: \(current), accurate duration: \(self.duration)")
+                    print("🔚 [MusicPlayerManager] AVPlayer duration was: \(total)")
+                    self.hasTriggeredAutoPlay = true
+
+                    // Trigger auto-play to next track
+                    print("🔚 [MusicPlayerManager] Triggering auto-play to next track...")
+                    await self.playNext()
+                }
             }
         }
 
         // Playback ended - play next
         audioPlayer.onPlaybackEnded = { [weak self] in
-            guard let self = self else { return }
+            print("🔚 [MusicPlayerManager] onPlaybackEnded callback triggered!")
+            guard let self = self else {
+                print("⚠️ [MusicPlayerManager] self is nil in onPlaybackEnded callback")
+                return
+            }
             Task { @MainActor in
-                print("🔚 [MusicPlayerManager] Track ended, playing next...")
+                print("🔚 [MusicPlayerManager] Task started on MainActor")
+                print("🔚 [MusicPlayerManager] About to call playNext()")
                 await self.playNext()
+                print("🔚 [MusicPlayerManager] playNext() returned")
             }
         }
+
+        print("✅ [MusicPlayerManager] Audio player callbacks set up complete")
 
         // Playback state changes
         audioPlayer.onPlaybackStateChanged = { [weak self] playing in
@@ -294,10 +321,13 @@ class MusicPlayerManager: ObservableObject {
     }
 
     private func playNext() async {
-        print("⏭️ [MusicPlayerManager] Playing next track...")
+        print("⏭️ [MusicPlayerManager] ========== PLAY NEXT CALLED ==========")
+        print("⏭️ [MusicPlayerManager] Current queue size: \(playbackQueue.count)")
+        print("⏭️ [MusicPlayerManager] Current track: \(currentTrack?.title ?? "nil")")
 
         // Check if we need to refill the queue
         if recommendationService.shouldFetchMore(currentQueueSize: playbackQueue.count) {
+            print("⏭️ [MusicPlayerManager] Queue needs refilling")
             if let currentId = currentTrack?.id {
                 await refillQueue(basedOn: currentId)
             }
@@ -305,16 +335,21 @@ class MusicPlayerManager: ObservableObject {
 
         // Get next track from queue
         guard !playbackQueue.isEmpty else {
-            print("⚠️ [MusicPlayerManager] Queue is empty")
+            print("⚠️ [MusicPlayerManager] Queue is empty - cannot play next")
             playbackState = .idle
             return
         }
 
         let nextItem = playbackQueue.removeFirst()
+        print("⏭️ [MusicPlayerManager] Next track: \(nextItem.track.title)")
+        print("⏭️ [MusicPlayerManager] Calling play(track:)")
         await play(track: nextItem.track)
+        print("⏭️ [MusicPlayerManager] play(track:) completed")
 
         // Pre-fetch stream URLs for next 2-3 tracks
+        print("⏭️ [MusicPlayerManager] Pre-fetching upcoming streams")
         await prefetchUpcomingStreams()
+        print("⏭️ [MusicPlayerManager] ========== PLAY NEXT COMPLETED ==========")
     }
 
     private func playPrevious() async {
@@ -390,9 +425,9 @@ class MusicPlayerManager: ObservableObject {
     }
 
     private func addToRecentTracks(track: Track) {
-        // Don't add if it's the same as the last track
-        if let lastTrack = recentTracks.first, lastTrack.id == track.id {
-            return
+        // Remove duplicate if it exists anywhere in the array
+        if let existingIndex = recentTracks.firstIndex(where: { $0.id == track.id }) {
+            recentTracks.remove(at: existingIndex)
         }
 
         // Insert at beginning

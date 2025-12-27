@@ -140,6 +140,7 @@ class AudioPlayerService: ObservableObject {
 
         // Add periodic time observer (updates every 100ms for smooth scrubber)
         let interval = CMTime(seconds: 0.1, preferredTimescale: 600)
+
         timeObserver = player.addPeriodicTimeObserver(
             forInterval: interval,
             queue: .main
@@ -148,7 +149,7 @@ class AudioPlayerService: ObservableObject {
             let currentTime = time.seconds
             let duration = self.playerItem?.duration.seconds ?? 0
 
-            // Only call callback if we have valid values and playback hasn't ended
+            // Only call callback if we have valid values
             if !currentTime.isNaN && !duration.isNaN && duration > 0 {
                 // Clamp currentTime to duration to prevent UI showing time beyond track length
                 let clampedTime = min(currentTime, duration)
@@ -218,8 +219,18 @@ class AudioPlayerService: ObservableObject {
     }
 
     @objc private func playerItemDidPlayToEnd(_ notification: Notification) {
-        print("🔚 [AudioPlayerService] Playback ended")
-        onPlaybackEnded?()
+        print("🔚 [AudioPlayerService] Playback ended notification received")
+        print("🔚 [AudioPlayerService] Notification object: \(String(describing: notification.object))")
+        print("🔚 [AudioPlayerService] Current playerItem: \(String(describing: playerItem))")
+        print("🔚 [AudioPlayerService] Callback exists: \(onPlaybackEnded != nil)")
+
+        if onPlaybackEnded != nil {
+            print("🔚 [AudioPlayerService] Calling onPlaybackEnded callback")
+            onPlaybackEnded?()
+            print("🔚 [AudioPlayerService] onPlaybackEnded callback completed")
+        } else {
+            print("⚠️ [AudioPlayerService] No onPlaybackEnded callback set!")
+        }
     }
 
     @objc private func playerItemFailedToPlay(_ notification: Notification) {

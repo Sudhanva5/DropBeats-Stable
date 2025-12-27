@@ -9,6 +9,7 @@ struct CompactScrubber: View {
     @State private var isDragging = false
     @State private var lastSentValue: Double = 0
     @State private var isHovering = false
+    @State private var debounceTask: Task<Void, Never>? = nil
     
     var body: some View {
         VStack(spacing: 4) {
@@ -72,20 +73,32 @@ struct CompactScrubber: View {
                                                 let percentage = max(0, min(gesture.location.x / geometry.size.width, 1))
                                                 let newValue = percentage * duration
                                                 value = newValue
-                                                
-                                                if abs(newValue - lastSentValue) > 1.0 {
-                                                    print("🎵 [Scrubber] Dragging to: \(newValue)")
-                                                    lastSentValue = newValue
-                                                    sendSeekCommand(newValue)
+
+                                                // Cancel previous debounce task
+                                                debounceTask?.cancel()
+
+                                                // Create new debounced seek task (only fires if user pauses during drag)
+                                                debounceTask = Task {
+                                                    try? await Task.sleep(nanoseconds: 150_000_000) // 150ms
+                                                    if !Task.isCancelled {
+                                                        print("🎵 [Scrubber] Debounced seek during drag to: \(newValue)")
+                                                        sendSeekCommand(newValue)
+                                                        lastSentValue = newValue
+                                                    }
                                                 }
                                             }
                                         }
                                         .onEnded { _ in
                                             if isEnabled {
+                                                // Cancel debounce task since we're sending final position
+                                                debounceTask?.cancel()
+                                                debounceTask = nil
+
                                                 isDragging = false
                                                 isSeeking = false
                                                 print("🎵 [Scrubber] Final seek to: \(value)")
                                                 sendSeekCommand(value)
+                                                lastSentValue = value
                                             }
                                         }
                                 )

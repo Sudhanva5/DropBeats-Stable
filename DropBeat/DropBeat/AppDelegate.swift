@@ -94,12 +94,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var popover: NSPopover = {
         let popover = NSPopover()
         popover.contentSize = NSSize(width: 280, height: 0)
-        popover.behavior = .transient
-        
+        // Use .applicationDefined to allow interaction without auto-closing
+        // We'll manually handle closing via click-outside detection
+        popover.behavior = .applicationDefined
+
         // Create a container view controller to handle the padding
         let contentViewController = NSHostingController(rootView: ContentView())
         contentViewController.view.wantsLayer = true
-        
+
         popover.contentViewController = contentViewController
         popover.delegate = self
         return popover
@@ -436,7 +438,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func togglePopover() {
         if let button = statusItem.button {
             if popover.isShown {
-                popover.performClose(nil)
+                closePopover()
             } else {
                 // Activate app first to ensure proper focus
                 NSApp.activate(ignoringOtherApps: true)
@@ -445,9 +447,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let rect = NSRect(x: -120, y: 0, width: 280, height: button.bounds.height)
                 popover.show(relativeTo: rect, of: button, preferredEdge: .minY)
 
-                // Don't force makeKeyAndOrderFront - let popover manage its own focus
-                // The .transient behavior conflicts with forced focus changes
+                // Setup click-outside detection to close popover (like system menu bar items)
+                setupPopoverMonitor()
             }
+        }
+    }
+
+    private func setupPopoverMonitor() {
+        // Remove any existing monitor
+        if let monitor = popoverMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+
+        // Monitor for clicks outside the popover
+        popoverMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            guard let self = self else { return }
+            if self.popover.isShown {
+                self.closePopover()
+            }
+        }
+    }
+
+    private func closePopover() {
+        popover.performClose(nil)
+
+        // Remove the event monitor
+        if let monitor = popoverMonitor {
+            NSEvent.removeMonitor(monitor)
+            popoverMonitor = nil
         }
     }
     
@@ -578,9 +605,14 @@ extension AppDelegate: NSPopoverDelegate {
         if let popoverWindow = popover.contentViewController?.view.window {
             // Set window level to stay visible over full-screen apps
             popoverWindow.level = .popUpMenu
+        }
+    }
 
-            // Don't force makeKeyAndOrderFront - NSPopover with .transient behavior
-            // manages its own focus and forcing it causes premature closure
+    func popoverDidClose(_ notification: Notification) {
+        // Clean up event monitor when popover closes
+        if let monitor = popoverMonitor {
+            NSEvent.removeMonitor(monitor)
+            popoverMonitor = nil
         }
     }
 }

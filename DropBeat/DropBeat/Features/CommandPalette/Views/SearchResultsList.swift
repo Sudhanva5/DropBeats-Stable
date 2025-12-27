@@ -47,11 +47,12 @@ struct SearchResultsList: View {
                                         .padding(.vertical, 4)
                                 }
 
-                                ForEach(section.results) { result in
-                                    let index = flattenedResults.firstIndex(where: { $0.id == result.id }) ?? 0
+                                ForEach(Array(section.results.enumerated()), id: \.offset) { sectionIndex, result in
+                                    let globalIndex = flattenedResults.firstIndex(where: { $0.id == result.id }) ?? 0
                                     // DESIGN: Individual result row - customize in SearchResultRow.swift
-                                    SearchResultRow(result: result, isSelected: index == selectedIndex)
-                                        .id(index)
+                                    SearchResultRow(result: result, isSelected: globalIndex == selectedIndex)
+                                        // Use unique ID combining section and result to prevent collisions
+                                        .id("\(section.id)-\(result.id)")
                                         .onTapGesture {
                                             onSelect(result)
                                         }
@@ -77,17 +78,23 @@ struct SearchResultsList: View {
             }
             .onChange(of: selectedIndex) { newIndex in
                 // Only scroll if we have results
-                if !flattenedResults.isEmpty {
-                    // Use different scroll behavior for keyboard navigation vs search
-                    if isKeyboardNavigation {
-                        // Natural scrolling for keyboard navigation
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            proxy.scrollTo(newIndex, anchor: nil)
-                        }
-                    } else {
-                        // Bottom anchoring only for search results
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            proxy.scrollTo(newIndex, anchor: .bottom)
+                if !flattenedResults.isEmpty && newIndex < flattenedResults.count {
+                    // Find the section and result for this index
+                    let selectedResult = flattenedResults[newIndex]
+                    if let section = sections.first(where: { $0.results.contains(where: { $0.id == selectedResult.id }) }) {
+                        let scrollId = "\(section.id)-\(selectedResult.id)"
+
+                        // Use different scroll behavior for keyboard navigation vs search
+                        if isKeyboardNavigation {
+                            // Natural scrolling for keyboard navigation
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                proxy.scrollTo(scrollId, anchor: nil)
+                            }
+                        } else {
+                            // Bottom anchoring only for search results
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                proxy.scrollTo(scrollId, anchor: .bottom)
+                            }
                         }
                     }
                 }
