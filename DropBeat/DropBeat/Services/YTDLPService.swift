@@ -83,26 +83,43 @@ class YTDLPService {
         return streamURL
     }
 
-    /// Pre-fetch stream URLs for multiple videos in parallel
+    /// Pre-fetch stream URLs sequentially with rate limiting to avoid YouTube throttling
+    /// Fetches first track immediately, then remaining tracks with delays between requests
     func prefetchStreamURLs(videoIds: [String]) async {
-        print("🎵 [YTDLPService] Pre-fetching \(videoIds.count) stream URLs...")
+        guard !videoIds.isEmpty else { return }
 
-        await withTaskGroup(of: Void.self) { group in
-            for videoId in videoIds {
-                // OPTIMIZATION: Only skip if cached URL is valid for at least 30 minutes (was 5 minutes)
-                // This ensures we refresh URLs more aggressively before they expire during playback
-                if let cached = getCachedStream(videoId), cached.expiresAt > Date().addingTimeInterval(1800) {
-                    print("🎵 [YTDLPService] Skipping \(videoId) - cached URL valid for \(Int(cached.expiresAt.timeIntervalSinceNow / 60))+ minutes")
-                    continue
-                }
+        print("🎵 [YTDLPService] Pre-fetching \(videoIds.count) stream URLs with rate limiting...")
 
-                group.addTask {
-                    do {
-                        _ = try await self.getStreamURL(videoId: videoId)
-                    } catch {
-                        print("⚠️ [YTDLPService] Failed to prefetch \(videoId): \(error.localizedDescription)")
-                    }
+        // OPTIMIZATION: Fetch first track immediately for instant playback
+        if let firstVideoId = videoIds.first {
+            if let cached = getCachedStream(firstVideoId), cached.expiresAt > Date().addingTimeInterval(1800) {
+                print("🎵 [YTDLPService] Skipping \(firstVideoId) - cached URL valid for \(Int(cached.expiresAt.timeIntervalSinceNow / 60))+ minutes")
+            } else {
+                do {
+                    _ = try await getStreamURL(videoId: firstVideoId)
+                } catch {
+                    print("⚠️ [YTDLPService] Failed to prefetch \(firstVideoId): \(error.localizedDescription)")
                 }
+            }
+        }
+
+        // RATE LIMITING: Fetch remaining tracks sequentially with delays
+        // YouTube throttles concurrent requests, so we space them out by 1.5 seconds
+        // This follows yt-dlp best practices to avoid rate limiting and timeouts
+        for videoId in videoIds.dropFirst() {
+            // Skip if already cached with valid URL
+            if let cached = getCachedStream(videoId), cached.expiresAt > Date().addingTimeInterval(1800) {
+                print("🎵 [YTDLPService] Skipping \(videoId) - cached URL valid for \(Int(cached.expiresAt.timeIntervalSinceNow / 60))+ minutes")
+                continue
+            }
+
+            // Add delay to avoid YouTube rate limiting (yt-dlp GitHub recommendation)
+            try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 second delay
+
+            do {
+                _ = try await getStreamURL(videoId: videoId)
+            } catch {
+                print("⚠️ [YTDLPService] Failed to prefetch \(videoId): \(error.localizedDescription)")
             }
         }
 

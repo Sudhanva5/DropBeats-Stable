@@ -331,8 +331,7 @@ class MusicPlayerManager: ObservableObject {
         print("⏭️ [MusicPlayerManager] Current track: \(currentTrack?.title ?? "nil")")
 
         // Check if we need to refill the queue
-        // OPTIMIZATION: Refill earlier (threshold 10 instead of 5) to maintain buffer
-        if recommendationService.shouldFetchMore(currentQueueSize: playbackQueue.count, threshold: 10) {
+        if recommendationService.shouldFetchMore(currentQueueSize: playbackQueue.count, threshold: 5) {
             print("⏭️ [MusicPlayerManager] Queue needs refilling")
             if let currentId = currentTrack?.id {
                 await refillQueue(basedOn: currentId)
@@ -396,8 +395,9 @@ class MusicPlayerManager: ObservableObject {
     }
 
     private func prefetchUpcomingStreams() async {
-        // OPTIMIZATION: Increased from 3 to 5 tracks for faster playback
-        let itemsToPrefetch = Array(playbackQueue.prefix(5))
+        // RATE LIMITING: Pre-fetch next 3 tracks with sequential delays to avoid YouTube throttling
+        // First track is fetched immediately, remaining tracks with 1.5s delays between each
+        let itemsToPrefetch = Array(playbackQueue.prefix(3))
         let videoIds = itemsToPrefetch.compactMap { $0.track.id }
 
         if !videoIds.isEmpty {
