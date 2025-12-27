@@ -381,8 +381,19 @@ class MusicPlayerManager: ObservableObject {
         do {
             let recommendations = try await recommendationService.getWatchPlaylist(videoId: videoId)
 
+            // BUGFIX: Filter out the current track and any tracks already in the queue
+            // YouTube Music's watch playlist often returns the current track as the first recommendation
+            let existingTrackIds = Set(playbackQueue.compactMap { $0.track.id })
+            let filteredRecommendations = recommendations.filter { track in
+                guard let trackId = track.id else { return false }
+                // Exclude current track and tracks already in queue to avoid duplicates
+                return trackId != videoId && !existingTrackIds.contains(trackId)
+            }
+
+            print("🔄 [MusicPlayerManager] Filtered \(recommendations.count) recommendations to \(filteredRecommendations.count) (removed current track and duplicates)")
+
             // Convert to queue items
-            let newItems = recommendations.map { track in
+            let newItems = filteredRecommendations.map { track in
                 PlaybackQueueItem(id: track.id ?? UUID().uuidString, track: track)
             }
 
