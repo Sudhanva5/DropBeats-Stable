@@ -10,6 +10,7 @@ class AudioPlayerService: ObservableObject {
     private var playerObserver: AnyCancellable?
     private var itemObserver: AnyCancellable?
     private var stallTimeoutTask: Task<Void, Never>?
+    private var shouldAutoPlayWhenReady = false  // BUGFIX: Track if we should auto-play when ready
 
     // Callbacks
     var onTimeUpdate: ((TimeInterval, TimeInterval) -> Void)?
@@ -92,9 +93,10 @@ class AudioPlayerService: ObservableObject {
             return
         }
 
-        // DEFENSIVE: Verify player item is in playable state
+        // BUGFIX: If player item isn't ready yet, mark for auto-play when it becomes ready
         guard playerItem.status == .readyToPlay else {
-            print("⚠️ [AudioPlayerService] Cannot play: Player item not ready (status: \(playerItem.status.rawValue))")
+            print("⏳ [AudioPlayerService] Player item not ready (status: \(playerItem.status.rawValue)) - will auto-play when ready")
+            shouldAutoPlayWhenReady = true
             return
         }
 
@@ -105,6 +107,7 @@ class AudioPlayerService: ObservableObject {
             return
         }
 
+        shouldAutoPlayWhenReady = false
         player.play()
         onPlaybackStateChanged?(true)
         print("▶️ [AudioPlayerService] Playback started")
@@ -112,6 +115,9 @@ class AudioPlayerService: ObservableObject {
 
     /// Pause playback
     func pause() {
+        // BUGFIX: Cancel auto-play if user pauses before track is ready
+        shouldAutoPlayWhenReady = false
+
         // DEFENSIVE: Validate player exists
         guard let player = player else {
             print("⚠️ [AudioPlayerService] Cannot pause: No player instance")
@@ -278,6 +284,14 @@ class AudioPlayerService: ObservableObject {
                 switch status {
                 case .readyToPlay:
                     print("✅ [AudioPlayerService] Player item ready to play")
+
+                    // BUGFIX: Auto-play if play() was called before item was ready
+                    if self.shouldAutoPlayWhenReady {
+                        print("▶️ [AudioPlayerService] Auto-playing now that item is ready")
+                        self.shouldAutoPlayWhenReady = false
+                        self.player?.play()
+                        self.onPlaybackStateChanged?(true)
+                    }
                 case .failed:
                     let error = item.error ?? PlaybackError.playerError("Unknown error")
                     print("❌ [AudioPlayerService] Player item failed: \(error.localizedDescription)")
@@ -363,6 +377,9 @@ class AudioPlayerService: ObservableObject {
 
     private func cleanup() {
         print("🧹 [AudioPlayerService] Starting cleanup...")
+
+        // BUGFIX: Reset auto-play flag
+        shouldAutoPlayWhenReady = false
 
         // DEFENSIVE: Cancel stall timeout task if running
         stallTimeoutTask?.cancel()

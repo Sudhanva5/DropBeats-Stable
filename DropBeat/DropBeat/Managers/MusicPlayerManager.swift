@@ -54,6 +54,10 @@ class MusicPlayerManager: ObservableObject {
         audioPlayer.pause()
         isPlaying = false
 
+        // BUGFIX: Reset scrubber to 0:00 immediately to prevent showing old track's time
+        currentTime = 0
+        duration = 0
+
         // Set this as the currently loading track
         currentLoadingTrackId = trackId
         playbackState = .loading
