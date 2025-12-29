@@ -286,11 +286,15 @@ class AudioPlayerService: ObservableObject {
                     print("✅ [AudioPlayerService] Player item ready to play")
 
                     // BUGFIX: Auto-play if play() was called before item was ready
-                    if self.shouldAutoPlayWhenReady {
+                    // CRITICAL: Only auto-play if this item is STILL the current player item
+                    // Prevents race condition when rapidly switching tracks
+                    if self.shouldAutoPlayWhenReady && item == self.playerItem {
                         print("▶️ [AudioPlayerService] Auto-playing now that item is ready")
                         self.shouldAutoPlayWhenReady = false
                         self.player?.play()
                         self.onPlaybackStateChanged?(true)
+                    } else if self.shouldAutoPlayWhenReady {
+                        print("⏭️ [AudioPlayerService] Skipping auto-play - item changed (rapid track switching)")
                     }
                 case .failed:
                     let error = item.error ?? PlaybackError.playerError("Unknown error")
