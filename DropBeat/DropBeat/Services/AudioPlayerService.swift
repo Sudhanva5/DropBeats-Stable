@@ -334,6 +334,13 @@ class AudioPlayerService: ObservableObject {
     }
 
     @objc private func playerItemDidPlayToEnd(_ notification: Notification) {
+        // BUGFIX: Only proceed if this is the current player item (prevents race condition)
+        guard let item = notification.object as? AVPlayerItem,
+              item == playerItem else {
+            print("⏭️ [AudioPlayerService] Ignoring playback end for old player item")
+            return
+        }
+
         print("🔚 [AudioPlayerService] Playback ended notification received")
         print("🔚 [AudioPlayerService] Notification object: \(String(describing: notification.object))")
         print("🔚 [AudioPlayerService] Current playerItem: \(String(describing: playerItem))")
@@ -349,14 +356,27 @@ class AudioPlayerService: ObservableObject {
     }
 
     @objc private func playerItemFailedToPlay(_ notification: Notification) {
-        if let item = notification.object as? AVPlayerItem,
-           let error = item.error {
+        // BUGFIX: Only proceed if this is the current player item (prevents race condition)
+        guard let item = notification.object as? AVPlayerItem,
+              item == playerItem else {
+            print("⏭️ [AudioPlayerService] Ignoring playback failure for old player item")
+            return
+        }
+
+        if let error = item.error {
             print("❌ [AudioPlayerService] Playback failed: \(error.localizedDescription)")
             onPlaybackFailed?(error)
         }
     }
 
     @objc private func playerItemStalled(_ notification: Notification) {
+        // BUGFIX: Only proceed if this is the current player item (prevents race condition)
+        guard let item = notification.object as? AVPlayerItem,
+              item == playerItem else {
+            print("⏭️ [AudioPlayerService] Ignoring playback stall for old player item")
+            return
+        }
+
         print("⚠️ [AudioPlayerService] Playback stalled")
         onBufferingStateChanged?(true)
 
