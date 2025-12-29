@@ -9,6 +9,7 @@ class AudioPlayerService: ObservableObject {
     private var timeObserver: Any?
     private var playerObserver: AnyCancellable?
     private var itemObserver: AnyCancellable?
+    private var stallTimeoutTask: Task<Void, Never>?
 
     // Callbacks
     var onTimeUpdate: ((TimeInterval, TimeInterval) -> Void)?
@@ -305,6 +306,9 @@ class AudioPlayerService: ObservableObject {
                     print("⏳ [AudioPlayerService] Buffering...")
                 } else {
                     print("✅ [AudioPlayerService] Buffer ready")
+                    // BUGFIX: Cancel stall timeout when playback resumes
+                    self.stallTimeoutTask?.cancel()
+                    self.stallTimeoutTask = nil
                 }
             }
 
@@ -337,10 +341,33 @@ class AudioPlayerService: ObservableObject {
     @objc private func playerItemStalled(_ notification: Notification) {
         print("⚠️ [AudioPlayerService] Playback stalled")
         onBufferingStateChanged?(true)
+
+        // BUGFIX: Start timeout task - if playback doesn't resume in 15 seconds, treat as failure
+        // This prevents tracks from hanging indefinitely when network times out
+        stallTimeoutTask?.cancel()
+        stallTimeoutTask = Task { [weak self] in
+            do {
+                try await Task.sleep(nanoseconds: 15_000_000_000) // 15 seconds
+                guard !Task.isCancelled else { return }
+
+                print("❌ [AudioPlayerService] Playback stalled for 15s - triggering failure")
+                await MainActor.run {
+                    self?.onPlaybackFailed?(PlaybackError.playerError("Playback stalled - network timeout"))
+                }
+            } catch {
+                // Task cancelled - playback resumed
+                print("✅ [AudioPlayerService] Stall timeout cancelled - playback resumed")
+            }
+        }
     }
 
     private func cleanup() {
         print("🧹 [AudioPlayerService] Starting cleanup...")
+
+        // DEFENSIVE: Cancel stall timeout task if running
+        stallTimeoutTask?.cancel()
+        stallTimeoutTask = nil
+        print("🧹 [AudioPlayerService] Cancelled stall timeout task")
 
         // DEFENSIVE: Remove time observer safely
         if let observer = timeObserver, let player = player {
