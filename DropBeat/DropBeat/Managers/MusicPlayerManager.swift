@@ -30,6 +30,8 @@ class MusicPlayerManager: ObservableObject {
     private var trackHistory: [Track] = []  // Stack for previous track functionality
     private let maxHistorySize = 50
     private var hasTriggeredAutoPlay = false  // Track if we've triggered auto-play for current track
+    private var consecutiveFailures = 0  // Track consecutive playback failures to prevent infinite loops
+    private let maxConsecutiveFailures = 3  // Stop auto-skipping after this many failures
 
     private init() {
         setupAudioPlayerCallbacks()
@@ -44,6 +46,9 @@ class MusicPlayerManager: ObservableObject {
 
         // Reset auto-play flag for new track
         hasTriggeredAutoPlay = false
+
+        // BUGFIX: Reset consecutive failures when user manually plays a track
+        consecutiveFailures = 0
 
         // Pause current playback while loading new track
         audioPlayer.pause()
@@ -130,6 +135,9 @@ class MusicPlayerManager: ObservableObject {
 
             playbackState = .playing
             isPlaying = true
+
+            // BUGFIX: Reset consecutive failure counter on successful playback
+            consecutiveFailures = 0
 
             // Add to recent tracks if we have track metadata
             if let track = currentTrack, track.id == trackId {
@@ -427,6 +435,21 @@ class MusicPlayerManager: ObservableObject {
 
         playbackState = .failed(error)
 
+        // BUGFIX: Increment consecutive failure counter
+        consecutiveFailures += 1
+        print("⚠️ [MusicPlayerManager] Consecutive failures: \(consecutiveFailures)/\(maxConsecutiveFailures)")
+
+        // BUGFIX: Stop auto-skipping after too many consecutive failures to prevent infinite loops
+        if consecutiveFailures >= maxConsecutiveFailures {
+            print("🛑 [MusicPlayerManager] Reached max consecutive failures (\(maxConsecutiveFailures)) - stopping auto-skip")
+            NotificationCenter.default.post(
+                name: NSNotification.Name("PlaybackError"),
+                object: nil,
+                userInfo: ["error": "Multiple tracks failed to play. Please check your network connection."]
+            )
+            return
+        }
+
         // Show toast notification
         NotificationCenter.default.post(
             name: NSNotification.Name("PlaybackError"),
@@ -434,12 +457,19 @@ class MusicPlayerManager: ObservableObject {
             userInfo: ["error": error.localizedDescription]
         )
 
-        // Auto-skip to next track for unavailable videos
-        if case .videoUnavailable = error {
+        // Auto-skip to next track for unavailable videos, network failures, and stalled playback
+        switch error {
+        case .videoUnavailable:
             print("⏭️ [MusicPlayerManager] Auto-skipping unavailable track...")
-            // Wait a moment before skipping
             try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
             await playNext()
+        case .playerError(let message) where message.contains("stalled") || message.contains("timeout"):
+            print("⏭️ [MusicPlayerManager] Auto-skipping stalled/timed-out track...")
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            await playNext()
+        default:
+            // Don't auto-skip for other errors
+            break
         }
     }
 
