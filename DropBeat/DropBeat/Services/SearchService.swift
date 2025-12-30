@@ -4,7 +4,7 @@ import Foundation
 class SearchService {
     static let shared = SearchService()
 
-    private let backendURL = "http://localhost:8000"
+    private let backendURL = BackendConfig.baseURL
 
     private init() {}
 

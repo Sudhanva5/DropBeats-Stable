@@ -4,7 +4,7 @@ import Foundation
 class SongInfoService {
     static let shared = SongInfoService()
 
-    private let backendURL = "http://localhost:8000"
+    private let backendURL = BackendConfig.baseURL
     private var infoCache: [String: CachedSongInfo] = [:]
     private let cacheQueue = DispatchQueue(label: "com.sudhanva.dropbeat.songinfo.cache")
 

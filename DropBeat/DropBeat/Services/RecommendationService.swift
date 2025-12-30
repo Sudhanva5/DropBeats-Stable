@@ -4,7 +4,7 @@ import Foundation
 class RecommendationService {
     static let shared = RecommendationService()
 
-    private let backendURL = "http://localhost:8000"
+    private let backendURL = BackendConfig.baseURL
     private var recommendationCache: [String: CachedRecommendations] = [:]
     private let cacheQueue = DispatchQueue(label: "com.sudhanva.dropbeat.recommendations.cache")
     private let cacheExpiry: TimeInterval = 300 // 5 minutes

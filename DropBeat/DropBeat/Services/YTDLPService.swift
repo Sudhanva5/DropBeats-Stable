@@ -4,7 +4,7 @@ import Foundation
 class YTDLPService {
     static let shared = YTDLPService()
 
-    private let backendURL = "http://localhost:8000"
+    private let backendURL = BackendConfig.baseURL
     private var streamCache: [String: CachedStream] = [:]
     private let cacheQueue = DispatchQueue(label: "com.sudhanva.dropbeat.ytdlp.cache")
 
