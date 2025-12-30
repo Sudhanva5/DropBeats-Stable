@@ -10,7 +10,8 @@ struct CommandPaletteView: View {
     @State private var playbackError: (error: String, url: String)?
     @State private var isKeyboardNavigation = false
     @State private var isNavigatingUp = false
-    
+    @State private var lastSearchedQuery = ""  // BUGFIX: Track last searched query to detect when user changes search text
+
     @ObservedObject private var playerManager = MusicPlayerManager.shared
 
     private var recentlyPlayedSection: SearchSection {
@@ -232,6 +233,7 @@ struct CommandPaletteView: View {
             selectedIndex: $selectedIndex,
             displayResults: displaySections.flatMap { $0.results },
             searchText: state.searchText,
+            lastSearchedQuery: lastSearchedQuery,
             onSearch: performSearch,
             onEscape: { CommandPalette.shared.toggle() },
             isKeyboardNavigation: $isKeyboardNavigation,
@@ -290,6 +292,7 @@ struct CommandPaletteView: View {
             searchResults = []
             isSearching = false
             searchError = nil
+            lastSearchedQuery = ""  // BUGFIX: Clear last searched query when text is empty
             return
         }
         searchError = nil
@@ -305,12 +308,16 @@ struct CommandPaletteView: View {
             self.searchResults = results
             print("📊 [CommandPalette] Results by type:", Dictionary(grouping: results, by: { $0.type.rawValue }).mapValues { $0.count })
             self.isSearching = false
+            // BUGFIX: Mark this query as searched so we know results match current text
+            self.lastSearchedQuery = state.searchText
         } onError: { error, searchUrl in
             searchError = SearchError(
                 message: error == "NO_RESULTS" ? "No results found" : "Search failed",
                 searchUrl: searchUrl
             )
             isSearching = false
+            // BUGFIX: Mark this query as searched even on error
+            self.lastSearchedQuery = state.searchText
         }
     }
     
@@ -343,6 +350,7 @@ extension View {
         selectedIndex: Binding<Int>,
         displayResults: [SearchResult],
         searchText: String,
+        lastSearchedQuery: String,
         onSearch: @escaping () -> Void,
         onEscape: @escaping () -> Void,
         isKeyboardNavigation: Binding<Bool>,
@@ -387,7 +395,14 @@ extension View {
                 return .handled
             }
             .onKeyPress(.return) {
-                if !displayResults.isEmpty {
+                // BUGFIX: UX improvement - if search text changed since last search, trigger new search
+                // This prevents playing stale results when user modifies search query
+                if !searchText.isEmpty && searchText != lastSearchedQuery {
+                    // Search text has changed - trigger new search instead of playing results
+                    print("🔍 [CommandPalette] Search text changed ('\(lastSearchedQuery)' -> '\(searchText)') - searching instead of playing")
+                    onSearch()
+                } else if !displayResults.isEmpty {
+                    // Results exist and match current search text - play selected result
                     let selectedResult = displayResults[selectedIndex.wrappedValue]
                     // Convert SearchResult to Track and play via playerManager
                     let track = Track(
@@ -405,7 +420,7 @@ extension View {
                     }
                     CommandPalette.shared.toggle()
                 } else if !searchText.isEmpty {
-                    // Trigger search on Enter if there are no results yet
+                    // No results yet - trigger search on Enter
                     onSearch()
                 }
                 return .handled
