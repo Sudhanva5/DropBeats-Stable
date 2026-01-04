@@ -5,8 +5,7 @@ struct BackendConfig {
     // MARK: - Backend URL
 
     /// Railway production server
-    /// TODO: Replace with your actual Railway URL after deployment
-    static let baseURL = "https://your-railway-url.up.railway.app"
+    static let baseURL = "https://dropbeats-server-production.up.railway.app"
 
     // MARK: - API Endpoints
 
