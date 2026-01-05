@@ -1,0 +1,56 @@
+{
+  "source": "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Views/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "License Not Active",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 179
+        }
+      },
+      {
+        "comment": "",
+        "key": "Please complete the onboarding process",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "Complete Setup",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Music Playing",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search for a track to start playing",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search Music",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 319
+        }
+      }
+    ]
+  },
+  "version": 1
+}

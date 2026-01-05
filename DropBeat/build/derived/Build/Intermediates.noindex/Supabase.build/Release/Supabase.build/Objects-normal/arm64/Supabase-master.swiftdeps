@@ -1,0 +1,15 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "67dd9ff977710198e53f3cf5c8842b4c2a1c5bf2711b2c90c46de7c36588e412"
+build_start_time: [1767536259, 188000]
+build_end_time: [1767536259, 721013000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Constants.swift"
+  : [1767536229, 173070777]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Deprecated.swift"
+  : [1767536229, 173236469]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Exports.swift"
+  : [1767536229, 173414659]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/SupabaseClient.swift"
+  : [1767536229, 173490609]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Types.swift"
+  : [1767536229, 173575559]

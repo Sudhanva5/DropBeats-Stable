@@ -1,0 +1,4 @@
+module Storage {
+header "Storage-Swift.h"
+export *
+}

@@ -1,0 +1,152 @@
+{
+  "source": "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/Onboarding/Views/OnboardingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Welcome to DropBeats",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "The Missing YouTube Music Player for Mac",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "Let's Get Started",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "Terms & Conditions",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "Please read and accept our terms",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 294
+        }
+      },
+      {
+        "comment": "",
+        "key": "Activate Your License",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter your license key to activate DropBeat",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 378
+        }
+      },
+      {
+        "comment": "",
+        "key": "XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 384
+        }
+      },
+      {
+        "comment": "",
+        "key": "Accept & Continue",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 436
+        }
+      },
+      {
+        "comment": "",
+        "key": "Go Back",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 443
+        }
+      },
+      {
+        "comment": "",
+        "key": "Go Back",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 466
+        }
+      },
+      {
+        "comment": "",
+        "key": "Complete Setup",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 473
+        }
+      },
+      {
+        "comment": "",
+        "key": "I agree to the Terms & Conditions",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 430
+        }
+      },
+      {
+        "comment": "",
+        "key": "Activate License",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 459
+        }
+      },
+      {
+        "comment": "",
+        "key": "License Key Activated",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 504
+        }
+      },
+      {
+        "comment": "",
+        "key": "Grant permissions to unlock all features",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 507
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 565
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Settings",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 580
+        }
+      }
+    ]
+  },
+  "version": 1
+}

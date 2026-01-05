@@ -1,0 +1,27 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "86dc41b9bf10e525aa13ac9e4a2aa5f68fdf11f71c3936aaaa244a619d6d9a32"
+build_start_time: [1767536244, 698006000]
+build_end_time: [1767536252, 544819000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/KeyboardShortcuts.build/Release/KeyboardShortcuts.build/DerivedSources/resource_bundle_accessor.swift"
+  : [1767536243, 333839514]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/CarbonKeyboardShortcuts.swift"
+  : [1767536228, 347124672]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/Key.swift"
+  : [1767536228, 347214079]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/KeyboardShortcuts.swift"
+  : [1767536228, 347300445]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/NSMenuItem++.swift"
+  : [1767536228, 349252816]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/Name.swift"
+  : [1767536228, 349323225]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/Recorder.swift"
+  : [1767536228, 349423923]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/RecorderCocoa.swift"
+  : [1767536228, 349585572]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/Shortcut.swift"
+  : [1767536228, 349688936]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/Utilities.swift"
+  : [1767536228, 349853710]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/ViewModifiers.swift"
+  : [1767536228, 349936159]

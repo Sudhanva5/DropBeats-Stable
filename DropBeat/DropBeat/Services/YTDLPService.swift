@@ -4,7 +4,6 @@ import Foundation
 class YTDLPService {
     static let shared = YTDLPService()
 
-    private let backendURL = BackendConfig.baseURL
     private var streamCache: [String: CachedStream] = [:]
     private let cacheQueue = DispatchQueue(label: "com.sudhanva.dropbeat.ytdlp.cache")
 
@@ -29,9 +28,10 @@ class YTDLPService {
             return cached.url
         }
 
-        // Fetch from backend
-        print("🎵 [YTDLPService] Fetching stream URL for \(videoId)...")
-        let url = URL(string: "\(backendURL)/stream-url/\(videoId)")!
+        // Fetch from backend using BackendConfig directly (always uses localhost)
+        let streamURLString = BackendConfig.streamURL(videoId: videoId)
+        print("🎵 [YTDLPService] Fetching stream URL for \(videoId) from: \(streamURLString)")
+        let url = URL(string: streamURLString)!
 
         let (data, response) = try await URLSession.shared.data(from: url)
 

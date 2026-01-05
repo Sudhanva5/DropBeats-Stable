@@ -1,0 +1,52 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "4791c54b4d8578b553c2ce388cd1eb170d1ae2ea0df2b81857e67a88bd0e91af"
+build_start_time: [1767604931, 253096000]
+build_end_time: [1767604938, 708185000]
+inputs:
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/AppDelegate.swift": [1767531079, 433793203]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Config/BackendConfig.swift": [1767532965, 569505464]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Config/SupabaseConfig.swift": [1765956066, 599898541]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/DropBeatApp.swift": [1765956066, 600409412]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/AccessCard/Models/GradientTheme.swift"
+  : [1765956066, 600709494]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/AccessCard/ViewModels/AccessCardViewModel.swift"
+  : [1765956066, 600990158]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/AccessCard/Views/AccessCardView.swift"
+  : [1765956066, 601294948]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/CommandPalette.swift": [1766838376, 288256329]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/CommandPaletteState.swift"
+  : [1765956066, 601780528]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Models/SearchModels.swift"
+  : [1765956066, 602007818]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/CommandPaletteView.swift"
+  : [1767077568, 255474569]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/SearchFieldView.swift"
+  : [1765956066, 602460648]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/SearchResultRow.swift"
+  : [1765956066, 602726646]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/SearchResultsList.swift"
+  : [1766838382, 321106708]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/VisualEffectView.swift"
+  : [1765956066, 603143977]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/Common/Views/LottieConfettiView.swift"
+  : [1765956066, 603537266]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/Onboarding/Views/OnboardingView.swift"
+  : [1766843958, 758651142]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/Settings/Views/SettingsView.swift": [1765956066, 604988339]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Managers/AppStateManager.swift": [1765956066, 605514711]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Managers/BackendServerManager.swift": [1767531014, 186788229]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Managers/MusicPlayerManager.swift": [1767535809, 9399798]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Models/LicenseModels.swift": [1765956066, 606242456]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Models/PlaybackState.swift": [1766838376, 289028294]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Models/Track.swift": [1766838376, 289175171]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/AudioPlayerService.swift": [1767535773, 812172307]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/LicenseService.swift": [1765956066, 607057117]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/RecommendationService.swift": [1767097512, 697271036]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/SearchService.swift": [1767097478, 771911889]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/SongInfoService.swift": [1767533411, 817413033]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/YTDLPService.swift": [1767531725, 702694592]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Utilities/SearchServerKeepAlive.swift": [1765956066, 607350531]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Utils/Shortcuts.swift": [1765956066, 607782987]
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Views/ContentView.swift": [1767534559, 857599778]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/DerivedSources/GeneratedAssetSymbols.swift"
+  : [1767604931, 180010210]

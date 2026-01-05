@@ -1,0 +1,7 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "96bc07becdd669024bec5d9391071bcf7049ae5ce6389e7e7891ea2c5e1ecbb1"
+build_start_time: [1767536244, 694427000]
+build_end_time: [1767536245, 33948000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/lottie-spm/Sources/_LottieStub/Stub.swift"
+  : [1767536228, 541218391]

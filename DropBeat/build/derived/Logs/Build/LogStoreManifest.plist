@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>logFormatVersion</key>
+	<integer>11</integer>
+	<key>logs</key>
+	<dict>
+		<key>0C7C93EA-B5E4-4C44-905E-3C5CE63DA20B</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>0C7C93EA-B5E4-4C44-905E-3C5CE63DA20B.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>0</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>DropBeat project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>DropBeat</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Cleaning project DropBeat with scheme DropBeat and configuration Release</string>
+			<key>timeStartedRecording</key>
+			<real>789229031.63863504</real>
+			<key>timeStoppedRecording</key>
+			<real>789229032.31901705</real>
+			<key>title</key>
+			<string>Cleaning project DropBeat with scheme DropBeat and configuration Release</string>
+			<key>uniqueIdentifier</key>
+			<string>0C7C93EA-B5E4-4C44-905E-3C5CE63DA20B</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

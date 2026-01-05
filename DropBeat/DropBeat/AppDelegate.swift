@@ -110,6 +110,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var hudWindow: NSWindow?
     private var serverKeepAlive: SearchServerKeepAlive?
     var onboardingWindow: NSWindow?
+    private var eventTapMonitorTimer: Timer?
     
     override init() {
         self.playerManager = MusicPlayerManager.shared
@@ -119,10 +120,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Initialize AppStateManager
         AppStateManager.shared.initialize()
-        
+
+        // Start local backend server (required for yt-dlp stream URLs)
+        print("🚀 [DropBeats] Starting local backend server...")
+        BackendServerManager.shared.startServer { success in
+            if success {
+                print("✅ [DropBeats] Backend server is ready!")
+                BackendConfig.printConfig()
+            } else {
+                print("⚠️ [DropBeats] Backend server failed to start - app may not function correctly")
+            }
+        }
+
         // Initialize server keep-alive
         serverKeepAlive = SearchServerKeepAlive.shared
-        
+
         // Always use accessory mode (menu bar only)
         NSApp.setActivationPolicy(.accessory)
         
@@ -190,10 +202,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(_ notification: Notification) {
-        // Cleanup timer
+        // Stop local backend server
+        print("🛑 [DropBeats] Shutting down backend server...")
+        BackendServerManager.shared.stopServer()
+
+        // Cleanup timers
         serverKeepAlive?.cleanup()
-        
-        // Your existing cleanup code...
+        eventTapMonitorTimer?.invalidate()
+        eventTapMonitorTimer = nil
     }
     
     private func setupKeyboardShortcuts() {
@@ -279,6 +295,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         globalEventTapSource = runLoopSource
 
         print("🎹 [palette] Global event tap installed - Cmd+Option+Space will work over fullscreen apps")
+
+        // Start monitoring the event tap to detect when macOS disables it
+        startEventTapMonitoring()
+    }
+
+    /// Monitor event tap and re-enable if macOS disables it
+    private func startEventTapMonitoring() {
+        // Cancel existing timer if any
+        eventTapMonitorTimer?.invalidate()
+
+        // Check event tap status every 5 seconds
+        eventTapMonitorTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.checkAndRestoreEventTap()
+        }
+
+        print("👁️ [palette] Event tap monitoring started")
+    }
+
+    /// Check if event tap is still enabled and re-enable if necessary
+    private func checkAndRestoreEventTap() {
+        guard let eventTap = globalEventTap else { return }
+
+        // Check if event tap is still enabled
+        let isEnabled = CFMachPortIsValid(eventTap)
+
+        if !isEnabled {
+            print("⚠️ [palette] Event tap was disabled by macOS - attempting to restore...")
+
+            // Re-enable the event tap
+            CGEvent.tapEnable(tap: eventTap, enable: true)
+
+            // Verify it's enabled now
+            if CFMachPortIsValid(eventTap) {
+                print("✅ [palette] Event tap successfully restored")
+            } else {
+                print("❌ [palette] Failed to restore event tap - recreating...")
+                // If re-enabling failed, recreate the entire event tap
+                setupGlobalEventTap()
+            }
+        }
     }
 
     private func showNotification(icon: String, text: String) {

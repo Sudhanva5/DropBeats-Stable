@@ -1,0 +1,181 @@
+{
+  "object" : {
+    "artifacts" : [
+      {
+        "kind" : "xcframework",
+        "packageRef" : {
+          "identity" : "lottie-spm",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/airbnb/lottie-spm",
+          "name" : "lottie-spm"
+        },
+        "path" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/build/derived/SourcePackages/artifacts/lottie-spm/Lottie/Lottie.xcframework",
+        "source" : {
+          "checksum" : "92206ff6af80373903767214ac16215838f6da11dedca789c0439299b46b6694",
+          "type" : "remote",
+          "url" : "https://github.com/airbnb/lottie-ios/releases/download/4.5.2/Lottie.xcframework.zip"
+        },
+        "targetName" : "Lottie"
+      }
+    ],
+    "dependencies" : [
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "keyboardshortcuts",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/sindresorhus/KeyboardShortcuts",
+          "name" : "KeyboardShortcuts"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "1aef85578fdd4f9eaeeb8d53b7b4fc31bf08fe27",
+            "version" : "2.4.0"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "KeyboardShortcuts"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "lottie-spm",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/airbnb/lottie-spm",
+          "name" : "lottie-spm"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "04f2fd18cc9404a0a0917265a449002674f24ec9",
+            "version" : "4.5.2"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "lottie-spm"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "supabase-swift",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/supabase/supabase-swift",
+          "name" : "supabase-swift"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "90c7cf5a5f5cf6a52afbda038c7367aebdd8f1c1",
+            "version" : "2.38.1"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "supabase-swift"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "swift-asn1",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/apple/swift-asn1.git",
+          "name" : "swift-asn1"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "810496cf121e525d660cd0ea89a758740476b85f",
+            "version" : "1.5.1"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "swift-asn1"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "swift-clocks",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/pointfreeco/swift-clocks",
+          "name" : "swift-clocks"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "cc46202b53476d64e824e0b6612da09d84ffde8e",
+            "version" : "1.0.6"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "swift-clocks"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "swift-concurrency-extras",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
+          "name" : "swift-concurrency-extras"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "5a3825302b1a0d744183200915a47b508c828e6f",
+            "version" : "1.3.2"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "swift-concurrency-extras"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "swift-crypto",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/apple/swift-crypto.git",
+          "name" : "swift-crypto"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "6f70fa9eab24c1fd982af18c281c4525d05e3095",
+            "version" : "4.2.0"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "swift-crypto"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "swift-http-types",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/apple/swift-http-types.git",
+          "name" : "swift-http-types"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "45eb0224913ea070ec4fba17291b9e7ecf4749ca",
+            "version" : "1.5.1"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "swift-http-types"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "xctest-dynamic-overlay",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+          "name" : "xctest-dynamic-overlay"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "31073495cae9caf243c440eac94b3ab067e3d7bc",
+            "version" : "1.8.0"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "xctest-dynamic-overlay"
+      }
+    ],
+    "prebuilts" : [
+
+    ]
+  },
+  "version" : 7
+}

@@ -1,0 +1,4 @@
+module Supabase {
+header "Supabase-Swift.h"
+export *
+}

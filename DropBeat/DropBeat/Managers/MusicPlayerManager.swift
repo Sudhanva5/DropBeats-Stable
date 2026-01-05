@@ -62,9 +62,20 @@ class MusicPlayerManager: ObservableObject {
         currentLoadingTrackId = trackId
         playbackState = .loading
 
+        // NOTE: Keep old currentTrack visible during loading - skeleton loader will show over it
+        // Only update currentTrack after everything is ready to avoid flash of new track info
+
         do {
-            // Fetch stream URL
-            let streamURL = try await ytdlpService.getStreamURL(videoId: trackId)
+            // OPTIMIZATION: Fetch stream URL and song info in parallel for faster loading
+            async let streamURLFetch = ytdlpService.getStreamURL(videoId: trackId)
+            async let songInfoFetch = songInfoService.getSongInfo(videoId: trackId)
+
+            let streamURL: URL
+            var accurateDuration: TimeInterval? = nil
+            var accurateThumbnail: String? = nil
+
+            // Wait for stream URL (required for playback)
+            streamURL = try await streamURLFetch
 
             // Check if we're still supposed to be playing this track
             guard currentLoadingTrackId == trackId else {
@@ -72,7 +83,7 @@ class MusicPlayerManager: ObservableObject {
                 return
             }
 
-            // Load and play the stream
+            // Load stream while song info may still be fetching
             try await audioPlayer.loadStream(url: streamURL)
 
             // Final check before playing
@@ -81,11 +92,9 @@ class MusicPlayerManager: ObservableObject {
                 return
             }
 
-            // Fetch accurate duration from YouTube Music API
-            var accurateDuration: TimeInterval? = nil
-            var accurateThumbnail: String? = nil
+            // Try to get song info (should be ready or almost ready by now)
             do {
-                let songInfo = try await songInfoService.getSongInfo(videoId: trackId)
+                let songInfo = try await songInfoFetch
                 accurateDuration = songInfo.duration
                 accurateThumbnail = songInfo.thumbnail
                 print("✅ [MusicPlayerManager] Got accurate duration: \(Int(songInfo.duration / 60)):\(String(format: "%02d", Int(songInfo.duration.truncatingRemainder(dividingBy: 60))))")
@@ -93,13 +102,13 @@ class MusicPlayerManager: ObservableObject {
                 print("⚠️ [MusicPlayerManager] Failed to fetch accurate duration: \(error.localizedDescription)")
             }
 
-            // Update currentTrack NOW that stream is loaded and ready to play
-            // This ensures UI only shows metadata when playback is actually starting
+            // Update currentTrack with accurate info now that stream is loaded
             if let metadata = trackMetadata {
-                // Use accurate duration if available, otherwise use metadata duration
+                // Use accurate duration if available, otherwise keep original
                 let finalDuration = accurateDuration ?? metadata.duration
-                let finalAlbumArt = metadata.albumArt ?? accurateThumbnail
+                let finalAlbumArt = accurateThumbnail ?? metadata.albumArt
 
+                // Update with accurate info (keeps the track visible, just updates the details)
                 currentTrack = Track(
                     id: metadata.id,
                     title: metadata.title,
@@ -107,16 +116,15 @@ class MusicPlayerManager: ObservableObject {
                     albumArt: finalAlbumArt,
                     duration: finalDuration,
                     isLiked: metadata.isLiked,
-                    isPlaying: true,
+                    isPlaying: false,  // Will be set to true when buffer threshold met
                     currentTime: 0
                 )
 
                 // Set duration from accurate Track metadata, not from AVPlayer
-                // This fixes the issue where AVPlayer reports incorrect duration (e.g., 10:45 instead of 5:23)
                 duration = finalDuration
 
-                print("✅ [MusicPlayerManager] Updated UI with track metadata: \(metadata.title)")
-                print("📊 [MusicPlayerManager] Track duration from metadata: \(Int(finalDuration / 60)):\(String(format: "%02d", Int(finalDuration.truncatingRemainder(dividingBy: 60))))")
+                print("✅ [MusicPlayerManager] Updated track with accurate info: \(metadata.title)")
+                print("📊 [MusicPlayerManager] Accurate duration: \(Int(finalDuration / 60)):\(String(format: "%02d", Int(finalDuration.truncatingRemainder(dividingBy: 60))))")
             }
 
             // Get actual duration from AVPlayer and compare with accurate duration
@@ -324,6 +332,21 @@ class MusicPlayerManager: ObservableObject {
                 self.isBuffering = buffering
                 if buffering {
                     self.playbackState = .buffering
+                }
+            }
+        }
+
+        // Loading state (waiting for buffer threshold before playback)
+        audioPlayer.onLoadingStateChanged = { [weak self] loading in
+            guard let self = self else { return }
+            Task { @MainActor in
+                if loading {
+                    // Show loading state while waiting for buffer threshold
+                    self.playbackState = .loading
+                    print("⏳ [MusicPlayerManager] Waiting for buffer threshold...")
+                } else {
+                    // Buffer threshold met, playback will start
+                    print("✅ [MusicPlayerManager] Buffer threshold met - ready to play")
                 }
             }
         }

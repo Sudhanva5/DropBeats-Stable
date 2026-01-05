@@ -1,0 +1,55 @@
+{
+  "" : {
+    "const-values" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPTypes-master.swiftconstvalues",
+    "dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPTypes-master.d",
+    "diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPTypes-master.dia",
+    "emit-module-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPTypes-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPTypes-master-emit-module.dia",
+    "swift-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPTypes-master.swiftdeps"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPField.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPField.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPField.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPField.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPFieldName.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPFieldName.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPFieldName.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPFieldName.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPFields.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPFields.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPFields.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPFields.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPParsedFields.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPParsedFields.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPParsedFields.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPParsedFields.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPRequest+URL.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPRequest+URL.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPRequest+URL.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPRequest+URL.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPRequest.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPRequest.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPRequest.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPRequest.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPResponse.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPResponse.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPResponse.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/HTTPResponse.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/ISOLatin1String.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/ISOLatin1String.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/ISOLatin1String.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/ISOLatin1String.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/NIOLock.swift" : {
+    "index-unit-output-path" : "/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/NIOLock.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/NIOLock.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/arm64/NIOLock.o"
+  }
+}

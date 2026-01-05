@@ -1,0 +1,9 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "d6b755682efbd8a91be9bb08239aa1cb985a4e913c8dce2c4e6725e71be93723"
+build_start_time: [1767536248, 482001000]
+build_end_time: [1767536249, 245058000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/XCTestDynamicOverlay/Internal/Deprecations.swift"
+  : [1767536229, 87729573]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/XCTestDynamicOverlay/Internal/Exports.swift"
+  : [1767536229, 87799691]

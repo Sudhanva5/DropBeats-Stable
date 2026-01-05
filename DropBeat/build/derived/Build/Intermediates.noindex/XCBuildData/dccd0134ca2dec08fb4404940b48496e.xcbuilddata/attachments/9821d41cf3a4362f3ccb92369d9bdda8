@@ -1,0 +1,150 @@
+{
+  "" : {
+    "const-values" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Auth-master.swiftconstvalues",
+    "dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Auth-master.d",
+    "diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Auth-master.dia",
+    "emit-module-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Auth-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Auth-master-emit-module.dia",
+    "swift-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Auth-master.swiftdeps"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthAdmin.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthAdmin.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthAdmin.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthAdmin.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthAdminOAuth.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthAdminOAuth.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthAdminOAuth.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthAdminOAuth.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthClient.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthClient.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthClient.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthClient.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthClientConfiguration.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthClientConfiguration.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthClientConfiguration.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthClientConfiguration.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthError.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthError.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthError.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthError.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthMFA.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthMFA.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthMFA.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthMFA.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthStateChangeListener.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthStateChangeListener.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthStateChangeListener.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthStateChangeListener.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Defaults.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/Defaults.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Defaults.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Defaults.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Deprecated.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/Deprecated.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Deprecated.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Deprecated.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Exports.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/Exports.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Exports.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Exports.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/APIClient.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/APIClient.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/APIClient.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/APIClient.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/CodeVerifierStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/CodeVerifierStorage.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/CodeVerifierStorage.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/CodeVerifierStorage.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/Constants.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/Constants.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Constants.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Constants.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/Dependencies.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/Dependencies.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Dependencies.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Dependencies.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/EventEmitter.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/EventEmitter.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/EventEmitter.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/EventEmitter.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/FixedWidthInteger+Random.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/FixedWidthInteger+Random.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/FixedWidthInteger+Random.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/FixedWidthInteger+Random.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/Helpers.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/Helpers.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Helpers.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Helpers.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/JWK+RSA.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/JWK+RSA.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/JWK+RSA.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/JWK+RSA.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/JWTAlgorithm.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/JWTAlgorithm.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/JWTAlgorithm.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/JWTAlgorithm.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/Keychain.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/Keychain.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Keychain.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Keychain.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/PKCE.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/PKCE.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/PKCE.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/PKCE.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/SessionManager.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/SessionManager.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/SessionManager.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/SessionManager.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/SessionStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/SessionStorage.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/SessionStorage.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/SessionStorage.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/URLOpener.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/URLOpener.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/URLOpener.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/URLOpener.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Storage/AuthLocalStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthLocalStorage.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthLocalStorage.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/AuthLocalStorage.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Storage/KeychainLocalStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/KeychainLocalStorage.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/KeychainLocalStorage.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/KeychainLocalStorage.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Storage/WinCredLocalStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/WinCredLocalStorage.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/WinCredLocalStorage.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/WinCredLocalStorage.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Auth/Types.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/arm64/Types.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Types.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/arm64/Types.o"
+  }
+}

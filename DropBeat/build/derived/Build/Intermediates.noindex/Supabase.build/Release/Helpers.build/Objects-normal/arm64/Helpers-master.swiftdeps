@@ -1,0 +1,53 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "0b994c800800669f435ec98f31841d683cfe11c52322f236869f98364339ef58"
+build_start_time: [1767536250, 987432000]
+build_end_time: [1767536252, 572906000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/AnyJSON/AnyJSON+Codable.swift"
+  : [1767536229, 160341904]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/AnyJSON/AnyJSON.swift"
+  : [1767536229, 160468141]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/AsyncValueSubject.swift"
+  : [1767536229, 160566797]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/Base64URL.swift"
+  : [1767536229, 160627000]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/Codable.swift"
+  : [1767536229, 160686577]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/DateFormatter.swift"
+  : [1767536229, 160748029]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/EventEmitter.swift"
+  : [1767536229, 160821563]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/FoundationExtensions.swift"
+  : [1767536229, 160891556]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/HTTP/HTTPClient.swift"
+  : [1767536229, 160989629]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/HTTP/HTTPFields.swift"
+  : [1767536229, 161054206]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/HTTP/HTTPRequest.swift"
+  : [1767536229, 161115700]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/HTTP/HTTPResponse.swift"
+  : [1767536229, 161179693]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/HTTP/LoggerInterceptor.swift"
+  : [1767536229, 161250353]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/HTTP/RetryRequestInterceptor.swift"
+  : [1767536229, 161352884]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/JWT.swift"
+  : [1767536229, 161415169]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/Logger/OSLogSupabaseLogger.swift"
+  : [1767536229, 161518367]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/Logger/SupabaseLogger.swift"
+  : [1767536229, 161619066]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/SharedModels/HTTPError.swift"
+  : [1767536229, 161713931]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/SharedModels/PostgrestError.swift"
+  : [1767536229, 161909286]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/Task+withTimeout.swift"
+  : [1767536229, 161989028]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/TaskLocalHelpers.swift"
+  : [1767536229, 162051772]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/URLSession+AsyncAwait.swift"
+  : [1767536229, 162159760]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/Version.swift"
+  : [1767536229, 162238544]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Helpers/_Clock.swift"
+  : [1767536229, 162436191]

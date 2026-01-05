@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>colors</key>
+	<array/>
+	<key>images</key>
+	<array>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameDropbeatsDecorative</string>
+			<key>relativePath</key>
+			<string>./AccessCard/Icons/dropbeats-decorative.imageset</string>
+			<key>swiftSymbol</key>
+			<string>dropbeatsDecorative</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameDropbeatsMiniLogo</string>
+			<key>relativePath</key>
+			<string>./dropbeats-mini-logo.imageset</string>
+			<key>swiftSymbol</key>
+			<string>dropbeatsMiniLogo</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameInstagram</string>
+			<key>relativePath</key>
+			<string>./Social-Icons/instagram.imageset</string>
+			<key>swiftSymbol</key>
+			<string>instagram</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameLinkedin</string>
+			<key>relativePath</key>
+			<string>./Social-Icons/linkedin.imageset</string>
+			<key>swiftSymbol</key>
+			<string>linkedin</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameNoiseTexture</string>
+			<key>relativePath</key>
+			<string>./AccessCard/noise-texture.imageset</string>
+			<key>swiftSymbol</key>
+			<string>noiseTexture</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameWebsite</string>
+			<key>relativePath</key>
+			<string>./Social-Icons/website.imageset</string>
+			<key>swiftSymbol</key>
+			<string>website</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameX</string>
+			<key>relativePath</key>
+			<string>./Social-Icons/x.imageset</string>
+			<key>swiftSymbol</key>
+			<string>x</string>
+		</dict>
+	</array>
+	<key>symbols</key>
+	<array/>
+</dict>
+</plist>

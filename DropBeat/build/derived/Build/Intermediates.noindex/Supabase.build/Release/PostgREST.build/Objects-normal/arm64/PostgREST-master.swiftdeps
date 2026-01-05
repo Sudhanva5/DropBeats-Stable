@@ -1,0 +1,25 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "d450dd74d2719cbbf10f15e0926c7524c3a5471417594bfbae92a8f9ca4e1f01"
+build_start_time: [1767536252, 481662000]
+build_end_time: [1767536254, 452008000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/Defaults.swift"
+  : [1767536229, 162541847]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/Deprecated.swift"
+  : [1767536229, 162690915]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/Exports.swift"
+  : [1767536229, 162878437]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/PostgrestBuilder.swift"
+  : [1767536229, 162981927]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/PostgrestClient.swift"
+  : [1767536229, 163088583]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/PostgrestFilterBuilder.swift"
+  : [1767536229, 163165617]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/PostgrestFilterValue.swift"
+  : [1767536229, 163248442]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/PostgrestQueryBuilder.swift"
+  : [1767536229, 163370346]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/PostgrestTransformBuilder.swift"
+  : [1767536229, 163486542]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/PostgREST/Types.swift"
+  : [1767536229, 164417864]

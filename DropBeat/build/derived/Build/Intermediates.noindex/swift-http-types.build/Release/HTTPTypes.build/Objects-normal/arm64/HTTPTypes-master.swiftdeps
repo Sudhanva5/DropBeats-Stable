@@ -1,0 +1,23 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "14ec74cb8895602360e1d548b064e8d8b2de68401139d03b2757c48e97c19b82"
+build_start_time: [1767536244, 697060000]
+build_end_time: [1767536249, 966709000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPField.swift"
+  : [1767536228, 492276030]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPFieldName.swift"
+  : [1767536228, 492356813]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPFields.swift"
+  : [1767536228, 492532421]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPParsedFields.swift"
+  : [1767536228, 492663491]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPRequest+URL.swift"
+  : [1767536228, 492789811]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPRequest.swift"
+  : [1767536228, 492858513]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPResponse.swift"
+  : [1767536228, 492946628]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/ISOLatin1String.swift"
+  : [1767536228, 493016871]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/NIOLock.swift"
+  : [1767536228, 493104696]

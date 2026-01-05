@@ -1,0 +1,4 @@
+module Functions {
+header "Functions-Swift.h"
+export *
+}

@@ -1,0 +1,180 @@
+{
+  "" : {
+    "const-values" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeat-master.swiftconstvalues",
+    "dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeat-master.d",
+    "diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeat-master.dia",
+    "emit-module-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeat-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeat-master-emit-module.dia",
+    "swift-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeat-master.swiftdeps"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/AppDelegate.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AppDelegate.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AppDelegate.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AppDelegate.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Config/BackendConfig.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/BackendConfig.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/BackendConfig.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/BackendConfig.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Config/SupabaseConfig.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SupabaseConfig.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SupabaseConfig.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SupabaseConfig.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/DropBeatApp.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeatApp.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeatApp.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/DropBeatApp.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/AccessCard/Models/GradientTheme.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/GradientTheme.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/GradientTheme.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/GradientTheme.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/AccessCard/ViewModels/AccessCardViewModel.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AccessCardViewModel.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AccessCardViewModel.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AccessCardViewModel.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/AccessCard/Views/AccessCardView.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AccessCardView.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AccessCardView.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AccessCardView.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/CommandPalette.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPalette.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPalette.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPalette.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/CommandPaletteState.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPaletteState.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPaletteState.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPaletteState.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Models/SearchModels.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchModels.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchModels.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchModels.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/CommandPaletteView.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPaletteView.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPaletteView.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/CommandPaletteView.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/SearchFieldView.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchFieldView.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchFieldView.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchFieldView.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/SearchResultRow.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchResultRow.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchResultRow.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchResultRow.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/SearchResultsList.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchResultsList.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchResultsList.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchResultsList.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/VisualEffectView.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/VisualEffectView.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/VisualEffectView.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/VisualEffectView.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/Common/Views/LottieConfettiView.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LottieConfettiView.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LottieConfettiView.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LottieConfettiView.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/Onboarding/Views/OnboardingView.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/OnboardingView.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/OnboardingView.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/OnboardingView.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/Settings/Views/SettingsView.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SettingsView.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Managers/AppStateManager.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AppStateManager.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AppStateManager.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AppStateManager.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Managers/BackendServerManager.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/BackendServerManager.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/BackendServerManager.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/BackendServerManager.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Managers/MusicPlayerManager.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/MusicPlayerManager.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/MusicPlayerManager.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/MusicPlayerManager.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Models/LicenseModels.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LicenseModels.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LicenseModels.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LicenseModels.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Models/PlaybackState.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/PlaybackState.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/PlaybackState.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/PlaybackState.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Models/Track.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/Track.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/Track.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/Track.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/AudioPlayerService.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AudioPlayerService.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AudioPlayerService.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/AudioPlayerService.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/LicenseService.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LicenseService.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LicenseService.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/LicenseService.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/RecommendationService.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/RecommendationService.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/RecommendationService.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/RecommendationService.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/SearchService.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchService.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchService.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchService.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/SongInfoService.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SongInfoService.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SongInfoService.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SongInfoService.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Services/YTDLPService.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/YTDLPService.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/YTDLPService.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/YTDLPService.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Utilities/SearchServerKeepAlive.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchServerKeepAlive.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchServerKeepAlive.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/SearchServerKeepAlive.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Utils/Shortcuts.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/Shortcuts.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/Shortcuts.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/Shortcuts.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Views/ContentView.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/ContentView.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/DropBeat.build/Release/DropBeat.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

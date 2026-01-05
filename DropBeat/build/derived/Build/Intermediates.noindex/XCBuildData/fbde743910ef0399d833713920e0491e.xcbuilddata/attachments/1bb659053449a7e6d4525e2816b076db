@@ -1,0 +1,65 @@
+{
+  "" : {
+    "const-values" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ConcurrencyExtras-master.swiftconstvalues",
+    "dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ConcurrencyExtras-master.d",
+    "diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ConcurrencyExtras-master.dia",
+    "emit-module-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ConcurrencyExtras-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ConcurrencyExtras-master-emit-module.dia",
+    "swift-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ConcurrencyExtras-master.swiftdeps"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/ActorIsolated.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ActorIsolated.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ActorIsolated.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/ActorIsolated.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AnyHashableSendable.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AnyHashableSendable.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AnyHashableSendable.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AnyHashableSendable.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AsyncStream.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AsyncStream.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AsyncStream.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AsyncStream.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AsyncThrowingStream.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AsyncThrowingStream.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AsyncThrowingStream.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/AsyncThrowingStream.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Internal/Locking.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Locking.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Locking.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Locking.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Internal/UncheckedBox.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/UncheckedBox.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/UncheckedBox.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/UncheckedBox.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/LockIsolated.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/LockIsolated.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/LockIsolated.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/LockIsolated.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/MainSerialExecutor.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/MainSerialExecutor.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/MainSerialExecutor.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/MainSerialExecutor.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Result.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Result.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Result.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Result.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Task.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Task.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Task.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/Task.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/UncheckedSendable.swift" : {
+    "index-unit-output-path" : "/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/UncheckedSendable.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/UncheckedSendable.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/swift-concurrency-extras.build/Release/ConcurrencyExtras.build/Objects-normal/arm64/UncheckedSendable.o"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "" : {
+    "const-values" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Supabase-master.swiftconstvalues",
+    "dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Supabase-master.d",
+    "diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Supabase-master.dia",
+    "emit-module-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Supabase-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Supabase-master-emit-module.dia",
+    "swift-dependencies" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Supabase-master.swiftdeps"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Constants.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Constants.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Constants.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Constants.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Deprecated.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Deprecated.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Deprecated.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Deprecated.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Exports.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Exports.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Exports.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Exports.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/SupabaseClient.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Supabase.build/Objects-normal/arm64/SupabaseClient.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/SupabaseClient.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/SupabaseClient.o"
+  },
+  "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Types.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Types.o",
+    "llvm-bc" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Types.bc",
+    "object" : "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/Build/Intermediates.noindex/Supabase.build/Release/Supabase.build/Objects-normal/arm64/Types.o"
+  }
+}

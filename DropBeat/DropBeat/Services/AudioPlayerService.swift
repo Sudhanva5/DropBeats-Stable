@@ -12,12 +12,18 @@ class AudioPlayerService: ObservableObject {
     private var stallTimeoutTask: Task<Void, Never>?
     private var shouldAutoPlayWhenReady = false  // BUGFIX: Track if we should auto-play when ready
 
+    // Buffer threshold monitoring (industry standard approach - wait for sufficient buffer before playback)
+    private var bufferThresholdSeconds: TimeInterval = 2.0  // Wait for 2 seconds buffered (optimized for fastest start)
+    private var isWaitingForBuffer = false
+    private var bufferCheckTask: Task<Void, Never>?
+
     // Callbacks
     var onTimeUpdate: ((TimeInterval, TimeInterval) -> Void)?
     var onPlaybackEnded: (() -> Void)?
     var onPlaybackStateChanged: ((Bool) -> Void)?
     var onBufferingStateChanged: ((Bool) -> Void)?
     var onPlaybackFailed: ((Error) -> Void)?
+    var onLoadingStateChanged: ((Bool) -> Void)?  // New: For showing loading/buffering UI
 
     init() {
         // Observers are now set up per player item in setupPlayerItemObservers()
@@ -81,7 +87,10 @@ class AudioPlayerService: ObservableObject {
     }
 
     /// Start playback
+    @MainActor
     func play() {
+        print("🎬 [AudioPlayerService] play() called")
+
         // DEFENSIVE: Validate player and item exist
         guard let player = player else {
             print("⚠️ [AudioPlayerService] Cannot play: No player instance")
@@ -92,6 +101,8 @@ class AudioPlayerService: ObservableObject {
             print("⚠️ [AudioPlayerService] Cannot play: No player item")
             return
         }
+
+        print("🎬 [AudioPlayerService] Player item status: \(playerItem.status.rawValue)")
 
         // BUGFIX: If player item isn't ready yet, mark for auto-play when it becomes ready
         guard playerItem.status == .readyToPlay else {
@@ -107,6 +118,7 @@ class AudioPlayerService: ObservableObject {
             return
         }
 
+        print("🎬 [AudioPlayerService] About to call player.play()")
         shouldAutoPlayWhenReady = false
         player.play()
         onPlaybackStateChanged?(true)
@@ -285,14 +297,15 @@ class AudioPlayerService: ObservableObject {
                 case .readyToPlay:
                     print("✅ [AudioPlayerService] Player item ready to play")
 
-                    // BUGFIX: Auto-play if play() was called before item was ready
-                    // CRITICAL: Only auto-play if this item is STILL the current player item
+                    // INDUSTRY STANDARD: Wait for buffer threshold before playing
+                    // CRITICAL: Only proceed if this item is STILL the current player item
                     // Prevents race condition when rapidly switching tracks
                     if self.shouldAutoPlayWhenReady && item == self.playerItem {
-                        print("▶️ [AudioPlayerService] Auto-playing now that item is ready")
-                        self.shouldAutoPlayWhenReady = false
-                        self.player?.play()
-                        self.onPlaybackStateChanged?(true)
+                        print("⏳ [AudioPlayerService] Item ready - now waiting for buffer threshold...")
+                        // Instead of playing immediately, wait for sufficient buffer
+                        Task { @MainActor in
+                            self.waitForBufferThreshold(item: item)
+                        }
                     } else if self.shouldAutoPlayWhenReady {
                         print("⏭️ [AudioPlayerService] Skipping auto-play - item changed (rapid track switching)")
                     }
@@ -399,11 +412,140 @@ class AudioPlayerService: ObservableObject {
         }
     }
 
+    // MARK: - Buffer Threshold Monitoring
+
+    /// Check if buffer threshold has been met (industry standard: wait for sufficient buffer before playback)
+    /// Returns true if any of these conditions are met:
+    /// 1. At least 2 seconds buffered
+    /// 2. At least 10% of total duration buffered
+    /// 3. Nearly fully buffered (95%+) for short tracks
+    private func hasMetBufferThreshold(_ item: AVPlayerItem) -> Bool {
+        guard let timeRange = item.loadedTimeRanges.first?.timeRangeValue else {
+            print("⏳ [AudioPlayerService] No buffered time ranges available")
+            return false
+        }
+
+        let bufferedSeconds = CMTimeGetSeconds(timeRange.start) + CMTimeGetSeconds(timeRange.duration)
+        let duration = CMTimeGetSeconds(item.duration)
+
+        print("📊 [AudioPlayerService] Buffer check: \(String(format: "%.1f", bufferedSeconds))s buffered of \(String(format: "%.1f", duration))s total")
+
+        // Check if we have either:
+        // 1. At least 2 seconds buffered (optimized for fastest start)
+        let hasEnoughSeconds = bufferedSeconds >= bufferThresholdSeconds
+
+        // 2. At least 10% of the total duration buffered (reduced for fastest start)
+        let hasEnoughPercentage = duration > 0 && (bufferedSeconds / duration) >= 0.10
+
+        // 3. The entire song buffered (for short tracks or fully cached)
+        let isFullyBuffered = duration > 0 && bufferedSeconds >= duration * 0.95
+
+        let meetsThreshold = hasEnoughSeconds || hasEnoughPercentage || isFullyBuffered
+
+        if meetsThreshold {
+            print("✅ [AudioPlayerService] Buffer threshold MET (\(String(format: "%.1f", bufferedSeconds))s / \(String(format: "%.0f%%", bufferedSeconds / duration * 100)))")
+        } else {
+            print("⏳ [AudioPlayerService] Buffer threshold NOT met (\(String(format: "%.1f", bufferedSeconds))s / \(String(format: "%.0f%%", bufferedSeconds / duration * 100)))")
+        }
+
+        return meetsThreshold
+    }
+
+    /// Wait for buffer threshold to be met before starting playback (eliminates race conditions)
+    /// This is the industry standard approach used by Spotify, YouTube, Apple Music, etc.
+    @MainActor
+    private func waitForBufferThreshold(item: AVPlayerItem) {
+        print("⏳ [AudioPlayerService] Waiting for buffer threshold before playback...")
+        isWaitingForBuffer = true
+        onLoadingStateChanged?(true)  // Show loading UI
+
+        // Cancel any existing buffer check task
+        bufferCheckTask?.cancel()
+
+        let maxWaitTime: TimeInterval = 5.0  // Maximum 5 seconds timeout
+        let startTime = Date()
+
+        // Check buffer threshold every 0.1 seconds for fastest response
+        bufferCheckTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self = self else { return }
+
+                // TIMEOUT: Start playback after 5 seconds even if buffer threshold not met
+                let elapsedTime = Date().timeIntervalSince(startTime)
+                if elapsedTime >= maxWaitTime {
+                    print("⚠️ [AudioPlayerService] Buffer timeout - starting playback anyway after \(Int(elapsedTime))s")
+                    guard item == self.playerItem else {
+                        await MainActor.run {
+                            self.isWaitingForBuffer = false
+                            self.onLoadingStateChanged?(false)
+                        }
+                        return
+                    }
+
+                    await MainActor.run {
+                        self.isWaitingForBuffer = false
+                        self.onLoadingStateChanged?(false)
+
+                        if self.shouldAutoPlayWhenReady {
+                            print("▶️ [AudioPlayerService] Starting playback (timeout)")
+                            self.shouldAutoPlayWhenReady = false
+                            self.player?.play()
+                            self.onPlaybackStateChanged?(true)
+                        }
+                    }
+                    return
+                }
+
+                // Check if buffer threshold met
+                if self.hasMetBufferThreshold(item) {
+                    // CRITICAL: Verify this is STILL the current player item (prevent race condition)
+                    guard item == self.playerItem else {
+                        print("⏭️ [AudioPlayerService] Track changed during buffering - aborting playback")
+                        await MainActor.run {
+                            self.isWaitingForBuffer = false
+                            self.onLoadingStateChanged?(false)
+                        }
+                        return
+                    }
+
+                    await MainActor.run {
+                        self.isWaitingForBuffer = false
+                        self.onLoadingStateChanged?(false)  // Hide loading UI
+
+                        // Start playback now that buffer is ready
+                        if self.shouldAutoPlayWhenReady {
+                            print("▶️ [AudioPlayerService] Buffer threshold met - starting playback")
+                            self.shouldAutoPlayWhenReady = false
+                            self.player?.play()
+                            self.onPlaybackStateChanged?(true)
+                        }
+                    }
+                    return
+                }
+
+                // Wait 0.1 seconds before checking again (optimized for fastest response)
+                do {
+                    try await Task.sleep(nanoseconds: 100_000_000)  // 0.1 seconds
+                } catch {
+                    // Task cancelled
+                    print("✅ [AudioPlayerService] Buffer check task cancelled")
+                    return
+                }
+            }
+        }
+    }
+
     private func cleanup() {
         print("🧹 [AudioPlayerService] Starting cleanup...")
 
         // BUGFIX: Reset auto-play flag
         shouldAutoPlayWhenReady = false
+
+        // DEFENSIVE: Cancel buffer check task if running
+        bufferCheckTask?.cancel()
+        bufferCheckTask = nil
+        isWaitingForBuffer = false
+        print("🧹 [AudioPlayerService] Cancelled buffer check task")
 
         // DEFENSIVE: Cancel stall timeout task if running
         stallTimeoutTask?.cancel()

@@ -1,0 +1,192 @@
+{
+  "source": "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/Settings/Views/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "General",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 16
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shortcuts",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "About",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "Download Access Card",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 179
+        }
+      },
+      {
+        "comment": "",
+        "key": "Share DropBeat",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 201
+        }
+      },
+      {
+        "comment": "",
+        "key": "Randomize Theme",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "License Information",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 241
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start at login",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 248
+        }
+      },
+      {
+        "comment": "",
+        "key": "Launch DropBeat automatically when you log in",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 249
+        }
+      },
+      {
+        "comment": "",
+        "key": "App Settings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 252
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Command Search:",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 333
+        }
+      },
+      {
+        "comment": "",
+        "key": "Play/Pause Music:",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 338
+        }
+      },
+      {
+        "comment": "",
+        "key": "Next Music:",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 343
+        }
+      },
+      {
+        "comment": "",
+        "key": "Previous Music:",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 348
+        }
+      },
+      {
+        "comment": "",
+        "key": "DropBeat Shortcuts",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 354
+        }
+      },
+      {
+        "comment": "",
+        "key": "DropBeats",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 377
+        }
+      },
+      {
+        "comment": "",
+        "key": "Version 1.0.0",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 379
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check for Updates",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 387
+        }
+      },
+      {
+        "comment": "",
+        "key": "Request Feature",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 396
+        }
+      },
+      {
+        "comment": "",
+        "key": "The Missing YouTube Music Player for Mac",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 415
+        }
+      },
+      {
+        "comment": "",
+        "key": "Created with ❤️ by Sudhanva and Claude",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 432
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 456
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 550
+        }
+      }
+    ]
+  },
+  "version": 1
+}

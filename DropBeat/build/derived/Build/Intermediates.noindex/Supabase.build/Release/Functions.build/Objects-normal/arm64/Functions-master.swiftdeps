@@ -1,0 +1,11 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "39fda2d3c39a898f9a71ff7a998829fc4914c9f9e5f24e496e8c5971cd86d9dd"
+build_start_time: [1767536252, 478146000]
+build_end_time: [1767536253, 175530000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Functions/Exports.swift"
+  : [1767536229, 159532486]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Functions/FunctionsClient.swift"
+  : [1767536229, 159894907]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/supabase-swift/Sources/Functions/Types.swift"
+  : [1767536229, 159994397]

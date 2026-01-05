@@ -210,24 +210,25 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if let track = playerManager.currentTrack {
                         // Now Playing View
-                        HStack(spacing: 10) {
-                            // Album Art
-                            if let albumArtURL = track.albumArt {
-                                AsyncImage(url: URL(string: albumArtURL)) { image in
-                                    image
-                                        .resizable()
-                                        .interpolation(.high)
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 48, height: 48)
-                                        .cornerRadius(4)
-                                        .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
-                                } placeholder: {
-                                    Rectangle()
-                                        .fill(Color.gray.opacity(0.2))
-                                        .frame(width: 48, height: 48)
-                                        .cornerRadius(4)
+                        ZStack {
+                            HStack(spacing: 10) {
+                                // Album Art
+                                if let albumArtURL = track.albumArt {
+                                    AsyncImage(url: URL(string: albumArtURL)) { image in
+                                        image
+                                            .resizable()
+                                            .interpolation(.high)
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 48, height: 48)
+                                            .cornerRadius(4)
+                                            .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
+                                    } placeholder: {
+                                        Rectangle()
+                                            .fill(Color.gray.opacity(0.2))
+                                            .frame(width: 48, height: 48)
+                                            .cornerRadius(4)
+                                    }
                                 }
-                            }
                             
                             // Track Info
                             VStack(alignment: .leading, spacing: 4) {
@@ -244,9 +245,20 @@ struct ContentView: View {
                                     .truncationMode(.tail)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.top, 12)
+                            .blur(radius: playerManager.playbackState == .loading ? 2 : 0)
+                            .opacity(playerManager.playbackState == .loading ? 0.5 : 1)
+
+                            // Skeleton Loader Overlay (shows during buffering)
+                            if playerManager.playbackState == .loading {
+                                SkeletonLoaderView()
+                                    .padding(.horizontal, 12)
+                                    .padding(.top, 12)
+                                    .transition(.opacity)
+                            }
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.top, 12)
                         
                         // Time Scrubber
                         CompactScrubber(
@@ -411,7 +423,7 @@ struct ContentView: View {
 
 struct RotatingModifier: ViewModifier {
     @State private var isAnimating = false
-    
+
     func body(content: Content) -> some View {
         content
             .rotationEffect(Angle(degrees: isAnimating ? 360 : 0))
@@ -420,6 +432,100 @@ struct RotatingModifier: ViewModifier {
                     isAnimating = true
                 }
             }
+    }
+}
+
+struct SkeletonLoaderView: View {
+    @State private var isAnimating = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            // Album Art Skeleton
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 48, height: 48)
+                .overlay(
+                    GeometryReader { geometry in
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0),
+                                        Color.white.opacity(0.4),
+                                        Color.white.opacity(0)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geometry.size.width * 0.5)
+                            .offset(x: isAnimating ? geometry.size.width : -geometry.size.width * 0.5)
+                    }
+                )
+                .clipped()
+
+            // Track Info Skeleton
+            VStack(alignment: .leading, spacing: 6) {
+                // Title skeleton
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 12)
+                    .frame(maxWidth: .infinity)
+                    .overlay(
+                        GeometryReader { geometry in
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0),
+                                            Color.white.opacity(0.4),
+                                            Color.white.opacity(0)
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geometry.size.width * 0.5)
+                                .offset(x: isAnimating ? geometry.size.width : -geometry.size.width * 0.5)
+                        }
+                    )
+                    .clipped()
+
+                // Artist skeleton
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 10)
+                    .frame(maxWidth: .infinity)
+                    .overlay(
+                        GeometryReader { geometry in
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0),
+                                            Color.white.opacity(0.4),
+                                            Color.white.opacity(0)
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geometry.size.width * 0.5)
+                                .offset(x: isAnimating ? geometry.size.width : -geometry.size.width * 0.5)
+                        }
+                    )
+                    .clipped()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onAppear {
+            withAnimation(
+                Animation.linear(duration: 1.5)
+                    .repeatForever(autoreverses: false)
+            ) {
+                isAnimating = true
+            }
+        }
     }
 }
 

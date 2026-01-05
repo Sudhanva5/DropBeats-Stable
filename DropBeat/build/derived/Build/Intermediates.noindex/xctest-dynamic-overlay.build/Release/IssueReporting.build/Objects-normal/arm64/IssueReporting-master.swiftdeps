@@ -1,0 +1,45 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "72fcd711de7c5a56db5d6f63195c5d2ec13d42803c54ba7f5afdbdb5cb24671e"
+build_start_time: [1767536244, 907923000]
+build_end_time: [1767536248, 565757000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/ErrorReporting.swift"
+  : [1767536229, 84099525]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/AppHostWarning.swift"
+  : [1767536229, 84202889]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/Deprecations.swift"
+  : [1767536229, 84324210]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/FailureObserver.swift"
+  : [1767536229, 84521565]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/LockIsolated.swift"
+  : [1767536229, 84589267]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/Rethrows.swift"
+  : [1767536229, 84817869]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/SwiftTesting.swift"
+  : [1767536229, 84922441]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/UncheckedSendable.swift"
+  : [1767536229, 84996600]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/Warn.swift"
+  : [1767536229, 85061511]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Internal/XCTest.swift"
+  : [1767536229, 85136586]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/IsTesting.swift"
+  : [1767536229, 85280113]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/IssueReporter.swift"
+  : [1767536229, 85465511]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/IssueReporters/BreakpointReporter.swift"
+  : [1767536229, 85574917]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/IssueReporters/DefaultReporter.swift"
+  : [1767536229, 85742983]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/IssueReporters/FatalErrorReporter.swift"
+  : [1767536229, 85820725]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/ReportIssue.swift"
+  : [1767536229, 86101321]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/TestContext.swift"
+  : [1767536229, 86175064]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/Unimplemented.swift"
+  : [1767536229, 86329715]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/WithExpectedIssue.swift"
+  : [1767536229, 86476575]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReporting/WithIssueContext.swift"
+  : [1767536229, 86548609]

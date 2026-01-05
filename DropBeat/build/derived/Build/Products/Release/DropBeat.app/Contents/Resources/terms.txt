@@ -1,0 +1,61 @@
+TERMS AND CONDITIONS
+
+1. LICENSE TERMS
+
+1.1 Personal Use License
+• This license grants you a personal, non-transferable right to use DropBeat
+• One license is valid for a single device only
+• You may not share, resell, or transfer your license to another user
+
+1.2 License Activation
+• Your license key is unique to your account
+• Multiple failed activation attempts may result in license deactivation
+• We reserve the right to revoke licenses used in violation of these terms
+
+2. USAGE TERMS
+
+2.1 Fair Usage
+• You agree to use DropBeat in compliance with YouTube Music's terms of service
+• Excessive usage or abuse of the service may result in restrictions
+• Commercial use is not permitted under this license
+
+2.2 Third-Party Services
+• DropBeat integrates with YouTube Music but is not affiliated with YouTube
+• We are not responsible for changes in YouTube Music's service that may affect DropBeat
+• Third-party service availability is not guaranteed
+
+3. PRIVACY AND DATA
+
+3.1 Data Collection
+• We collect minimal data necessary for app functionality
+• This includes: license information, app usage statistics, and crash reports
+• We do not track your music listening habits or personal data
+
+3.2 Data Protection
+• Your data is stored securely and never shared with third parties
+• You can request deletion of your data at any time
+• We comply with relevant data protection regulations
+
+4. WARRANTY AND LIABILITY
+
+4.1 Software Warranty
+• DropBeat is provided "as is" without warranty of any kind
+• We do not guarantee uninterrupted or error-free operation
+• We will make reasonable efforts to fix bugs and maintain compatibility
+
+4.2 Limitation of Liability
+• We are not liable for any damages arising from the use of DropBeat
+• This includes but is not limited to: data loss, hardware damage, or service interruption
+• Our maximum liability is limited to the amount you paid for your license
+
+5. UPDATES AND MODIFICATIONS
+
+5.1 Software Updates
+• We may release updates to add features or fix issues
+• Updates may be required to maintain functionality
+• You agree to keep DropBeat updated to the latest version
+
+5.2 Terms Updates
+• These terms may be updated from time to time
+• Continued use of DropBeat constitutes acceptance of updated terms
+• Major changes will be communicated via email 

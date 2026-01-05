@@ -1,0 +1,4 @@
+module HTTPTypes {
+header "HTTPTypes-Swift.h"
+export *
+}

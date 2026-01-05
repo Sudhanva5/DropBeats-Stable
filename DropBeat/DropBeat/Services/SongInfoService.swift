@@ -4,7 +4,6 @@ import Foundation
 class SongInfoService {
     static let shared = SongInfoService()
 
-    private let backendURL = BackendConfig.baseURL
     private var infoCache: [String: CachedSongInfo] = [:]
     private let cacheQueue = DispatchQueue(label: "com.sudhanva.dropbeat.songinfo.cache")
 
@@ -35,7 +34,8 @@ class SongInfoService {
         // Fetch from backend
         print("🎵 [SongInfoService] Fetching song info for \(videoId)...")
 
-        let url = URL(string: "\(backendURL)/song-info/\(videoId)")!
+        let urlString = BackendConfig.songInfoURL(videoId: videoId)
+        let url = URL(string: urlString)!
         let (data, response) = try await URLSession.shared.data(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse else {

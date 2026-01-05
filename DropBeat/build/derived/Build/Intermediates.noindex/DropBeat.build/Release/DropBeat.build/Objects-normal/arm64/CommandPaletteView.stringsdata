@@ -1,0 +1,48 @@
+{
+  "source": "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/CommandPaletteView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "No results found",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "Try updating your search terms to fetch results",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search on YouTube Music",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 146
+        }
+      },
+      {
+        "comment": "",
+        "key": "DropBeats v1.0",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 181
+        }
+      },
+      {
+        "comment": "",
+        "key": "to navigate",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 196
+        }
+      }
+    ]
+  },
+  "version": 1
+}

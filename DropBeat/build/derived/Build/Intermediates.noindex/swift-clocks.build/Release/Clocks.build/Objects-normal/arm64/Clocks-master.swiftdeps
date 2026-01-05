@@ -1,0 +1,21 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "f96419f793ac3fa896afaaa09726f9ccc8a5e433e88bcc447a65a3d14cd65cfa"
+build_start_time: [1767536248, 484340000]
+build_end_time: [1767536251, 49312000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-clocks/Sources/Clocks/AnyClock.swift"
+  : [1767536228, 582120943]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-clocks/Sources/Clocks/ImmediateClock.swift"
+  : [1767536228, 582484698]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-clocks/Sources/Clocks/Internal/Lock.swift"
+  : [1767536228, 582573772]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-clocks/Sources/Clocks/Internal/_AsyncTimerSequence.swift"
+  : [1767536228, 582632183]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-clocks/Sources/Clocks/SwiftUI.swift"
+  : [1767536228, 582784917]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-clocks/Sources/Clocks/TestClock.swift"
+  : [1767536228, 582920362]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-clocks/Sources/Clocks/Timer.swift"
+  : [1767536228, 583109593]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-clocks/Sources/Clocks/UnimplementedClock.swift"
+  : [1767536228, 583203417]

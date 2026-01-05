@@ -1,0 +1,27 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "e259adb8259dbfebc08fa1277818b3b4fb9856eed48d88ccd7028fa5eb62d807"
+build_start_time: [1767536244, 698049000]
+build_end_time: [1767536247, 614479000]
+inputs:
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/ActorIsolated.swift"
+  : [1767536228, 625516618]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AnyHashableSendable.swift"
+  : [1767536228, 625579694]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AsyncStream.swift"
+  : [1767536228, 625651021]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AsyncThrowingStream.swift"
+  : [1767536228, 625714098]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Internal/Locking.swift"
+  : [1767536228, 626482478]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Internal/UncheckedBox.swift"
+  : [1767536228, 626542472]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/LockIsolated.swift"
+  : [1767536228, 626611465]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/MainSerialExecutor.swift"
+  : [1767536228, 626808320]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Result.swift"
+  : [1767536228, 626866730]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Task.swift"
+  : [1767536228, 626921100]
+  ? "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/build/derived/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/UncheckedSendable.swift"
+  : [1767536228, 627008258]

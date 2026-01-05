@@ -1,0 +1,24 @@
+{
+  "source": "/Users/sudhanvaacharya/Desktop/Code Projects/DropBeat-Stable-New/DropBeat/DropBeat/Features/CommandPalette/Views/SearchResultsList.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Recently Played",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "No recently played songs",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 71
+        }
+      }
+    ]
+  },
+  "version": 1
+}
