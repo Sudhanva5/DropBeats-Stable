@@ -2,3 +2,6 @@ Supabase/
 Server/
 .DS_Store
 DropBeat/.build/
+build/
+*.dmg
+*.zip

@@ -1,14 +1,22 @@
 import Foundation
 
-/// Manages the local Python backend server lifecycle
+/// Manages the local Python backend server lifecycle with auto-restart
 class BackendServerManager {
     static let shared = BackendServerManager()
 
     private var serverProcess: Process?
     private let serverPort = 4002
     private var isStarting = false
+    private var monitorTimer: Timer?
+    private var restartAttempts = 0
+    private let maxRestartAttempts = 5
+    private var lastRestartTime: Date?
 
-    private init() {}
+    private let logger = AppLogger.shared
+
+    private init() {
+        logger.backend("🔧 BackendServerManager initialized")
+    }
 
     // MARK: - Server Status
 
@@ -19,10 +27,10 @@ class BackendServerManager {
         request.timeoutInterval = 2.0
         request.httpMethod = "GET"
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             if let httpResponse = response as? HTTPURLResponse,
                httpResponse.statusCode == 200 {
-                print("✅ [BackendServer] Server is healthy on port \(self.serverPort)")
+                self?.logger.backend("✅ Server is healthy on port \(self?.serverPort ?? 0)")
                 completion(true)
             } else {
                 completion(false)
@@ -46,21 +54,24 @@ class BackendServerManager {
 
     // MARK: - Server Lifecycle
 
-    /// Start the Python backend server automatically
+    /// Start the Python backend server with auto-restart monitoring
     func startServer(completion: @escaping (Bool) -> Void) {
         // Prevent concurrent starts
         guard !isStarting else {
-            print("⏳ [BackendServer] Server start already in progress")
+            logger.backend("⏳ Server start already in progress")
             completion(false)
             return
         }
+
+        logger.backend("🚀 Starting backend server...")
 
         // Check if already running
         isServerRunning { [weak self] isRunning in
             guard let self = self else { return }
 
             if isRunning {
-                print("🟢 [BackendServer] Server already running on port \(self.serverPort)")
+                self.logger.backend("🟢 Server already running on port \(self.serverPort)")
+                self.startMonitoring()
                 completion(true)
                 return
             }
@@ -73,25 +84,24 @@ class BackendServerManager {
     private func launchServerProcess(completion: @escaping (Bool) -> Void) {
         // Get path to bundled backend or use development path
         let backendPath = getBackendPath()
+        logger.backend("📂 Backend path: \(backendPath)")
 
         guard FileManager.default.fileExists(atPath: backendPath) else {
-            print("❌ [BackendServer] Backend files not found at: \(backendPath)")
+            logger.error("Backend files not found at: \(backendPath)")
             self.isStarting = false
             completion(false)
             return
         }
-
-        print("🚀 [BackendServer] Starting server from: \(backendPath)")
 
         // Find python3 executable (handle different installation locations)
         guard let python3Path = findPython3Executable() else {
-            print("❌ [BackendServer] python3 not found. Please install Python 3")
+            logger.error("python3 not found. Please install Python 3")
             self.isStarting = false
             completion(false)
             return
         }
 
-        print("🐍 [BackendServer] Using Python at: \(python3Path)")
+        logger.backend("🐍 Using Python at: \(python3Path)")
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: python3Path)
@@ -111,29 +121,50 @@ class BackendServerManager {
         process.standardError = errorPipe
 
         // Monitor server output
-        outputPipe.fileHandleForReading.readabilityHandler = { handle in
+        outputPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             if let output = String(data: data, encoding: .utf8), !output.isEmpty {
-                print("📋 [BackendServer] \(output.trimmingCharacters(in: .whitespacesAndNewlines))")
+                let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
+                self?.logger.backend("📋 \(trimmed)")
             }
         }
 
-        errorPipe.fileHandleForReading.readabilityHandler = { handle in
+        errorPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             if let output = String(data: data, encoding: .utf8), !output.isEmpty {
-                print("⚠️ [BackendServer] \(output.trimmingCharacters(in: .whitespacesAndNewlines))")
+                let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
+                self?.logger.backend("⚠️ \(trimmed)")
+            }
+        }
+
+        // Monitor process termination
+        process.terminationHandler = { [weak self] process in
+            guard let self = self else { return }
+
+            let exitCode = process.terminationStatus
+            self.logger.backend("💀 Server process terminated with exit code: \(exitCode)")
+
+            // Auto-restart if not intentionally stopped
+            if self.serverProcess != nil {
+                self.handleServerCrash()
             }
         }
 
         do {
             try process.run()
             self.serverProcess = process
-            print("✅ [BackendServer] Server process launched (PID: \(process.processIdentifier))")
+            logger.backend("✅ Server process launched (PID: \(process.processIdentifier))")
 
             // Wait for server to be ready
-            self.waitForServerReady(attempts: 15, completion: completion)
+            self.waitForServerReady(attempts: 15, completion: { [weak self] success in
+                if success {
+                    self?.startMonitoring()
+                    self?.restartAttempts = 0 // Reset on successful start
+                }
+                completion(success)
+            })
         } catch {
-            print("❌ [BackendServer] Failed to start server: \(error)")
+            logger.error("Failed to start server: \(error.localizedDescription)")
             self.isStarting = false
             completion(false)
         }
@@ -141,7 +172,7 @@ class BackendServerManager {
 
     private func waitForServerReady(attempts: Int, completion: @escaping (Bool) -> Void) {
         guard attempts > 0 else {
-            print("❌ [BackendServer] Server failed to become ready after 15 seconds")
+            logger.error("Server failed to become ready after 15 seconds")
             self.isStarting = false
             completion(false)
             return
@@ -152,12 +183,73 @@ class BackendServerManager {
 
             self.isServerRunning { isRunning in
                 if isRunning {
-                    print("🎉 [BackendServer] Server is ready!")
+                    self.logger.backend("🎉 Server is ready and responding!")
                     self.isStarting = false
                     completion(true)
                 } else {
-                    print("⏳ [BackendServer] Waiting for server... (\(attempts) attempts left)")
+                    self.logger.backend("⏳ Waiting for server... (\(attempts) attempts left)")
                     self.waitForServerReady(attempts: attempts - 1, completion: completion)
+                }
+            }
+        }
+    }
+
+    // MARK: - Auto-Restart Logic
+
+    private func startMonitoring() {
+        logger.backend("👁️ Starting server health monitoring (checks every 30s)")
+
+        monitorTimer?.invalidate()
+        monitorTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+            self?.checkServerHealth()
+        }
+    }
+
+    private func checkServerHealth() {
+        isServerRunning { [weak self] isRunning in
+            guard let self = self else { return }
+
+            if !isRunning && self.serverProcess != nil {
+                self.logger.warning("Server health check failed - server is down")
+                self.handleServerCrash()
+            }
+        }
+    }
+
+    private func handleServerCrash() {
+        logger.warning("🔄 Attempting to auto-restart server...")
+
+        // Check if we should attempt restart
+        let now = Date()
+        if let lastRestart = lastRestartTime,
+           now.timeIntervalSince(lastRestart) < 60 {
+            restartAttempts += 1
+        } else {
+            // Reset attempts if last restart was more than 1 minute ago
+            restartAttempts = 1
+        }
+        lastRestartTime = now
+
+        if restartAttempts > maxRestartAttempts {
+            logger.error("❌ Max restart attempts (\(maxRestartAttempts)) reached. Server will not auto-restart.")
+            logger.error("Please restart the DropBeat app manually")
+            serverProcess = nil
+            return
+        }
+
+        logger.backend("🔄 Auto-restart attempt \(restartAttempts)/\(maxRestartAttempts)")
+
+        // Clean up dead process
+        serverProcess = nil
+        isStarting = false
+
+        // Wait a bit before restarting
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            self?.startServer { success in
+                if success {
+                    self?.logger.backend("✅ Server auto-restarted successfully")
+                } else {
+                    self?.logger.error("❌ Server auto-restart failed")
                 }
             }
         }
@@ -165,18 +257,21 @@ class BackendServerManager {
 
     /// Stop the backend server
     func stopServer() {
+        monitorTimer?.invalidate()
+        monitorTimer = nil
+
         guard let process = serverProcess, process.isRunning else {
-            print("⚠️ [BackendServer] No server process to stop")
+            logger.backend("⚠️ No server process to stop")
             return
         }
 
-        print("🛑 [BackendServer] Stopping server (PID: \(process.processIdentifier))")
+        logger.backend("🛑 Stopping server (PID: \(process.processIdentifier))")
         process.terminate()
 
         // Wait for graceful shutdown
         DispatchQueue.global().asyncAfter(deadline: .now() + 2.0) { [weak self] in
             if let process = self?.serverProcess, process.isRunning {
-                print("⚠️ [BackendServer] Force killing server process")
+                self?.logger.warning("Force killing server process")
                 process.interrupt()
             }
         }
@@ -188,6 +283,8 @@ class BackendServerManager {
 
     /// Find python3 executable in common locations
     private func findPython3Executable() -> String? {
+        logger.backend("🔍 Searching for Python executable...")
+
         let commonPaths = [
             "/usr/bin/python3",              // System Python (macOS default)
             "/usr/local/bin/python3",        // Homebrew (Intel)
@@ -200,8 +297,10 @@ class BackendServerManager {
         // Try bundled Python first (for production distribution)
         if let bundledPython = getBundledPythonPath() {
             if FileManager.default.isExecutableFile(atPath: bundledPython) {
-                print("🐍 [BackendServer] Found bundled Python at: \(bundledPython)")
+                logger.backend("✅ Found bundled Python at: \(bundledPython)")
                 return bundledPython
+            } else {
+                logger.backend("⚠️ Bundled Python found but not executable: \(bundledPython)")
             }
         }
 
@@ -209,18 +308,18 @@ class BackendServerManager {
         for path in commonPaths {
             let expandedPath = (path as NSString).expandingTildeInPath
             if FileManager.default.isExecutableFile(atPath: expandedPath) {
-                print("🐍 [BackendServer] Found Python at: \(expandedPath)")
+                logger.backend("✅ Found Python at: \(expandedPath)")
                 return expandedPath
             }
         }
 
         // Try using 'which python3' command
         if let whichPath = runWhichCommand("python3") {
-            print("🐍 [BackendServer] Found Python via 'which': \(whichPath)")
+            logger.backend("✅ Found Python via 'which': \(whichPath)")
             return whichPath
         }
 
-        print("❌ [BackendServer] Python 3 not found in common locations")
+        logger.error("❌ Python 3 not found in any common locations")
         return nil
     }
 
@@ -236,6 +335,7 @@ class BackendServerManager {
 
         for path in bundledPaths {
             if FileManager.default.fileExists(atPath: path) {
+                logger.backend("📦 Found bundled Python candidate: \(path)")
                 return path
             }
         }
@@ -264,7 +364,7 @@ class BackendServerManager {
                 }
             }
         } catch {
-            print("⚠️ [BackendServer] Failed to run 'which': \(error)")
+            logger.warning("Failed to run 'which': \(error.localizedDescription)")
         }
 
         return nil
@@ -276,6 +376,7 @@ class BackendServerManager {
         // Try bundled path first (production)
         if let bundledPath = Bundle.main.resourcePath?.appending("/backend/api") {
             if FileManager.default.fileExists(atPath: bundledPath) {
+                logger.backend("📦 Using bundled backend path")
                 return bundledPath
             }
         }
@@ -285,7 +386,7 @@ class BackendServerManager {
         let devPath = "\(workspaceRoot)/Server/api"
 
         if FileManager.default.fileExists(atPath: devPath) {
-            print("🔧 [BackendServer] Using development backend path")
+            logger.backend("🔧 Using development backend path")
             return devPath
         }
 
@@ -294,6 +395,7 @@ class BackendServerManager {
             let execDir = (executablePath as NSString).deletingLastPathComponent
             let relativePath = "\(execDir)/../Resources/backend/api"
             if FileManager.default.fileExists(atPath: relativePath) {
+                logger.backend("📂 Using relative backend path")
                 return relativePath
             }
         }
@@ -304,6 +406,7 @@ class BackendServerManager {
     // MARK: - Cleanup
 
     deinit {
+        monitorTimer?.invalidate()
         stopServer()
     }
 }
