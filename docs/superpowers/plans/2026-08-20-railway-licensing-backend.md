@@ -160,8 +160,10 @@ async def migrated_conn(migrations_dir):
     await admin.close()
 
     conn = await asyncpg.connect(TEST_DSN)
-    await migrate.apply(conn, migrations_dir)
+    # Role first: 002_roles_rls.sql grants TO dropbeats_app, so applying
+    # migrations before the role exists fails with "role does not exist".
     await migrate.ensure_app_role(conn, "test_password")
+    await migrate.apply(conn, migrations_dir)
     try:
         yield conn
     finally:
