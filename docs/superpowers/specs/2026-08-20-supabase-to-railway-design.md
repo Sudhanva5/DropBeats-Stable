@@ -147,9 +147,12 @@ a `USING (true)` policy is theatre.
 - `dropbeats_app` gets `SELECT, INSERT, UPDATE` on `licenses` and `INSERT` on
   `webhook_logs`. No `DELETE` anywhere, no `UPDATE` on `webhook_logs` — the
   audit log is append-only at the privilege level.
-- Policy on `licenses` scopes the app role to `is_active = true` rows for
-  `SELECT`, so a deactivated licence is invisible rather than merely filtered in
-  Python.
+- The `SELECT` policy on `licenses` is unrestricted for `dropbeats_app`. An
+  earlier draft scoped it to `is_active = true`, which is wrong: validation has
+  to tell "unknown key" apart from "License is not active" to preserve today's
+  error messages, and a policy that hides inactive rows collapses the two. The
+  containment value here comes from the grants — no `DELETE`, no `UPDATE` on the
+  audit log — not from row filtering.
 
 ## Endpoints
 
