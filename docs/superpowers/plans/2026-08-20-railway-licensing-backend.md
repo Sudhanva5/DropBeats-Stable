@@ -15,7 +15,8 @@
 - **Scope of this plan is the backend only.** The macOS app still calls Supabase when this plan finishes. Supabase stays live and untouched. The app cutover and Supabase shutdown are a separate plan, written after this one is verified in production.
 - **All work happens inside `Server/`, which is its own git repository** (`Sudhanva5/DropBeats-Server`). The outer repo tracks zero files under `Server/`. Commit and push from inside `Server/`.
 - **`Server/api/main.py` has uncommitted yt-dlp changes that must never reach Railway.** `/stream-url` and `/song-info` shell out to yt-dlp, which YouTube blocks from datacenter IPs. They exist only as working-tree changes. Every commit touching `main.py` in this plan **must** stage only the licensing hunks, and Task 8 has a hard gate that verifies this before any push.
-- **Python version is 3.11**, matching `NIXPACKS_PYTHON_VERSION` in `nixpacks.toml`.
+- **Python version is 3.11**, matching `NIXPACKS_PYTHON_VERSION` in `nixpacks.toml`. The machine's default `python3` is 3.9.6, which is below the target and rejects the PEP 604 unions (`str | None`) this code uses. Install `python@3.11` via Homebrew and run everything — pip, pytest, scripts — through a venv built on it. Never downgrade an annotation to `typing.Optional` to appease 3.9.
+- **Dates crossing the wire are `isoformat(timespec="seconds")`.** The shipped Swift decoder has no fractional-seconds formatter; microseconds make the entire response undecodable.
 - **Local test database:** Homebrew `postgresql@15`, already running. Binaries are keg-only at `/opt/homebrew/opt/postgresql@15/bin`. Prepend that to `PATH`.
 - **Response field names are fixed** by the existing Swift `Codable` decoders in `DropBeat/DropBeat/Models/LicenseModels.swift` and must not change: `valid`, `error`, `name`, `email`, `country`, `created_at`, `has_completed_onboarding`, `success`, `message`.
 - **Secrets never go in the repo.** `GUMROAD_SELLER_ID` is `1MCDeB0zEW1je0kaXIy40Q==` and is currently hardcoded in the Supabase plpgsql; in the rebuild it comes from an environment variable.
@@ -746,7 +747,12 @@ async def validate_license(payload: ValidateRequest) -> ValidateResponse:
             name=row["full_name"],
             email=row["email"],
             country=row["country"],
-            created_at=row["created_at"].isoformat(),
+            # timespec="seconds" is load-bearing, not cosmetic. The shipped
+            # Swift decoder tries ISO8601DateFormatter with default options
+            # and three DateFormatter patterns, none fractional-seconds
+            # aware, so microseconds make the whole response undecodable.
+            # Supabase returns "2025-01-20T09:47:01+00:00"; match it exactly.
+            created_at=row["created_at"].isoformat(timespec="seconds"),
             has_completed_onboarding=row["has_completed_onboarding"],
         )
 ```
