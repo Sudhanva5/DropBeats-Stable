@@ -942,6 +942,26 @@ authorisation to deactivate it."
 
 Gumroad posts `application/x-www-form-urlencoded`, not JSON — the existing Cloudflare Worker confirms this. The endpoint reads the raw form.
 
+> **Corrections applied during execution.** Review of this task found four Important
+> defects in the code below, all of which shipped fixes. If you re-run this plan, apply
+> these rather than the literal code in Steps 1 and 3:
+>
+> 1. `secrets.compare_digest` raises `TypeError` on non-ASCII `str`, and Starlette
+>    percent-decodes the path segment. `POST /webhooks/gumroad/%C3%A9` therefore 500s while
+>    every other bad path 404s — an oracle that defeats the 404-not-403 rule. Compare
+>    **bytes**: `compare_digest(secret.encode(), expected_secret.encode())`.
+> 2. The `seller_id` check lacks the `not expected_seller or` fail-closed clause the secret
+>    check has. With `GUMROAD_SELLER_ID` unset, a posted empty `seller_id=` compares equal
+>    and passes, silently removing the second factor.
+> 3. `ON CONFLICT (sale_id)` cannot fire when `sale_id` is NULL, and `license_key` carries
+>    its own UNIQUE plus a unique normalised index. A replay then raises
+>    `UniqueViolationError` → 500 → Gumroad retries forever. Validate `sale_id` is present,
+>    and catch `UniqueViolationError` to return **200** with `success=False` — Gumroad stops
+>    retrying only on a 2xx, so a permanent conflict must not look transient.
+> 4. `test_webhook_replay_creates_exactly_one_licence` asserts only the row count, so it
+>    passes against the unconditional-INSERT regression its own docstring names. Assert the
+>    second response is 200 with `success=True` as well.
+
 - [ ] **Step 1: Write the failing tests**
 
 Append to `api/test_license.py`:
