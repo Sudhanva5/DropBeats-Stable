@@ -1300,11 +1300,31 @@ Inside the existing `startup_event`, after the `logger.info(f"Starting DropBeat 
     if LICENSING_ENABLED:
         import db
 
-        await db.init_pool()
-        logger.info("✅ Licensing enabled (database pool ready)")
+        try:
+            await db.init_pool()
+            logger.info("✅ Licensing enabled (database pool ready)")
+        except Exception as e:
+            # Deliberately non-fatal. A raised startup handler fails the ASGI
+            # lifespan and uvicorn exits, which would take /search and
+            # /watch-playlist down with it — endpoints the shipped macOS app
+            # depends on and which need no database at all. Licensing
+            # degrades on its own instead. Loud on purpose: trading a crash
+            # for silent degradation is only acceptable if the failure is
+            # unmissable in the log.
+            logger.error(
+                "❌ Licensing database unavailable, licensing endpoints will "
+                "fail until it recovers: %s", e, exc_info=True
+            )
     else:
         logger.info("ℹ️ Licensing disabled (no DATABASE_URL) — bundled/local mode")
 ```
+
+> **Correction applied during execution.** The original version of this step had a bare
+> `await db.init_pool()`. Because it runs before the YTMusic check and the ping loop, any
+> database problem at boot raised out of `startup_event`, failed the lifespan, and exited
+> uvicorn — taking search down with licensing. Verification must therefore cover three
+> cases, not two: DB reachable, DB absent (bundled mode), and **`DATABASE_URL` set but
+> unreachable**, which must leave the process up and search working.
 
 And add a shutdown handler next to it:
 
