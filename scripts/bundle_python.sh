@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🐍 Bundling Python for DropBeat..."
+echo "🐍 Bundling Python for DropBeats..."
 
 # Get absolute path to script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -61,13 +61,18 @@ echo "📦 Installing Python dependencies..."
 "$PYTHON_DIR/bin/python3" -m pip install --upgrade pip
 
 # Install only required packages
+# yt-dlp is intentionally unpinned: YouTube breaks older versions within weeks,
+# so every bundle should ship the newest release available at build time.
 "$PYTHON_DIR/bin/pip3" install \
     uvicorn==0.25.0 \
     fastapi==0.109.0 \
-    yt-dlp==2023.12.30 \
-    ytmusicapi==1.5.2 \
+    yt-dlp \
+    ytmusicapi==1.12.2 \
     pydantic==2.5.3 \
     python-dotenv==1.0.0
+
+echo "📌 Bundled extractor versions:"
+"$PYTHON_DIR/bin/python3" -c "import yt_dlp, ytmusicapi; print(f'   yt-dlp     {yt_dlp.version.__version__}'); print(f'   ytmusicapi {ytmusicapi.__version__}')"
 
 echo "🧹 Cleaning up unnecessary files..."
 
@@ -88,6 +93,13 @@ rm -rf "$PYTHON_DIR/lib/python3.11/turtledemo" 2>/dev/null || true
 echo "📦 Bundling backend API..."
 mkdir -p "$PYTHON_DIR/backend/api"
 cp -r "$BACKEND_DIR"/* "$PYTHON_DIR/backend/api/"
+
+# Strip bytecode AFTER copying the backend. The cleanup pass above runs before
+# this copy, so any __pycache__ left in Server/api by a local dev run would
+# otherwise be sealed into the app signature - and deleting it later then
+# reports "a sealed resource is missing or invalid".
+find "$PYTHON_DIR/backend" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find "$PYTHON_DIR/backend" -type f -name "*.pyc" -delete 2>/dev/null || true
 
 # Create a test script to verify the bundle works
 echo "🧪 Creating test script..."

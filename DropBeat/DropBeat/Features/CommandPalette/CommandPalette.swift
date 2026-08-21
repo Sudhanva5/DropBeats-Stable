@@ -67,6 +67,11 @@ final class CommandPalette: NSObject {
 
         // Mark as visible FIRST before anything else
         state.isVisible = true
+        // Mirror for the event-tap thread, which must never block on the main
+        // actor to read this. Kept beside the assignment rather than in a
+        // didSet, because @Observable rewrites stored properties and property
+        // observers do not survive the macro.
+        PaletteVisibility.isVisible = true
 
         // Center window on screen
         if let screen = NSScreen.main {
@@ -114,6 +119,7 @@ final class CommandPalette: NSObject {
         cleanupMouseEventTap()
         window?.orderOut(nil)
         state.isVisible = false
+        PaletteVisibility.isVisible = false
         state.searchText = ""
     }
 
