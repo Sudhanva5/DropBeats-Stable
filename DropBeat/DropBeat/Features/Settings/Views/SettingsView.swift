@@ -83,33 +83,23 @@ struct EffectView: NSViewRepresentable {
 // MARK: - General Tab
 struct GeneralTabView: View {
     @StateObject private var appState = AppStateManager.shared
-    @AppStorage("startAtLogin") private var startAtLogin = false {
-        didSet {
-            Task {
-                do {
-                    if startAtLogin {
-                        if SMAppService.mainApp.status == .enabled {
-                            print("Login item already enabled")
-                            return
-                        }
-                        try await SMAppService.mainApp.register()
-                    } else {
-                        if SMAppService.mainApp.status == .notRegistered {
-                            print("Login item already disabled")
-                            return
-                        }
-                        try await SMAppService.mainApp.unregister()
-                    }
-                } catch {
-                    print("Failed to \(startAtLogin ? "enable" : "disable") login item:", error.localizedDescription)
-                    // Revert the toggle if operation failed
-                    await MainActor.run {
-                        startAtLogin = !startAtLogin
-                    }
-                }
-            }
-        }
-    }
+    /// Reflects SMAppService, which is the actual source of truth.
+    ///
+    /// This was an `@AppStorage("startAtLogin")` with a `didSet` that called
+    /// SMAppService. `didSet` does not fire when SwiftUI writes through a
+    /// property wrapper's projected binding, which is exactly what
+    /// `Toggle(isOn: $startAtLogin)` does — so flipping the switch persisted a
+    /// UserDefaults value and never registered anything. The toggle looked
+    /// like it worked and the app never launched at login.
+    ///
+    /// A mirrored preference could also drift from reality: a user removing
+    /// the login item in System Settings would leave the stored flag saying
+    /// "on" forever. Reading SMAppService.status makes that impossible.
+    @State private var startAtLogin = SMAppService.mainApp.status == .enabled
+    @State private var loginItemError: String?
+    /// Guards the reconciliation write at the end of setLoginItem from
+    /// re-entering through .onChange and ping-ponging on failure.
+    @State private var isReconcilingLoginItem = false
     @State private var isHovering: String? = nil
     @StateObject private var cardRef = AccessCardViewModel()
     
@@ -247,6 +237,16 @@ struct GeneralTabView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Toggle("Start at login", isOn: $startAtLogin)
                             .help("Launch DropBeat automatically when you log in")
+                            .onChange(of: startAtLogin) { _, wantsEnabled in
+                                guard !isReconcilingLoginItem else { return }
+                                setLoginItem(enabled: wantsEnabled)
+                            }
+
+                        if let loginItemError {
+                            Text(loginItemError)
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
                     }
                 } header: {
                     Text("App Settings")
@@ -273,6 +273,37 @@ struct GeneralTabView: View {
         }
     }
     
+    /// Register or unregister the login item, and reconcile the toggle with
+    /// whatever actually happened.
+    ///
+    /// SMAppService.register() commonly fails for reasons the user must resolve
+    /// themselves — most often the app being blocked under System Settings >
+    /// General > Login Items. Silently swallowing that (as the previous code
+    /// did, into a print) is why this looked broken rather than blocked, so the
+    /// failure is surfaced in the UI and the toggle snaps back to the truth.
+    private func setLoginItem(enabled: Bool) {
+        do {
+            if enabled {
+                if SMAppService.mainApp.status != .enabled {
+                    try SMAppService.mainApp.register()
+                }
+            } else {
+                if SMAppService.mainApp.status != .notRegistered {
+                    try SMAppService.mainApp.unregister()
+                }
+            }
+            loginItemError = nil
+        } catch {
+            loginItemError = "Could not \(enabled ? "enable" : "disable") launch at login: \(error.localizedDescription). Check System Settings > General > Login Items."
+            print("❌ [Settings] Login item change failed:", error)
+        }
+
+        // Re-read the real state rather than trusting the requested one.
+        isReconcilingLoginItem = true
+        startAtLogin = SMAppService.mainApp.status == .enabled
+        isReconcilingLoginItem = false
+    }
+
     private func getLicenseStatusText() -> String {
         switch appState.licenseStatus {
         case .unknown:

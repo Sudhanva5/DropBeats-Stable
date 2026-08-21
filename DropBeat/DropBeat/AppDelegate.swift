@@ -12,6 +12,19 @@ var globalEventTap: CFMachPort?
 var globalEventTapSource: CFRunLoopSource?
 
 func eventTapCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent, userInfo: UnsafeMutableRawPointer?) -> Unmanaged<CGEvent>? {
+    // macOS disables an event tap that takes too long in its callback, and
+    // tells us by delivering one of these two event types. Re-enabling here is
+    // the only reliable recovery: it is immediate and event-driven, where the
+    // periodic monitor is just a backstop. Without this the global hotkey
+    // silently stops working until the app is restarted.
+    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+        print("⚠️ [palette] Event tap disabled by macOS (\(type.rawValue)) - re-enabling immediately")
+        if let tap = globalEventTap {
+            CGEvent.tapEnable(tap: tap, enable: true)
+        }
+        return nil
+    }
+
     // Check if this is a key down event
     guard type == .keyDown else { return Unmanaged.passRetained(event) }
 
@@ -39,16 +52,18 @@ func eventTapCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent,
         return nil
     }
 
-    // If palette is visible, handle keyboard input for it
-    // NOTE: eventTapCallback runs on a non-main thread, so we need to check main-actor properties safely
-    var paletteVisible = false
-    let semaphore = DispatchSemaphore(value: 0)
-
-    DispatchQueue.main.async {
-        paletteVisible = CommandPaletteState.shared.isVisible
-        semaphore.signal()
-    }
-    semaphore.wait()
+    // If palette is visible, handle keyboard input for it.
+    //
+    // This used to dispatch to the main thread and block on a DispatchSemaphore
+    // to read CommandPaletteState.isVisible — on every keystroke typed anywhere
+    // on the machine. Whenever the main thread was busy (SwiftUI layout, a
+    // network callback, artwork decoding), the tap callback stalled with it,
+    // and a stalled callback is exactly what macOS punishes by disabling the
+    // tap. That was the root cause of the hotkey dying until restart.
+    //
+    // PaletteVisibility is a lock-guarded mirror that never waits on another
+    // thread's work.
+    let paletteVisible = PaletteVisibility.isVisible
 
     if paletteVisible {
         // Escape key (keyCode 53) - dismiss palette
@@ -317,8 +332,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func checkAndRestoreEventTap() {
         guard let eventTap = globalEventTap else { return }
 
-        // Check if event tap is still enabled
-        let isEnabled = CFMachPortIsValid(eventTap)
+        // CGEvent.tapIsEnabled, NOT CFMachPortIsValid.
+        //
+        // This check used to be CFMachPortIsValid, which asks whether the Mach
+        // port still exists — and it does, even after macOS has disabled the
+        // tap for taking too long. So the monitor saw a valid port, concluded
+        // all was well, and the hotkey stayed dead until the app restarted.
+        // tapIsEnabled asks the question we actually care about.
+        let isEnabled = CGEvent.tapIsEnabled(tap: eventTap)
 
         if !isEnabled {
             print("⚠️ [palette] Event tap was disabled by macOS - attempting to restore...")
@@ -327,7 +348,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             CGEvent.tapEnable(tap: eventTap, enable: true)
 
             // Verify it's enabled now
-            if CFMachPortIsValid(eventTap) {
+            if CGEvent.tapIsEnabled(tap: eventTap) {
                 print("✅ [palette] Event tap successfully restored")
             } else {
                 print("❌ [palette] Failed to restore event tap - recreating...")
