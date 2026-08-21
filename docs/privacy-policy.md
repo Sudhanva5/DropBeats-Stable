@@ -36,7 +36,7 @@ Welcome to DropBeats. We are committed to protecting your privacy and ensuring y
 
 - All license-related communication is encrypted
 - We use industry-standard security measures
-- Data is stored securely using Supabase infrastructure
+- Data is stored securely on Railway infrastructure, accessed only through our API
 
 ## Your Rights
 
