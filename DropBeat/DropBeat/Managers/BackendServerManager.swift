@@ -106,6 +106,11 @@ class BackendServerManager {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: python3Path)
         process.arguments = [
+            // -B stops Python from writing __pycache__ into the app bundle.
+            // Without it the server writes bytecode next to the modules it
+            // imports, which are inside Contents/Resources, and that breaks the
+            // code signature seal on the user's installed copy.
+            "-B",
             "-m", "uvicorn",
             "main:app",
             "--host", "127.0.0.1",
@@ -113,6 +118,16 @@ class BackendServerManager {
             "--log-level", "info"
         ]
         process.currentDirectoryURL = URL(fileURLWithPath: backendPath)
+
+        // -B above only covers uvicorn itself. The backend shells out to
+        // yt-dlp as a child process, and that child re-imports half the
+        // stdlib, writing __pycache__ all over Contents/Resources - which
+        // breaks the code signature seal ("a sealed resource is missing or
+        // invalid") on the user's installed copy. The env var is inherited by
+        // every descendant, so it covers subprocesses we add later too.
+        var env = ProcessInfo.processInfo.environment
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
+        process.environment = env
 
         // Capture output for debugging
         let outputPipe = Pipe()

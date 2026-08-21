@@ -1,140 +1,118 @@
-import { createClient } from '@supabase/supabase-js'
+/**
+ * Reverse proxy in front of the DropBeats Railway backend.
+ *
+ * Why this exists: Jio blocks Railway. The macOS app used to call
+ * dropbeats-server-production.up.railway.app directly, which means search and
+ * autoplay have been dead for Jio users since the Railway migration. Routing
+ * every app -> backend call through Cloudflare fixes that, and licensing is
+ * pointed here from the start rather than shipping a third broken feature to
+ * the same users.
+ *
+ * This Worker previously forwarded Gumroad webhooks to Supabase. It no longer
+ * has that job: Gumroad posts to Railway directly (verified with a live ping on
+ * 2026-08-21) and Supabase is being retired.
+ */
 
 interface Env {
-  SUPABASE_URL: string;
-  SUPABASE_SERVICE_ROLE_KEY: string;
+  /** Railway origin. A variable, not a literal, so it can be repointed
+   *  without a code change — the whole reason the previous hardcoding hurt. */
+  ORIGIN_URL: string;
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+/**
+ * Headers that describe a single transport hop and must not be forwarded.
+ * Per RFC 7230 section 6.1. `host` is dropped separately so fetch() derives it
+ * from the origin URL rather than sending the Worker's own hostname.
+ */
+const HOP_BY_HOP = new Set([
+  'connection',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+]);
+
+function buildForwardHeaders(request: Request): Headers {
+  const headers = new Headers();
+
+  for (const [name, value] of request.headers) {
+    const lower = name.toLowerCase();
+    if (HOP_BY_HOP.has(lower)) continue;
+    if (lower === 'host') continue;
+    // Rebuilt below from CF-Connecting-IP; never trust an inbound value.
+    if (lower === 'x-forwarded-for') continue;
+    headers.set(name, value);
+  }
+
+  // THE detail that must not be got wrong.
+  //
+  // The origin rate-limits on the leftmost X-Forwarded-For entry, falling back
+  // to the peer address. Without this header every request arriving at Railway
+  // carries the Worker's address, so all users worldwide share one bucket —
+  // 30 validations then one per two seconds, globally. That is the same defect
+  // the backend already found and fixed once, reintroduced one layer up, and
+  // it would not show up in testing because a single tester looks identical
+  // either way.
+  //
+  // Inbound X-Forwarded-For is dropped above rather than appended to, because
+  // a client can send anything it likes; CF-Connecting-IP is set by Cloudflare
+  // and is the only trustworthy value here.
+  const clientIp = request.headers.get('CF-Connecting-IP');
+  if (clientIp) {
+    headers.set('X-Forwarded-For', clientIp);
+  }
+
+  return headers;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // Log everything immediately
-    console.log('New request received')
-    console.log('Method:', request.method)
-    console.log('Headers:', Object.fromEntries(request.headers.entries()))
-    
-    // Handle CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response('ok', { headers: corsHeaders })
+    const origin = env.ORIGIN_URL;
+    if (!origin) {
+      // Fail loudly rather than proxying somewhere unintended.
+      return new Response(
+        JSON.stringify({ error: 'ORIGIN_URL is not configured' }),
+        { status: 500, headers: { 'content-type': 'application/json' } },
+      );
     }
 
-    // Handle GET requests with a friendly message
-    if (request.method === 'GET') {
-      return new Response(
-        JSON.stringify({
-          message: 'DropBeats webhook endpoint is ready for Gumroad sale notifications.',
-          version: '1.0.0',
-          lastUpdated: new Date().toISOString().split('T')[0],
-          usage: 'Send POST requests with application/x-www-form-urlencoded content type'
-        }),
-        { 
-          status: 200, 
-          headers: { 
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-    }
+    const incoming = new URL(request.url);
+    const target = new URL(incoming.pathname + incoming.search, origin);
+
+    // GET/HEAD must not carry a body, and duplex is required when one is sent.
+    const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
+
+    const proxied = new Request(target.toString(), {
+      method: request.method,
+      headers: buildForwardHeaders(request),
+      body: hasBody ? request.body : undefined,
+      redirect: 'manual',
+      ...(hasBody ? { duplex: 'half' } : {}),
+    } as RequestInit);
 
     try {
-      // Only proceed with FormData parsing for POST requests
-      if (request.method !== 'POST') {
-        return new Response(
-          JSON.stringify({ error: 'Method not allowed. Only POST requests are accepted for webhooks.' }),
-          { 
-            status: 405, 
-            headers: { 
-              ...corsHeaders,
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-      }
+      const response = await fetch(proxied);
 
-      // Get form data
-      const formData = await request.formData()
-      const payload: Record<string, any> = {}
-      
-      // Convert FormData to object and log each field
-      for (const [key, value] of formData.entries()) {
-        console.log(`Form field ${key}:`, value)
-        payload[key] = value
-      }
-      
-      console.log('Parsed payload:', payload)
-
-      // Create Supabase client
-      console.log('Creating Supabase client...')
-      const supabaseAdmin = createClient(
-        env.SUPABASE_URL,
-        env.SUPABASE_SERVICE_ROLE_KEY
-      )
-
-      // Store the webhook data
-      console.log('Storing webhook data...')
-      const { data, error } = await supabaseAdmin
-        .from('licenses')
-        .upsert({
-          email: payload.email,
-          full_name: payload['Your Name'] || payload.custom_fields?.['Your Name'] || null,
-          phone_number: payload['Mobile Number'] || payload.custom_fields?.['Mobile Number'] || null,
-          country: payload.country || payload.ip_country || null,
-          license_key: payload.license_key,
-          sale_id: payload.sale_id,
-          created_at: payload.sale_timestamp || new Date().toISOString(),
-          device_id: null,
-          is_active: true,
-          is_beta: true,
-          has_completed_onboarding: false
-        }, {
-          onConflict: 'email',
-          ignoreDuplicates: false
-        })
-
-      if (error) {
-        console.error('Database error:', error)
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { 
-            status: 500, 
-            headers: { 
-              ...corsHeaders,
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-      }
-
-      console.log('Success! Database response:', data)
+      // Rebuild rather than returning the response directly, so the body
+      // streams and the status/headers pass through untouched.
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    } catch (error) {
+      // The origin is unreachable. 502 is the honest answer: the client's
+      // request was fine, the upstream failed.
       return new Response(
-        JSON.stringify({ status: 'success', data }),
-        { 
-          status: 200, 
-          headers: { 
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-
-    } catch (err: any) {
-      console.error('Error:', err)
-      return new Response(
-        JSON.stringify({ error: err.message || 'Unknown error occurred' }),
-        { 
-          status: 500, 
-          headers: { 
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
+        JSON.stringify({
+          error: 'Upstream unreachable',
+          detail: error instanceof Error ? error.message : String(error),
+        }),
+        { status: 502, headers: { 'content-type': 'application/json' } },
+      );
     }
-  }
-} 
+  },
+};

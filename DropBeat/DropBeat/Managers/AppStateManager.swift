@@ -45,10 +45,77 @@ class AppStateManager: ObservableObject {
     private var lastValidationAttemptTime: Date?
     private let minValidationInterval: TimeInterval = 10 // Don't validate more than once per 10 seconds
 
+    /// How long a licence stays trusted while the backend cannot be reached.
+    ///
+    /// Everything between a user and their licence is now remote — Cloudflare,
+    /// Railway, Postgres — plus whatever their ISP is doing. Without a grace
+    /// window, any one of those failing locks a paying customer out of an app
+    /// they already bought, which is a far worse outcome than briefly trusting
+    /// a licence that was valid a fortnight ago.
+    private let offlineGracePeriod: TimeInterval = 14 * 24 * 60 * 60
+
     private init() {
         // Load onboarding state from UserDefaults
         hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         lastValidationTime = UserDefaults.standard.object(forKey: "lastLicenseValidation") as? Date
+
+        restoreCachedLicenseState()
+    }
+
+    /// Restore the last known-good licence before the first network call.
+    ///
+    /// Without this, `licenseStatus` starts `.unknown` and `licenseInfo` starts
+    /// nil on every launch, so the network-error branch in
+    /// validateLicenseOnStartup — which is written to keep a valid licence
+    /// valid — is unreachable on a cold start, and the app falls through to
+    /// `.invalid`. The effect was that any backend outage locked out every
+    /// paying user the next time they restarted the app.
+    private func restoreCachedLicenseState() {
+        let defaults = UserDefaults.standard
+        guard defaults.string(forKey: "licenseKey") != nil,
+              let cachedAt = defaults.object(forKey: "lastSuccessfulValidation") as? Date,
+              let name = defaults.string(forKey: "cachedLicenseName"),
+              let email = defaults.string(forKey: "cachedLicenseEmail"),
+              let country = defaults.string(forKey: "cachedLicenseCountry"),
+              let createdAt = defaults.object(forKey: "cachedLicenseCreatedAt") as? Date
+        else { return }
+
+        guard Date().timeIntervalSince(cachedAt) < offlineGracePeriod else {
+            print("🔐 [DropBeat] Cached licence is older than the grace period; a live check is required")
+            return
+        }
+
+        licenseInfo = LicenseInfo(
+            name: name,
+            email: email,
+            country: country,
+            createdAt: createdAt,
+            hasCompletedOnboarding: defaults.bool(forKey: "hasCompletedOnboarding")
+        )
+        licenseStatus = .valid
+        print("🔐 [DropBeat] Restored cached licence from \(cachedAt); revalidating in the background")
+    }
+
+    /// Persist the last known-good licence so the next cold start can trust it.
+    /// Only ever called after the server has explicitly said the licence is valid.
+    private func cacheLicenseState(_ info: LicenseInfo, at date: Date) {
+        let defaults = UserDefaults.standard
+        defaults.set(date, forKey: "lastSuccessfulValidation")
+        defaults.set(info.name, forKey: "cachedLicenseName")
+        defaults.set(info.email, forKey: "cachedLicenseEmail")
+        defaults.set(info.country, forKey: "cachedLicenseCountry")
+        defaults.set(info.createdAt, forKey: "cachedLicenseCreatedAt")
+    }
+
+    /// Drop the cache. Used when the server explicitly rejects a licence, so a
+    /// revoked or refunded licence cannot survive on disk for a fortnight.
+    private func clearCachedLicenseState() {
+        let defaults = UserDefaults.standard
+        for key in ["lastSuccessfulValidation", "cachedLicenseName",
+                    "cachedLicenseEmail", "cachedLicenseCountry",
+                    "cachedLicenseCreatedAt"] {
+            defaults.removeObject(forKey: key)
+        }
     }
     
     func initialize() {
@@ -142,25 +209,33 @@ class AppStateManager: ObservableObject {
                            let name = response.name,
                            let country = response.country,
                            let createdAt = response.createdAt {
-                            self.licenseInfo = LicenseInfo(
+                            let info = LicenseInfo(
                                 name: name,
                                 email: email,
                                 country: country,
                                 createdAt: createdAt,
                                 hasCompletedOnboarding: response.hasCompletedOnboarding ?? false
                             )
+                            self.licenseInfo = info
 
                             // Update onboarding state
                             self.hasCompletedOnboarding = response.hasCompletedOnboarding ?? false
                             UserDefaults.standard.set(self.hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+
+                            // Remember this good answer so a later outage does
+                            // not lock the user out on their next cold start.
+                            self.cacheLicenseState(info, at: now)
                         }
 
                         // Update last validation time
                         self.lastValidationTime = now
                         UserDefaults.standard.set(self.lastValidationTime, forKey: "lastLicenseValidation")
                     } else {
-                        // Server explicitly says the license is invalid - this is a permanent state
+                        // Server explicitly says the license is invalid - this is a permanent state.
+                        // Clear the offline cache too: a revoked or refunded licence must not
+                        // keep working for the remainder of the grace window.
                         print("❌ [DropBeat] Server returned invalid license: \(response.error ?? "unknown error")")
+                        self.clearCachedLicenseState()
                         self.licenseStatus = .invalid(response.error ?? "Invalid license")
                         self.forceOnboarding()
                     }

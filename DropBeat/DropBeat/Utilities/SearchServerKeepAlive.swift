@@ -11,7 +11,12 @@ final class SearchServerKeepAlive {
     static let shared = SearchServerKeepAlive()
     
     private init() {
-        self.serverURL = URL(string: "https://dropbeats-server.onrender.com/health")!
+        // Was hardcoded to dropbeats-server.onrender.com, a host that stopped
+        // existing at the Railway migration — so this timer has been warming
+        // nothing for months. Routed through BackendConfig now, which means it
+        // also goes via the Cloudflare Worker and keeps the path the app
+        // actually uses warm, rather than a second one nobody calls.
+        self.serverURL = URL(string: BackendConfig.healthURL())!
         setupObservers()
         startPinging()
     }

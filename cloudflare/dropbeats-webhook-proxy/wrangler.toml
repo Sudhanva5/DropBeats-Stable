@@ -1,9 +1,16 @@
 name = "dropbeats-webhook-proxy"
 main = "src/worker.ts"
+# Request-body streaming (`duplex: 'half'`) needs no compatibility flag: the
+# constructors it relies on became default behaviour on 2022-11-30, and naming
+# the old flag is now a hard startup error.
 compatibility_date = "2024-01-18"
 
+workers_dev = true
+
 [vars]
-SUPABASE_URL = "https://trtxfdsssreqhuajpvqk.supabase.co"
+# Railway origin. Kept as a variable so the backend can be repointed without a
+# code change or a new Worker deploy of substance.
+ORIGIN_URL = "https://dropbeats-server-production.up.railway.app"
 
 [observability.logs]
 enabled = true
@@ -11,5 +18,3 @@ enabled = true
 [dev]
 port = 8787
 local_protocol = "http"
-[triggers]
-crons = [ ] 

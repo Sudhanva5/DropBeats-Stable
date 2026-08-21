@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDD2D0E3386005578B6 /* KeyboardShortcuts */; };
-		40DCCBDF2D0E3387005578B7 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDE2D0E3387005578B7 /* Supabase */; };
 		40DCCBE02D0E3388005578B8 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 40DCCBDF2D0E3388005578B8 /* Lottie */; };
 /* End PBXBuildFile section */
 
@@ -30,7 +29,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				40DCCBDE2D0E3386005578B6 /* KeyboardShortcuts in Frameworks */,
-				40DCCBDF2D0E3387005578B7 /* Supabase in Frameworks */,
 				40DCCBE02D0E3388005578B8 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -106,7 +104,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				40DCCBDD2D0E3387005578B7 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				40DCCBDE2D0E3388005578B8 /* XCRemoteSwiftPackageReference "lottie-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -346,14 +343,6 @@
 				minimumVersion = 2.2.4;
 			};
 		};
-		40DCCBDD2D0E3387005578B7 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/supabase/supabase-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
-			};
-		};
 		40DCCBDE2D0E3388005578B8 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-spm";
@@ -369,11 +358,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 40DCCBDC2D0E3386005578B6 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
-		};
-		40DCCBDE2D0E3387005578B7 /* Supabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 40DCCBDD2D0E3387005578B7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Supabase;
 		};
 		40DCCBDF2D0E3388005578B8 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
