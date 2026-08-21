@@ -23,6 +23,18 @@ final class LicenseService {
         configuration.timeoutIntervalForRequest = 20
         configuration.timeoutIntervalForResource = 30
         configuration.waitsForConnectivity = false
+
+        // Identify the app explicitly. Requests now pass through Cloudflare,
+        // whose bot management judges by User-Agent — a generic or unfamiliar
+        // one gets a 403 before it ever reaches Railway (verified: the same
+        // request 403s as "Python-urllib/3.11" and 200s as a CFNetwork UA).
+        // Relying on URLSession's default would leave licensing at the mercy
+        // of a heuristic nobody here controls.
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+        configuration.httpAdditionalHeaders = [
+            "User-Agent": "DropBeat/\(version) (macOS; +https://github.com/Sudhanva5/DropBeats-Stable)"
+        ]
+
         self.session = URLSession(configuration: configuration)
 
         let decoder = JSONDecoder()
