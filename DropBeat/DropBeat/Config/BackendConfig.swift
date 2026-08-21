@@ -14,7 +14,11 @@ struct BackendConfig {
     ///
     /// Cloudflare sets CF-Connecting-IP on the way through, which is how the
     /// backend still tells clients apart for rate limiting.
-    private static let proxyBaseURL = "https://dropbeats-webhook-proxy.llm-experiments.workers.dev"
+    /// Personal Cloudflare account. Deliberately NOT the Scaler work account —
+    /// this hostname gets compiled into every shipped DMG, so a product
+    /// dependency on an employer's account could only be undone by releasing a
+    /// new signed build. `wrangler.toml` pins the account id for the same reason.
+    private static let proxyBaseURL = "https://dropbeats-webhook-proxy.sudhanva-udupi55.workers.dev"
 
     /// Search and recommendations (ytmusicapi), via the proxy.
     private static let searchBaseURL = proxyBaseURL

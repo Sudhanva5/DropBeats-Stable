@@ -1,5 +1,13 @@
 name = "dropbeats-webhook-proxy"
 main = "src/worker.ts"
+
+# Pinned deliberately. This Worker was first deployed to the Scaler work
+# account (llm.experiments@scaler.com) purely because that was the logged-in
+# wrangler session, which would have left a personal paid product depending on
+# an employer's account — and its hostname baked into a signed DMG. Pinning the
+# account makes a deploy to the wrong one fail loudly instead of silently
+# succeeding. This is Sudhanva's personal Cloudflare account.
+account_id = "f7e01432d43deb5ecdfe48a31ba336bc"
 # Request-body streaming (`duplex: 'half'`) needs no compatibility flag: the
 # constructors it relies on became default behaviour on 2022-11-30, and naming
 # the old flag is now a hard startup error.
