@@ -73,8 +73,24 @@ final class CommandPalette: NSObject {
         // observers do not survive the macro.
         PaletteVisibility.isVisible = true
 
-        // Center window on screen
-        if let screen = NSScreen.main {
+        // Re-assert Space and level behaviour on every show, not just once at
+        // construction. The window is built at launch and reused forever; after
+        // orderOut/orderFront cycles — especially across a full-screen Space
+        // transition — macOS does not reliably keep the original association,
+        // and the panel ends up bound to whichever Space it was last shown on.
+        // That is the "it sticks to one window" symptom.
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+        window.level = .popUpMenu
+
+        // Place on the screen the POINTER is on, not NSScreen.main.
+        //
+        // NSScreen.main means "the screen with the key window". A menu-bar app
+        // with no key window has no meaningful answer, so on a multi-display
+        // setup this could centre the palette on a display you are not looking
+        // at — indistinguishable, from the user's side, from it not opening.
+        let targetScreen = NSScreen.screens.first { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) }
+            ?? NSScreen.main
+        if let screen = targetScreen {
             let screenFrame = screen.visibleFrame
             let windowFrame = window.frame
 
@@ -89,20 +105,23 @@ final class CommandPalette: NSObject {
             ), display: true)
         }
 
-        // Activate app and show window with proper focus
-        // Using AlwaysKeyPanel ensures the window can become key and receive keyboard input
-        NSApp.activate(ignoringOtherApps: true)
+        // Deliberately NOT calling NSApp.activate(ignoringOtherApps:).
+        //
+        // It contradicts .nonactivatingPanel, and over a full-screen app it is
+        // actively harmful: activating an accessory app can make macOS switch
+        // Spaces to wherever the app "lives", yanking the user out of their
+        // full-screen window. .fullScreenAuxiliary exists precisely so a panel
+        // can join the current full-screen Space WITHOUT an app switch, and
+        // forcing activation defeats it.
+        //
+        // Keyboard focus does not depend on activation here: AlwaysKeyPanel
+        // overrides canBecomeKey, which is what lets a non-activating panel
+        // take key status while the app underneath stays active. This is how
+        // Spotlight-style panels behave.
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
 
-        print("🎯 [palette] Window shown - AlwaysKeyPanel ensures keyboard focus")
-
-        // Reinforce activation after brief delay to overcome fullscreen app focus issues
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            NSApp.activate(ignoringOtherApps: true)
-            window.makeKeyAndOrderFront(nil)
-            print("🎯 [palette] Reinforced activation at +50ms")
-        }
+        print("🎯 [palette] Window shown on \(targetScreen?.localizedName ?? "unknown screen")")
 
         // Signal to the view that the window is now visible and ready for input
         DispatchQueue.main.async {
