@@ -41,7 +41,20 @@ func eventTapCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent,
     let isSpaceKey = keyCode == 49
 
     if hasCmdModifier && hasOptModifier && isSpaceKey {
-        print("🎹 [palette] Command Palette hotkey detected at OS level (fullscreen compatible)")
+        // Ignore auto-repeat. macOS repeats keyDown while a key is held, and
+        // this tap toggled on every single repeat: holding the chord for one
+        // second produced a burst of show/hide/show/hide at ~170ms intervals,
+        // leaving the palette in whatever state the last repeat happened to
+        // land on. Measured in app.log — 94 toggles across two key-holds, at
+        // machine-regular 160-200ms spacing no human produces by tapping.
+        //
+        // That is a second, independent cause of "the search bar doesn't
+        // work", distinct from the duplicate-handler accumulation fixed in
+        // setupKeyboardShortcuts(). The event is still consumed so the app
+        // underneath never sees the repeats either.
+        if event.getIntegerValueField(.keyboardEventAutorepeat) != 0 {
+            return nil
+        }
 
         // Show command palette
         Task { @MainActor in
@@ -68,6 +81,14 @@ func eventTapCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent,
     if paletteVisible {
         // Escape key (keyCode 53) - dismiss palette
         if keyCode == 53 {
+            // Same auto-repeat guard as the hotkey above: holding Escape would
+            // otherwise dismiss the palette and immediately reopen it on the
+            // next repeat. Deliberately NOT applied to the text-input keys
+            // below, where auto-repeat is wanted — holding backspace should
+            // delete more than one character.
+            if event.getIntegerValueField(.keyboardEventAutorepeat) != 0 {
+                return nil
+            }
             print("🎹 [palette] Escape key pressed - dismissing palette")
             Task { @MainActor in
                 await CommandPalette.shared.toggle()
@@ -103,6 +124,7 @@ func eventTapCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent,
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private let logger = AppLogger.shared
     private var statusItem: NSStatusItem!
     private var contextMenu: NSMenu?
     private var playerManager: MusicPlayerManager
@@ -232,7 +254,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard case .valid = AppStateManager.shared.licenseStatus else {
             return
         }
-        
+
+        // Clear existing handlers before re-registering. THIS IS THE FIX for
+        // "the search bar stops working after a while".
+        //
+        // KeyboardShortcuts.onKeyDown APPENDS:
+        //     legacyKeyDownHandlers[name, default: []].append(action)
+        // and the dispatch loop runs every handler it finds:
+        //     for handler in handlers { handler() }
+        //
+        // This method is called on launch AND from handleLicenseStatusChange(),
+        // which fires on every LicenseStatusChanged notification — and
+        // AppStateManager posts that whenever licenseStatus changes, e.g. a
+        // network blip flipping .valid -> .invalid -> .valid, or a revalidation
+        // after waking from sleep. Each one appended another handler.
+        //
+        // So one ⌘⌥Space fired N toggles. Even N opened and immediately closed
+        // the palette (looks dead), odd N worked. Restarting reset N to 1,
+        // which is why a restart "fixed" it. That parity is also why the bug
+        // looked intermittent rather than systematic.
+        for name in [KeyboardShortcuts.Name.toggleCommandPalette,
+                     .togglePlayPause,
+                     .nextTrack,
+                     .previousTrack] {
+            KeyboardShortcuts.removeHandler(for: name)
+        }
+        logger.log("⌨️ Registering global shortcuts (handlers cleared first)", category: .app)
+
         KeyboardShortcuts.onKeyDown(for: .toggleCommandPalette) { [weak self] in
             Task { @MainActor in
                 await CommandPalette.shared.toggle()

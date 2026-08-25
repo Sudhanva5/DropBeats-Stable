@@ -178,7 +178,7 @@ struct CommandPaletteView: View {
                                             // DESIGN: Icon size - adjust width and height
                                             .frame(width: 8, height: 12)
                                             .foregroundColor(.secondary)
-                    Text("DropBeats v1.0")
+                    Text("DropBeats v\(Bundle.main.appVersion)")
                         // DESIGN: Font size for app branding text
                         .font(.caption)
                         .foregroundColor(.secondary)

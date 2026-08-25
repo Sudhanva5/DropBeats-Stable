@@ -54,6 +54,18 @@ final class CommandPalette: NSObject {
     nonisolated
     func toggle() {
         Task { @MainActor in
+            // Counted so a recurrence of the duplicate-handler bug is visible.
+            // Every diagnostic in this file used to be print(), which goes to
+            // stdout and is invisible for a Finder-launched app — that is why
+            // the "search stops working" bug went three rounds without
+            // evidence. More than one toggle per keypress here means handlers
+            // are accumulating again.
+            CommandPalette.toggleCount += 1
+            let action = state.isVisible ? "hide" : "show"
+            AppLogger.shared.log(
+                "🎛️ palette toggle #\(CommandPalette.toggleCount) -> \(action)",
+                category: .app
+            )
             if state.isVisible {
                 await hide()
             } else {
@@ -61,6 +73,10 @@ final class CommandPalette: NSObject {
             }
         }
     }
+
+    /// Monotonic count of toggle() invocations, for diagnosing duplicate
+    /// hotkey handlers. Two increments from a single keypress is the signature.
+    @MainActor private static var toggleCount = 0
     
     private func show() {
         guard let window = window else { return }

@@ -382,7 +382,7 @@ struct ShortcutsTabView: View {
                 }
                 .padding(.vertical, 8)
             } header: {
-                Text("DropBeat Shortcuts")
+                Text("DropBeats Shortcuts")
                     .font(.headline)
                     .padding(.leading, -8)
             }
@@ -407,7 +407,7 @@ struct AboutTabView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("DropBeats")
                         .font(.system(size: 24, weight: .semibold))
-                    Text("Version 1.0.0")
+                    Text("Version \(Bundle.main.appVersion) (\(Bundle.main.appBuild))")
                         .foregroundColor(.secondary)
                 }
                 
